@@ -1,0 +1,25 @@
+[package]
+name = "microservice_postgresql_rs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+diesel = { version = "2.0.0", features = ["postgres", "numeric", "chrono"] }
+dotenv = "0.15.0"
+serde = "1.0.137"
+serde_derive = "1.0.137"
+bigdecimal = { version = "0.3.0" , features = ["serde"] }
+salvo = "0.43.0"
+tokio = { version = "1", features = ["macros"] }
+chrono = "0.4.23"
+serde_json = "1.0.91"
+log = "0.4.17"
+simple_logger = "4.1.0"
+cached = "0.44.0"
+hyper = { version = "0.14", features = ["full"] }
+
+[[bin]]
+name = "server"

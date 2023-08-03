@@ -1,0 +1,37 @@
+name: Build Project
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the develop branch
+  push:
+   branches: [ "main", "master", "develop", "bugfix/*", "feature/*" ]
+  pull_request:
+    branches: [ "main", "master", "develop", "bugfix/*", "feature/*" ]
+
+env:
+  # Pretty cargo output!
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build
+      run: cargo build --verbose
+    - name: Run tests
+      run: cargo test --verbose
+    - name: Create Distribution Folder
+      run: mkdir distributions
+    - name: Copy files
+      run: |
+          cp .env distributions/
+          cp target/debug/server distributions/
+
+    - name: Upload Binary Files
+      uses: actions/upload-artifact@v3
+      with:
+          name: play-backend-rs
+          path: distributions/
