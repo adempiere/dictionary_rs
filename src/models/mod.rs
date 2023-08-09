@@ -1,3 +1,3 @@
 pub mod readers;
-pub mod documents;
+pub mod menu;
 pub mod persistence;

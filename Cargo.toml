@@ -1,5 +1,5 @@
 [package]
-name = "microservice_postgresql_rs"
+name = "opensearch_gateway_rs"
 version = "0.1.0"
 edition = "2021"
 publish = false
@@ -20,6 +20,9 @@ log = "0.4.17"
 simple_logger = "4.1.0"
 cached = "0.44.0"
 hyper = { version = "0.14", features = ["full"] }
+futures = "0.3.26"
+rdkafka = "0.33.0"
+opensearch = "2.1.0"
 
 [[bin]]
 name = "server"

@@ -6,6 +6,7 @@ pub mod schema;
 pub mod models;
 pub mod controller;
 
+
 pub fn establish_connection() -> PgConnection {
     dotenv().ok();
 
