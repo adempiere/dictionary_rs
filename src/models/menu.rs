@@ -79,6 +79,17 @@ impl IndexDocument for Menu {
     fn index_name(self: &Self) -> String {
         "menu".to_string()
     }
+
+    fn find(self: &Self, _search_value: String) -> serde_json::Value {
+        json!({
+            "query": {
+                "multi_match": {
+                    "query": _search_value,
+                    "fields": ["name^2", "description"]
+                }           
+            }
+        })
+    }
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]

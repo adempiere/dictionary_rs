@@ -1,5 +1,5 @@
 use std::env;
-use opensearch_gateway_rs::{models::menu::{MenuDocument, Menu}, controller::{kafka::create_consumer, opensearch::{create, IndexDocument, create_index_definition}}};
+use opensearch_gateway_rs::{models::menu::MenuDocument, controller::{kafka::create_consumer, opensearch::{create, IndexDocument}}};
 use dotenv::dotenv;
 use rdkafka::{Message, consumer::{CommitMode, Consumer}};
 use salvo::prelude::*;
@@ -26,19 +26,6 @@ async fn main() {
         //         .post(create_order_line)
         // )
         ;
-    create_index_definition(&Menu::default()).await.expect("error creating index");
-    for counter in 100..200 {
-        let mut _document = Menu::default();
-        _document.id = Some(counter);
-        _document.uuid = Some(format!("uuid-{}", counter));
-        _document.name = Some(format!("name-{}", counter));
-        _document.description = Some(format!("description-{:}", counter));
-        let _menu_document: &dyn IndexDocument = &_document;
-        match create(_menu_document).await {
-            Ok(_) => {},
-            Err(error) => log::warn!("{}", error)
-        }
-    }
     log::info!("{:#?}", router);
     let acceptor = TcpListener::new(&host).bind().await;
     let futures = vec![
