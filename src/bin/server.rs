@@ -1,5 +1,5 @@
 use std::env;
-use opensearch_gateway_rs::{models::menu::MenuDocument, controller::{kafka::create_consumer, opensearch::{create, IndexDocument}}};
+use opensearch_gateway_rs::{models::menu::MenuDocument, controller::{kafka::create_consumer, opensearch::{create, IndexDocument, delete}}};
 use dotenv::dotenv;
 use rdkafka::{Message, consumer::{CommitMode, Consumer}};
 use salvo::prelude::*;
@@ -71,22 +71,39 @@ async fn consume_queue() {
                         ""
                     }
                 };
-                // let key = match message.key_view::<str>() {
-                //     None => "",
-                //     Some(Ok(s)) => s,
-                //     Some(Err(e)) => {
-                //         log::info!("Error while deserializing message key: {:?}", e);
-                //         ""
-                //     }
-                // };
-                // let key = key.replace("\"", "");
+                let key = match message.key_view::<str>() {
+                    None => "",
+                    Some(Ok(s)) => s,
+                    Some(Err(e)) => {
+                        log::info!("Error while deserializing message key: {:?}", e);
+                        ""
+                    }
+                };
+                let event_type = key.replace("\"", "");
                 let topic = message.topic();
                 if topic == "ad_menu" {
                     let _document: MenuDocument = serde_json::from_str(payload).expect("Error with payload");
                     let _menu_document: &dyn IndexDocument = &(_document.menu.unwrap());
-                    match create(_menu_document).await {
-                        Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-                        Err(error) => log::warn!("{}", error)
+                    if event_type.eq("new") {
+                        match create(_menu_document).await {
+                            Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
+                            Err(error) => log::warn!("{}", error)
+                        }   
+                    } else if event_type.eq("update") {
+                        match delete(_menu_document).await {
+                            Ok(_) => {
+                                match create(_menu_document).await {
+                                    Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
+                                    Err(error) => log::warn!("{}", error)
+                                }
+                            },
+                            Err(error) => log::warn!("{}", error)
+                        } 
+                    } else if event_type.eq("delete") {
+                        match delete(_menu_document).await {
+                            Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
+                            Err(error) => log::warn!("{}", error)
+                        }
                     }
                 }
                 // TODO: Add token header

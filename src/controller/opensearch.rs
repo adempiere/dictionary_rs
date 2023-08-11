@@ -186,7 +186,7 @@ pub async fn delete(_document: &dyn IndexDocument) -> Result<bool, std::string::
     Ok(true)
 }
 
-pub async fn find(_document: &dyn IndexDocument, _search_value: String, _from: i64, _size: i64) -> Result<bool, std::string::String> {
+pub async fn find(_document: &dyn IndexDocument, _search_value: String, _from: i64, _size: i64) -> Result<Vec<Value>, std::string::String> {
     let client = match create_opensearch_client() {
         Ok(client_value) => client_value,
         Err(error) => {
@@ -212,9 +212,10 @@ pub async fn find(_document: &dyn IndexDocument, _search_value: String, _from: i
         return Err("Error inserting record".to_owned());
     }
     let response_body = response.json::<Value>().await.expect("Error getting data");
+    let mut list: Vec::<Value> = Vec::new();
     for hit in response_body["hits"]["hits"].as_array().unwrap() {
-        // print the source document
-        println!("Hi: {}", serde_json::to_string_pretty(&hit["_source"]).unwrap());
+        let value = hit["_source"].to_owned();
+        list.push(value)
     }
-    Ok(true)
+    Ok(list)
 }

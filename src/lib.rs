@@ -42,8 +42,11 @@ mod tests {
         let mut _document = Menu::default();
         let _menu_document: &dyn IndexDocument = &_document;
         match find(_menu_document, "name-1".to_string(), 0, 10).await {
-            Ok(value) => {
-                log::info!("Finded Value: {:?}", value);
+            Ok(values) => {
+                for value in values {
+                    let menu: Menu = serde_json::from_value(value).unwrap();
+                    log::info!("Finded Value: {:?}", menu);
+                }
             },
             Err(error) => log::warn!("{}", error)
         }
