@@ -1,6 +1,6 @@
 use std::env;
 
-use opensearch::{OpenSearch, IndexParts, DeleteParts, SearchParts};
+use opensearch::{OpenSearch, IndexParts, DeleteParts, SearchParts, GetParts};
 use opensearch::http::Url;
 use opensearch::http::transport::{SingleNodeConnectionPool, TransportBuilder};
 use opensearch::indices::{IndicesGetParts, IndicesCreateParts, IndicesDeleteParts};
@@ -79,7 +79,7 @@ pub async fn create_index_definition(_index: &dyn IndexDocument) -> Result<bool,
                 if value.status_code().is_success() {
                     log::info!("Index created: {:?}", _index.index_name());
                 } else {
-                    return Err(format!("Error creating index {:?}({:?})", _index.index_name(), value.status_code()));    
+                    return Err(format!("Error creating index {:?}({:?})", _index.index_name(), value.text().await));    
                 }
             }
             Err(error) => {
@@ -143,20 +143,37 @@ pub async fn create(_document: &dyn IndexDocument) -> Result<bool, std::string::
             return Err(error.to_string());
         }
     };
+    let _response = create_index_definition(_document).await;
+    let _response = match _response {
+        Ok(_) => true,
+        Err(error) => {
+            log::error!("{:?}", error);
+            false
+        }
+    };
+    match get_by_id(_document).await {
+        Ok(_) => {
+            match delete(_document).await {
+                Ok(_) => {},
+                Err(error) => log::error!("{:?}", error),
+            };
+        },
+        Err(_) => {},
+    };
     //  Create
     let _response = client
         .index(IndexParts::IndexId(&_document.index_name(), &_document.id()))
         .body(_document.data())
         .send().await;
-    let response = match _response {
+    let _response = match _response {
         Ok(value) => value,
         Err(error) => {
             log::error!("{:?}", error);
             return Err(error.to_string());
         }
     };
-    if !response.status_code().is_success() {
-        return Err("Error inserting record".to_owned());
+    if !_response.status_code().is_success() {
+        return Err(format!("Error inserting record {:?} {:?} {:?}", _document.index_name(), _document.id(), _response.text().await));
     }
     Ok(true)
 }
@@ -173,16 +190,13 @@ pub async fn delete(_document: &dyn IndexDocument) -> Result<bool, std::string::
     let _response = client
         .delete(DeleteParts::IndexId(&_document.index_name(), &_document.id()))
         .send().await;
-    let response = match _response {
+    match _response {
         Ok(value) => value,
         Err(error) => {
             log::error!("{:?}", error);
             return Err(error.to_string());
         }
     };
-    if !response.status_code().is_success() {
-        return Err("Error deleting record".to_owned());
-    }
     Ok(true)
 }
 
@@ -209,13 +223,51 @@ pub async fn find(_document: &dyn IndexDocument, _search_value: String, _from: i
         }
     };
     if !response.status_code().is_success() {
-        return Err("Error inserting record".to_owned());
+        return Err(format!("Error finding record {:?}", response.text().await));
     }
-    let response_body = response.json::<Value>().await.expect("Error getting data");
+    let response_body = match response.json::<Value>().await {
+        Ok(response) => response,
+        Err(error) => {
+            log::error!("{:?}", error);
+            return Err(error.to_string());
+        },
+    };
     let mut list: Vec::<Value> = Vec::new();
     for hit in response_body["hits"]["hits"].as_array().unwrap() {
         let value = hit["_source"].to_owned();
         list.push(value)
     }
     Ok(list)
+}
+
+pub async fn get_by_id(_document: &dyn IndexDocument) -> Result<Value, std::string::String> {
+    let client = match create_opensearch_client() {
+        Ok(client_value) => client_value,
+        Err(error) => {
+            log::error!("{:?}", error);
+            return Err(error.to_string());
+        }
+    };
+    //  Create
+    let _response = client
+        .get(GetParts::IndexId(&_document.index_name(), &_document.id()))
+        .send().await;
+    let _response = match _response {
+        Ok(value) => value,
+        Err(error) => {
+            log::error!("{:?}", error);
+            return Err(error.to_string());
+        }
+    };
+    if !_response.status_code().is_success() {
+        return Err(format!("Error finding record by ID {:?}", _response.text().await));
+    }
+    let response_body = match _response.json::<Value>().await {
+        Ok(response) => response,
+        Err(error) => {
+            log::error!("{:?}", error);
+            return Err(error.to_string());
+        },
+    };
+    Ok(response_body)
 }

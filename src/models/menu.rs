@@ -23,6 +23,11 @@ pub struct Menu {
     pub is_sales_transaction: Option<bool>,
     pub is_read_only: Option<bool>,
     pub action: Option<String>,
+    pub index_value: Option<String>,
+    pub language: Option<String>,
+    pub client_id: Option<i32>,
+    pub role_id: Option<i32>,
+    pub user_id: Option<i32>,
     pub window: Option<Window>,
     pub process: Option<Process>,
     pub form: Option<Form>,
@@ -47,7 +52,12 @@ impl Default for Menu {
             process: None, 
             form: None, 
             browse: None,
-            children: None 
+            children: None,
+            client_id: None,
+            index_value: None,
+            language: None,
+            role_id: None,
+            user_id: None
         }
     }
 }
@@ -77,7 +87,10 @@ impl IndexDocument for Menu {
     }
 
     fn index_name(self: &Self) -> String {
-        "menu".to_string()
+        match &self.index_value {
+            Some(value) => value.to_string(),
+            None => "menu".to_string(),
+        }
     }
 
     fn find(self: &Self, _search_value: String) -> serde_json::Value {
@@ -98,7 +111,7 @@ pub struct Window {
     pub id: Option<i32>,
     pub name: Option<String>,
     pub description: Option<String>,
-    pub help: Option<bool>,
+    pub help: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
@@ -107,7 +120,7 @@ pub struct Process {
     pub id: Option<i32>,
     pub name: Option<String>,
     pub description: Option<String>,
-    pub help: Option<bool>,
+    pub help: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
@@ -116,7 +129,7 @@ pub struct Form {
     pub id: Option<i32>,
     pub name: Option<String>,
     pub description: Option<String>,
-    pub help: Option<bool>,
+    pub help: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
@@ -125,5 +138,5 @@ pub struct Browse {
     pub id: Option<i32>,
     pub name: Option<String>,
     pub description: Option<String>,
-    pub help: Option<bool>,
+    pub help: Option<String>,
 }

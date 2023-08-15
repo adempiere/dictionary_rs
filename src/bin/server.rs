@@ -81,28 +81,38 @@ async fn consume_queue() {
                 };
                 let event_type = key.replace("\"", "");
                 let topic = message.topic();
-                if topic == "ad_menu" {
-                    let _document: MenuDocument = serde_json::from_str(payload).expect("Error with payload");
-                    let _menu_document: &dyn IndexDocument = &(_document.menu.unwrap());
-                    if event_type.eq("new") {
-                        match create(_menu_document).await {
-                            Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-                            Err(error) => log::warn!("{}", error)
-                        }   
-                    } else if event_type.eq("update") {
-                        match delete(_menu_document).await {
-                            Ok(_) => {
-                                match create(_menu_document).await {
-                                    Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-                                    Err(error) => log::warn!("{}", error)
-                                }
-                            },
-                            Err(error) => log::warn!("{}", error)
-                        } 
-                    } else if event_type.eq("delete") {
-                        match delete(_menu_document).await {
-                            Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-                            Err(error) => log::warn!("{}", error)
+                if topic == "menu" {
+                    let _document: MenuDocument = match serde_json::from_str(payload) {
+                        Ok(value) => value,
+                        Err(error) => {
+                            log::warn!("{}", error);
+                            MenuDocument {
+                                menu: None
+                            }
+                        },
+                    };
+                    if _document.menu.is_some() {
+                        let _menu_document: &dyn IndexDocument = &(_document.menu.unwrap());
+                        if event_type.eq("new") {
+                            match create(_menu_document).await {
+                                Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
+                                Err(error) => log::warn!("{}", error)
+                            }   
+                        } else if event_type.eq("update") {
+                            match delete(_menu_document).await {
+                                Ok(_) => {
+                                    match create(_menu_document).await {
+                                        Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
+                                        Err(error) => log::warn!("{}", error)
+                                    }
+                                },
+                                Err(error) => log::warn!("{}", error)
+                            } 
+                        } else if event_type.eq("delete") {
+                            match delete(_menu_document).await {
+                                Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
+                                Err(error) => log::warn!("{}", error)
+                            }
                         }
                     }
                 }
