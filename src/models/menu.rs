@@ -1,14 +1,32 @@
 use serde::{Deserialize, Serialize};
 use salvo::prelude::*;
 use serde_json::json;
+use std::{io::ErrorKind, io::Error};
 
-use crate::controller::opensearch::IndexDocument;
-extern crate diesel;
+use crate::controller::opensearch::{IndexDocument, get_by_id, find};
 
 #[derive(Deserialize, Extractible, Debug, Clone)]
 #[extract(default_source(from = "body", format = "json"))]
 pub struct MenuDocument {
     pub menu: Option<Menu>
+}
+
+#[derive(Serialize, Debug, Clone)]
+pub struct MenuResponse {
+    pub menu: Option<Menu>
+}
+
+#[derive(Serialize, Debug, Clone)]
+pub struct MenuListResponse {
+    pub menus: Option<Vec<Menu>>
+}
+
+impl Default for MenuResponse {
+    fn default() -> Self {
+        MenuResponse { 
+            menu: None 
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
@@ -59,6 +77,14 @@ impl Default for Menu {
             role_id: None,
             user_id: None
         }
+    }
+}
+
+impl Menu {
+    pub fn from_id(_id: Option<i32>) -> Self {
+        let mut menu = Menu::default();
+        menu.id = _id;
+        menu
     }
 }
 
@@ -139,4 +165,79 @@ pub struct Browse {
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
+}
+
+pub async fn menu_from_id(_id: Option<i32>) -> Result<MenuResponse, String> {
+    let mut _document = Menu::from_id(_id);
+    let _menu_document: &dyn IndexDocument = &_document;
+    match get_by_id(_menu_document).await {
+        Ok(value) => {
+            let menu: Menu = serde_json::from_value(value).unwrap();
+            log::info!("Finded Value: {:?}", menu);
+            Ok(MenuResponse {
+                menu: Some(menu)
+            })
+        },
+        Err(error) => {
+            log::warn!("{}", error);
+            Err(error)
+        },
+    }
+}
+
+fn default_menu(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>) -> String {
+    let mut _default_menu: String = "menu".to_owned();
+    _default_menu.push_str("_");
+    _default_menu.push_str(_language.unwrap());
+    _default_menu.push_str("_");
+    _default_menu.push_str(_client_id.unwrap());
+    _default_menu.push_str("_");
+    _default_menu.push_str(_role_id.unwrap());
+    _default_menu.to_lowercase()
+}
+
+fn user_menu(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> String {
+    let mut _default_menu = default_menu(_language, _client_id, _role_id);
+    _default_menu.push_str("_");
+    _default_menu.push_str(_user_id.unwrap());
+    _default_menu.to_lowercase()
+}
+
+pub async fn menus(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _search_value: Option<&String>) -> Result<MenuListResponse, std::io::Error> {
+    //  Validate
+    if _language.is_none() {
+        return Err(Error::new(ErrorKind::InvalidData.into(), "Language is Mandatory"));
+    }
+    if _client_id.is_none() {
+        return Err(Error::new(ErrorKind::InvalidData.into(), "Client is Mandatory"));
+    }
+    if _role_id.is_none() {
+        return Err(Error::new(ErrorKind::InvalidData.into(), "Role is Mandatory"));
+    }
+    let _default_menu = match _user_id {
+        Some(_) => user_menu(_language, _client_id, _role_id, _user_id),
+        None => default_menu(_language, _client_id, _role_id)
+    };
+    let _search_value = match _search_value {
+        Some(value) => value.clone(),
+        None => "".to_owned()
+    };
+    log::info!("Index to search {:}", _default_menu);
+    let mut _document = Menu::default();
+    _document.index_value = Some(_default_menu);
+    let _menu_document: &dyn IndexDocument = &_document;
+    match find(_menu_document, _search_value, 0, 10).await {
+        Ok(values) => {
+            let mut menus: Vec<Menu> = vec![];
+            for value in values {
+                let menu: Menu = serde_json::from_value(value).unwrap();
+                menus.push(menu.to_owned());
+            }
+            Ok(MenuListResponse {
+                menus: Some(menus)
+            })
+        },
+        Err(error) => Err(Error::new(ErrorKind::InvalidData.into(), error))
+    }
+    // Ok(MenuResponse::default())
 }

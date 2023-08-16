@@ -46,6 +46,28 @@ pub fn create_opensearch_client() -> Result<OpenSearch, String> {
     Ok(OpenSearch::new(transport))
 }
 
+pub async fn exists_index(_index_name: String) -> Result<bool, String> {
+    let client = match create_opensearch_client() {
+        Ok(client_value) => client_value,
+        Err(error) => {
+            log::error!("{:?}", error);
+            return Err(error.to_string());
+        }
+    };
+    //  Get data
+    let _response = client.indices()
+        .get(IndicesGetParts::Index(&[&_index_name]))
+        .send().await;
+    let response = match _response {
+        Ok(value) => value,
+        Err(error) => {
+            log::error!("{:?}", error);
+            return Err(error.to_string());
+        }
+    };
+    Ok(response.status_code().is_success())
+}
+
 pub async fn create_index_definition(_index: &dyn IndexDocument) -> Result<bool, String> {
     let client = match create_opensearch_client() {
         Ok(client_value) => client_value,
@@ -136,7 +158,7 @@ pub async fn delete_index_definition(_index: &dyn IndexDocument) -> Result<bool,
 }
 
 pub async fn create(_document: &dyn IndexDocument) -> Result<bool, std::string::String> {
-    let client = match create_opensearch_client() {
+    let client: OpenSearch = match create_opensearch_client() {
         Ok(client_value) => client_value,
         Err(error) => {
             log::error!("{:?}", error);
