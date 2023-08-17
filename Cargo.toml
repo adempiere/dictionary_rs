@@ -25,3 +25,6 @@ opensearch = "2.1.0"
 
 [[bin]]
 name = "server"
+
+[net]
+net.git-fetch-with-cli = true
