@@ -120,12 +120,15 @@ impl IndexDocument for Menu {
     }
 
     fn find(self: &Self, _search_value: String) -> serde_json::Value {
+        let mut query = "*".to_owned();
+        query.push_str(&_search_value.to_owned());
+        query.push_str(&"*".to_owned());
+
         json!({
             "query": {
-                "multi_match": {
-                    "query": _search_value,
-                    "fields": ["name^2", "description"]
-                }           
+                "query_string": {
+                  "query": query
+                }
             }
         })
     }

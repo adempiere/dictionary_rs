@@ -32,10 +32,6 @@ async fn main() {
             Router::with_path("v1/menus")
                 .get(get_menu)
         )
-        .push(
-            Router::with_path("v1/menus/<id>")
-                .get(get_menu)
-        )
         ;
     log::info!("{:#?}", router);
     let acceptor = TcpListener::new(&host).bind().await;
