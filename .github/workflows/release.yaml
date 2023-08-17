@@ -60,7 +60,7 @@ jobs:
           context: .
           file: docker/Dockerfile
           #platforms: linux/amd64,linux/amd64/v2,linux/arm64/v8
-          platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
+          platforms: linux/amd64,linux/arm64/v8
           push: true
           tags: |
             ${{ secrets.DOCKER_HUB_REPO_NAME }}:${{ github.event.release.tag_name }}
