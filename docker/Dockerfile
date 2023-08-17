@@ -8,7 +8,7 @@ WORKDIR /opt/apps/server
 COPY . . /opt/apps/server/
 
 RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
-RUN cargo install --path .
+RUN cargo install --config net.git-fetch-with-cli=true --path .
 RUN mv docker/.env /usr/local/cargo/bin/
 
 FROM debian:bullseye
