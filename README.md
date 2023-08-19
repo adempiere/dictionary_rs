@@ -181,3 +181,15 @@ Note that the request expect some parameters:
   - Client: `menu_es_mx_11`
   - Client + Role: `menu_es_mx_11_103`
   - Client + Role + User: `menu_es_mx_11_103_100`
+
+## Compare Services
+
+A simple request for adempiere menu using [adempiere-grpc-server](https://github.com/solop-develop/adempiere-grpc-server) take almost **1.02 seconds**.
+
+![Java Service 1.02 seconds](docs/Java_Menu_Service.png)
+
+A request using the [OpenSearch-Gateway-rs](https://github.com/adempiere/opensearch_gateway_rs) take almost **47 ms**.
+
+![OpenSearch Service 47 ms](docs/OpenSearch_Menu_Service.png)
+
+The main reason is that [OpenSearch](https://opensearch.org/) is a special service for queries. You can learn anout it in the [official page](https://opensearch.org/docs/latest/#why-use-opensearch)
