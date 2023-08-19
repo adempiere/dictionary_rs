@@ -1,6 +1,48 @@
 # Microservice with Open Search gateway for Rust
 A microservice that publish a Rest API based on [salvo.rs](https://salvo.rs/)
 
+![Queue config](docs/Queue_Config.png)
+
+![Running OpenSearch Gateway](docs/Exporting_Menu.gif)
+
+## Run Docker Compose (Easy way)
+
+You can run it with `docker compose` for develop enviroment, the complete services are:
+
+- Kafka
+- Zookeeper
+- OpenSearch
+- OpenSearch-Gateway-rs
+
+### Requirements
+
+- [Docker Compose v2.16.0 or later](https://docs.docker.com/compose/install/linux/)
+
+```Shell
+docker compose version
+Docker Compose version v2.16.0
+```
+
+## Run it
+
+Just clone it
+
+```Shell
+git clone https://github.com/adempiere/opensearch_gateway_rs
+cd opensearch_gateway_rs/docker-compose
+```
+
+```Shell
+docker compose up
+```
+
+You can use the `-d` parameter to release the terminal.
+
+```Shell
+docker compose up -d
+```
+
+
 ## Requirements
 - Just install [rust](https://www.rust-lang.org/tools/install) from page
 
@@ -57,3 +99,85 @@ Server Address: "0.0.0.0:7878"
     └──v1/menus
         └──[GET] -> server::get_menu
 ```
+
+# General Info
+
+## Testing OpenSearch
+
+For test it just run a CURL like this:
+
+```
+curl --location 'http://localhost:9200'
+```
+
+The response:
+
+```
+{
+  "name" : "opensearch-node",
+  "cluster_name" : "docker-cluster",
+  "cluster_uuid" : "BvOe_rh2TUGkLy70abW9Pw",
+  "version" : {
+    "distribution" : "opensearch",
+    "number" : "2.9.0",
+    "build_type" : "tar",
+    "build_hash" : "1164221ee2b8ba3560f0ff492309867beea28433",
+    "build_date" : "2023-07-18T21:23:29.367080729Z",
+    "build_snapshot" : false,
+    "lucene_version" : "9.7.0",
+    "minimum_wire_compatibility_version" : "7.10.0",
+    "minimum_index_compatibility_version" : "7.0.0"
+  },
+  "tagline" : "The OpenSearch Project: https://opensearch.org/"
+}
+```
+
+The OpenSearch have a defaul size for data, the size is very little and can be increase running 
+
+```curl --location --request PUT 'http://localhost:9200/_all/_settings' \
+--header 'Content-Type: application/json' \
+--data '{"index.blocks.read_only_allow_delete": null}'
+```
+
+## Testing for Kafka
+
+The kafka service can be called from ADempiere using [adempiere-kafka-connector](https://github.com/adempiere/adempiere-kafka-connector), you use two possible ports `29092` and `9092`, internally the opensearch-gateway-rs use the `9092`
+
+
+## Testing OpenSearch-Gateway-rs
+The OpenSearch-Gateway-rs is a microservice that is subscribed to `menu` topic from kafka, process menu and store in OpenSearch. Also is used to publish a little `http` service that allows find a menu by index.
+
+For search a index example you can use this:
+
+```
+curl --location 'http://localhost:7878/v1/menus?language=es_MX&client_id=11&role_id=103&search_value=compra'
+```
+
+Note that the request expect some parameters:
+- Language: `language`=`es_MX`
+- Client ID: `client_id`=11
+- Role ID: `role_id`=`103`
+- User ID (Optional): `user_id` 
+- Search Value: `search_value`=`compra`
+
+### The index structure is the follow:
+
+- English Menu:
+  - Client: `menu_`<client_id>
+  - Client + Role: `menu_`<client_id>`_`<role_id>
+  - Client + Role + User: `menu_`<client_id>`_`<role_id>`_`<user_id> 
+- Translated menu: 
+  - Client: `menu_`<language>`_`<client_id>
+  - Client + Role: `menu_`<language>`_`<client_id>`_`<role_id>
+  - Client + Role + User: `menu_`<language>`_`<client_id>`_`<role_id>`_`<user_id>
+
+### Some Examples
+
+- English Menu:
+  - Client: `menu_11`
+  - Client + Role: `menu_11_102`
+  - Client + Role + User: `menu_11_102_100`
+- Translated menu: 
+  - Client: `menu_es_mx_11`
+  - Client + Role: `menu_es_mx_11_103`
+  - Client + Role + User: `menu_es_mx_11_103_100`
