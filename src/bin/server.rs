@@ -1,5 +1,5 @@
 use std::env;
-use opensearch_gateway_rs::{models::menu::{MenuDocument, menu_from_id, menus}, controller::{kafka::create_consumer, opensearch::{create, IndexDocument, delete}}};
+use opensearch_gateway_rs::{models::{menu::{menu_from_id, menus, MenuDocument}, process::{ProcessDocument, process_from_id, processes}}, controller::{kafka::create_consumer, opensearch::{create, IndexDocument, delete}}};
 use dotenv::dotenv;
 use rdkafka::{Message, consumer::{CommitMode, Consumer}};
 use salvo::prelude::*;
@@ -32,6 +32,10 @@ async fn main() {
             Router::with_path("v1/menus")
                 .get(get_menu)
         )
+        .push(
+            Router::with_path("v1/process")
+                .get(get_process)
+        )
         ;
     log::info!("{:#?}", router);
     let acceptor = TcpListener::new(&host).bind().await;
@@ -60,6 +64,30 @@ async fn get_menu<'a>(_req: &mut Request, _res: &mut Response) {
         let _user_id = _req.queries().get("user_id");
         let _search_value = _req.queries().get("search_value");
         match menus(_language, _client_id, _role_id, _user_id, _search_value).await {
+            Ok(menu) => _res.render(Json(menu)),
+            Err(e) => {
+                _res.render(e.to_string());
+                _res.status_code(StatusCode::INTERNAL_SERVER_ERROR);    
+            }
+        }
+    }
+}
+
+#[handler]
+async fn get_process<'a>(_req: &mut Request, _res: &mut Response) {
+    let _id = _req.param::<i32>("id");
+    if _id.is_some() {
+        match process_from_id(_id).await {
+            Ok(process) => _res.render(Json(process)),
+            Err(error) => _res.render(Json(error))
+        }
+    } else {
+        let _language = _req.queries().get("language");
+        let _client_id = _req.queries().get("client_id");
+        let _role_id = _req.queries().get("role_id");
+        let _user_id = _req.queries().get("user_id");
+        let _search_value = _req.queries().get("search_value");
+        match processes(_language, _client_id, _role_id, _user_id, _search_value).await {
             Ok(menu) => _res.render(Json(menu)),
             Err(e) => {
                 _res.render(e.to_string());
@@ -117,37 +145,37 @@ async fn consume_queue() {
                 let event_type = key.replace("\"", "");
                 let topic = message.topic();
                 if topic == "menu" {
-                    let _document: MenuDocument = match serde_json::from_str(payload) {
+                    let _document = match serde_json::from_str(payload) {
                         Ok(value) => value,
                         Err(error) => {
                             log::warn!("{}", error);
                             MenuDocument {
-                                menu: None
+                                document: None
                             }
                         },
                     };
-                    if _document.menu.is_some() {
-                        let _menu_document: &dyn IndexDocument = &(_document.menu.unwrap());
-                        if event_type.eq("new") {
-                            match create(_menu_document).await {
-                                Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-                                Err(error) => log::warn!("{}", error)
-                            }   
-                        } else if event_type.eq("update") {
-                            match delete(_menu_document).await {
-                                Ok(_) => {
-                                    match create(_menu_document).await {
-                                        Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-                                        Err(error) => log::warn!("{}", error)
-                                    }
-                                },
-                                Err(error) => log::warn!("{}", error)
-                            } 
-                        } else if event_type.eq("delete") {
-                            match delete(_menu_document).await {
-                                Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-                                Err(error) => log::warn!("{}", error)
+                    if _document.document.is_some() {
+                        let _menu_document: &dyn IndexDocument = &(_document.document.unwrap());
+                        match process_index(event_type, _menu_document).await {
+                            Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
+                            Err(error) => log::warn!("{}", error)
+                        }
+                    }
+                } else if topic == "process" {
+                    let _document = match serde_json::from_str(payload) {
+                        Ok(value) => value,
+                        Err(error) => {
+                            log::warn!("{}", error);
+                            ProcessDocument {
+                                document: None
                             }
+                        },
+                    };
+                    if _document.document.is_some() {
+                        let _process_document: &dyn IndexDocument = &(_document.document.unwrap());
+                        match process_index(event_type, _process_document).await {
+                            Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
+                            Err(error) => log::warn!("{}", error)
                         }
                     }
                 }
@@ -160,4 +188,29 @@ async fn consume_queue() {
             }
         };
     }
+}
+
+async fn process_index(_event_type: String, _document: &dyn IndexDocument) -> Result<bool, std::string::String> {
+    if _event_type.eq("new") {
+        match create(_document).await {
+            Ok(_) => return Ok(true),
+            Err(error) => return Err(error.to_string())
+        };  
+    } else if _event_type.eq("update") {
+        match delete(_document).await {
+            Ok(_) => {
+                match create(_document).await {
+                    Ok(_) => return Ok(true),
+                    Err(error) => return Err(error.to_string())
+                }
+            },
+            Err(error) => return Err(error.to_string())
+        };
+    } else if _event_type.eq("delete") {
+        match delete(_document).await {
+            Ok(_) => return Ok(true),
+            Err(error) => return Err(error.to_string())
+        };
+    }
+    Ok(true)
 }

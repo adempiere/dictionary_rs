@@ -65,7 +65,11 @@ pub async fn exists_index(_index_name: String) -> Result<bool, String> {
             return Err(error.to_string());
         }
     };
-    Ok(response.status_code().is_success())
+    if response.status_code().is_success() {
+        Ok(true)
+    } else {
+        Err(format!("Index {:?} Not Found", _index_name))
+    }
 }
 
 pub async fn create_index_definition(_index: &dyn IndexDocument) -> Result<bool, String> {
