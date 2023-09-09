@@ -33,12 +33,24 @@ async fn main() {
                 .get(get_menu)
         )
         .push(
+            Router::with_path("v1/process/<id>")
+                .get(get_process)
+        )
+        .push(
             Router::with_path("v1/process")
                 .get(get_process)
         )
         .push(
+            Router::with_path("v1/browsers/<id>")
+                .get(get_browsers)
+        )
+        .push(
             Router::with_path("v1/browsers")
                 .get(get_browsers)
+        )
+        .push(
+            Router::with_path("v1/windows/<id>")
+                .get(get_windows)
         )
         .push(
             Router::with_path("v1/windows")

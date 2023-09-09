@@ -214,13 +214,13 @@ pub struct DisplayType {
 
 pub async fn process_from_id(_id: Option<i32>) -> Result<ProcessResponse, String> {
     let mut _document = Process::from_id(_id);
-    let _menu_document: &dyn IndexDocument = &_document;
-    match get_by_id(_menu_document).await {
+    let _process_document: &dyn IndexDocument = &_document;
+    match get_by_id(_process_document).await {
         Ok(value) => {
-            let menu: Process = serde_json::from_value(value).unwrap();
-            log::info!("Finded Value: {:?}", menu);
+            let process: Process = serde_json::from_value(value).unwrap();
+            log::info!("Finded Value: {:?}", process);
             Ok(ProcessResponse {
-                process: Some(menu)
+                process: Some(process)
             })
         },
         Err(error) => {
