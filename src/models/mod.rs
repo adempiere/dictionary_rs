@@ -1,5 +1,7 @@
 pub mod menu;
 pub mod process;
+pub mod browser;
+pub mod window;
 pub mod generic;
 
 use serde::{Deserialize, Serialize};
@@ -14,7 +16,7 @@ pub struct Metadata {
 }
 
 fn default_index(_index_name: String, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>) -> String {
-    let mut _default_process: String = "process".to_owned();
+    let mut _default_process: String = _index_name.to_owned();
     _default_process.to_lowercase()
 }
 

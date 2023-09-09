@@ -7,30 +7,30 @@ use crate::{controller::opensearch::{IndexDocument, get_by_id, find, exists_inde
 
 #[derive(Deserialize, Extractible, Debug, Clone)]
 #[extract(default_source(from = "body", format = "json"))]
-pub struct ProcessDocument {
-    pub document: Option<Process>
+pub struct BrowserDocument {
+    pub document: Option<Browser>
 }
 
 #[derive(Serialize, Debug, Clone)]
-pub struct ProcessResponse {
-    pub process: Option<Process>
+pub struct BrowserResponse {
+    pub browser: Option<Browser>
 }
 
 #[derive(Serialize, Debug, Clone)]
-pub struct ProcessListResponse {
-    pub processes: Option<Vec<Process>>
+pub struct BrowserListResponse {
+    pub browsers: Option<Vec<Browser>>
 }
 
-impl Default for ProcessResponse {
+impl Default for BrowserResponse {
     fn default() -> Self {
-        ProcessResponse { 
-            process: None 
+        BrowserResponse { 
+            browser: None 
         }
     }
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct Process {
+pub struct Browser {
     pub uuid: Option<String>,
     pub id: Option<i32>,
     pub value: Option<String>,
@@ -39,30 +39,29 @@ pub struct Process {
     pub help: Option<String>,
     pub entity_type: Option<String>,
     pub access_level: Option<String>,
-    pub class_name: Option<String>,
-    pub is_report: Option<bool>,
-    pub show_help: Option<String>,
-    pub jasper_report: Option<String>,
-    pub procedure_name: Option<String>,
-    pub workflow_id: Option<i32>,
-    pub form_id: Option<i32>,
-    pub browser_id: Option<i32>,
-    pub report_view_id: Option<i32>,
-    pub print_format_id: Option<i32>,
-    pub form: Option<Form>,
-    pub browse: Option<Browse>,
-    pub workflow: Option<Workflow>,
     pub index_value: Option<String>,
     pub language: Option<String>,
     pub client_id: Option<i32>,
     pub role_id: Option<i32>,
     pub user_id: Option<i32>,
-    pub has_parameters: Option<bool>,
-    pub parameters: Option<Vec<ProcessParameters>>
+    pub is_collapsible_by_default: Option<bool>,
+    pub is_deleteable: Option<bool>,
+    pub is_execute_query_by_default: Option<bool>,
+    pub is_selected_by_default: Option<bool>,
+    pub is_show_total: Option<bool>,
+    pub is_updateable: Option<bool>,
+    pub process: Option<Process>,
+    pub window: Option<Window>,
+    pub table: Option<Table>,
+    pub display_fields: Option<Vec<BrowserField>>,
+    pub criteria_fields: Option<Vec<BrowserField>>,
+    pub identifier_fields: Option<Vec<BrowserField>>,
+    pub order_fields: Option<Vec<BrowserField>>,
+    pub editable_fields: Option<Vec<BrowserField>>
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct ProcessParameters {
+pub struct BrowserField {
     pub uuid: Option<String>,
     pub id: Option<i32>,
     pub value: Option<String>,
@@ -84,10 +83,10 @@ pub struct ProcessParameters {
     pub reference_id: Option<i32>,
     pub display_type: Option<DisplayType>,
     pub reference_value_id: Option<i32>,
-    pub validation_id: Option<i32>,
+    pub validation_id: Option<i32>
 }
 
-impl Default for Process {
+impl Default for Browser {
     fn default() -> Self {
         Self { 
             uuid: None, 
@@ -96,41 +95,40 @@ impl Default for Process {
             name: None, 
             description: None, 
             help: None, 
-            form: None, 
-            browse: None,
+            access_level: None,
+            process: None,
+            criteria_fields: None,
+            display_fields: None,
+            editable_fields: None,
+            entity_type: None,
+            identifier_fields: None,
+            is_collapsible_by_default: None,
+            is_deleteable: None,
+            is_execute_query_by_default: None,
+            is_selected_by_default: None,
+            is_show_total: None,
+            is_updateable: None,
+            order_fields: None,
+            table: None,
+            window: None,
             client_id: None,
             index_value: None,
             language: None,
             role_id: None,
-            user_id: None,
-            access_level: None,
-            browser_id: None,
-            class_name: None,
-            entity_type: None,
-            form_id: None,
-            is_report: None,
-            jasper_report: None,
-            print_format_id: None,
-            procedure_name: None,
-            report_view_id: None,
-            show_help: None,
-            workflow_id: None,
-            workflow: None,
-            parameters: None,
-            has_parameters: None
+            user_id: None
         }
     }
 }
 
-impl Process {
+impl Browser {
     pub fn from_id(_id: Option<i32>) -> Self {
-        let mut process = Process::default();
-        process.id = _id;
-        process
+        let mut browser = Browser::default();
+        browser.id = _id;
+        browser
     }
 }
 
-impl IndexDocument for Process {
+impl IndexDocument for Browser {
     fn mapping(self: &Self) -> serde_json::Value {
         json!({
             "mappings" : {
@@ -157,7 +155,7 @@ impl IndexDocument for Process {
     fn index_name(self: &Self) -> String {
         match &self.index_value {
             Some(value) => value.to_string(),
-            None => "process".to_string(),
+            None => "browser".to_string(),
         }
     }
 
@@ -177,7 +175,7 @@ impl IndexDocument for Process {
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct Form {
+pub struct Process {
     pub uuid: Option<String>,
     pub id: Option<i32>,
     pub name: Option<String>,
@@ -186,7 +184,7 @@ pub struct Form {
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct Browse {
+pub struct Window {
     pub uuid: Option<String>,
     pub id: Option<i32>,
     pub name: Option<String>,
@@ -195,12 +193,16 @@ pub struct Browse {
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct Workflow {
+pub struct Table {
     pub uuid: Option<String>,
     pub id: Option<i32>,
     pub name: Option<String>,
+    pub table_name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
+    pub is_document: Option<bool>,
+    pub is_deleteable: Option<bool>,
+    pub is_view: Option<bool>,
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
@@ -212,15 +214,15 @@ pub struct DisplayType {
     pub help: Option<String>,
 }
 
-pub async fn process_from_id(_id: Option<i32>) -> Result<ProcessResponse, String> {
-    let mut _document = Process::from_id(_id);
+pub async fn browser_from_id(_id: Option<i32>) -> Result<BrowserResponse, String> {
+    let mut _document = Browser::from_id(_id);
     let _menu_document: &dyn IndexDocument = &_document;
     match get_by_id(_menu_document).await {
         Ok(value) => {
-            let menu: Process = serde_json::from_value(value).unwrap();
+            let menu: Browser = serde_json::from_value(value).unwrap();
             log::info!("Finded Value: {:?}", menu);
-            Ok(ProcessResponse {
-                process: Some(menu)
+            Ok(BrowserResponse {
+                browser: Some(menu)
             })
         },
         Err(error) => {
@@ -230,7 +232,7 @@ pub async fn process_from_id(_id: Option<i32>) -> Result<ProcessResponse, String
     }
 }
 
-pub async fn processes(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _search_value: Option<&String>) -> Result<ProcessListResponse, std::io::Error> {
+pub async fn browsers(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _search_value: Option<&String>) -> Result<BrowserListResponse, std::io::Error> {
     //  Validate
     if _language.is_none() {
         return Err(Error::new(ErrorKind::InvalidData.into(), "Language is Mandatory"));
@@ -241,7 +243,7 @@ pub async fn processes(_language: Option<&String>, _client_id: Option<&String>, 
     if _role_id.is_none() {
         return Err(Error::new(ErrorKind::InvalidData.into(), "Role is Mandatory"));
     }
-    let _index = "process".to_string();
+    let _index = "browser".to_string();
     let _user_index = match _user_id {
         Some(_) => user_index(_index.to_owned(), _language, _client_id, _role_id, _user_id),
         None => role_index(_index.to_owned(), _language, _client_id, _role_id)
@@ -277,21 +279,21 @@ pub async fn processes(_language: Option<&String>, _client_id: Option<&String>, 
         }
     };
     log::info!("Index to search {:}", _index_name);
-    let mut _document = Process::default();
+    let mut _document = Browser::default();
     _document.index_value = Some(_index_name);
     let _menu_document: &dyn IndexDocument = &_document;
     match find(_menu_document, _search_value, 0, 10).await {
         Ok(values) => {
-            let mut menus: Vec<Process> = vec![];
+            let mut menus: Vec<Browser> = vec![];
             for value in values {
-                let menu: Process = serde_json::from_value(value).unwrap();
+                let menu: Browser = serde_json::from_value(value).unwrap();
                 menus.push(menu.to_owned());
             }
-            Ok(ProcessListResponse {
-                processes: Some(menus)
+            Ok(BrowserListResponse {
+                browsers: Some(menus)
             })
         },
         Err(error) => Err(Error::new(ErrorKind::InvalidData.into(), error))
     }
-    // Ok(ProcessResponse::default())
+    // Ok(BrowserResponse::default())
 }

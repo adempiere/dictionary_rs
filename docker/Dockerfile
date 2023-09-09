@@ -16,7 +16,7 @@ FROM debian:bullseye
 ENV \
     RUST_LOG="info" \
     KAFKA_ENABLED="Y" \
-    KAFKA_QUEUES="menu" \
+    KAFKA_QUEUES="menu process browser window" \
     KAFKA_HOST="0.0.0.0:9092" \
     KAFKA_GROUP="default" \
     OPENSEARCH_URL="http://localhost:9200" \

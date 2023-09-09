@@ -7,30 +7,30 @@ use crate::{controller::opensearch::{IndexDocument, get_by_id, find, exists_inde
 
 #[derive(Deserialize, Extractible, Debug, Clone)]
 #[extract(default_source(from = "body", format = "json"))]
-pub struct ProcessDocument {
-    pub document: Option<Process>
+pub struct WindowDocument {
+    pub document: Option<Window>
 }
 
 #[derive(Serialize, Debug, Clone)]
-pub struct ProcessResponse {
-    pub process: Option<Process>
+pub struct WindowResponse {
+    pub window: Option<Window>
 }
 
 #[derive(Serialize, Debug, Clone)]
-pub struct ProcessListResponse {
-    pub processes: Option<Vec<Process>>
+pub struct WindowListResponse {
+    pub windows: Option<Vec<Window>>
 }
 
-impl Default for ProcessResponse {
+impl Default for WindowResponse {
     fn default() -> Self {
-        ProcessResponse { 
-            process: None 
+        WindowResponse { 
+            window: None 
         }
     }
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct Process {
+pub struct Window {
     pub uuid: Option<String>,
     pub id: Option<i32>,
     pub value: Option<String>,
@@ -38,31 +38,49 @@ pub struct Process {
     pub description: Option<String>,
     pub help: Option<String>,
     pub entity_type: Option<String>,
+    pub window_type: Option<String>,
     pub access_level: Option<String>,
-    pub class_name: Option<String>,
-    pub is_report: Option<bool>,
-    pub show_help: Option<String>,
-    pub jasper_report: Option<String>,
-    pub procedure_name: Option<String>,
-    pub workflow_id: Option<i32>,
-    pub form_id: Option<i32>,
-    pub browser_id: Option<i32>,
-    pub report_view_id: Option<i32>,
-    pub print_format_id: Option<i32>,
-    pub form: Option<Form>,
-    pub browse: Option<Browse>,
-    pub workflow: Option<Workflow>,
     pub index_value: Option<String>,
     pub language: Option<String>,
     pub client_id: Option<i32>,
     pub role_id: Option<i32>,
     pub user_id: Option<i32>,
-    pub has_parameters: Option<bool>,
-    pub parameters: Option<Vec<ProcessParameters>>
+    pub is_sales_transaction: Option<bool>,
+    pub tabs: Option<Vec<WindowTab>>,
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct ProcessParameters {
+pub struct WindowTab {
+    pub uuid: Option<String>,
+    pub id: Option<i32>,
+    pub value: Option<String>,
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub help: Option<String>,
+    pub commit_warning: Option<String>,
+    pub entity_type: Option<String>,
+    pub display_logic: Option<String>,
+    pub read_only_logic: Option<String>,
+    pub is_active: Option<bool>,
+    pub is_single_row: Option<bool>,
+    pub is_has_tree: Option<bool>,
+    pub is_sort_tab: Option<bool>,
+    pub is_advanced_tab: Option<bool>,
+    pub is_info_tab: Option<bool>,
+    pub is_translation_tab: Option<bool>,
+    pub is_insert_record: Option<bool>,
+    pub is_read_only: Option<bool>,
+    pub sequence: Option<i32>,
+    pub tab_level: Option<i32>,
+    pub table: Option<Table>,
+    pub process: Option<Vec<Process>>,
+    pub fields: Option<Vec<WindowField>>,
+    pub row_fields: Option<Vec<WindowField>>,
+    pub grid_fields: Option<Vec<WindowField>>
+}
+
+#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
+pub struct WindowField {
     pub uuid: Option<String>,
     pub id: Option<i32>,
     pub value: Option<String>,
@@ -72,22 +90,16 @@ pub struct ProcessParameters {
     pub entity_type: Option<String>,
     pub column_name: Option<String>,
     pub default_value: Option<String>,
-    pub default_value_to: Option<String>,
-    pub is_range: Option<bool>,
-    pub is_mandatory: Option<bool>,
-    pub is_info_only: Option<bool>,
     pub display_logic: Option<String>,
-    pub value_format: Option<String>,
-    pub min_value: Option<String>,
-    pub max_value: Option<String>,
     pub sequence: Option<i32>,
+    pub grid_sequence: Option<i32>,
     pub reference_id: Option<i32>,
     pub display_type: Option<DisplayType>,
     pub reference_value_id: Option<i32>,
-    pub validation_id: Option<i32>,
+    pub validation_id: Option<i32>
 }
 
-impl Default for Process {
+impl Default for Window {
     fn default() -> Self {
         Self { 
             uuid: None, 
@@ -96,41 +108,29 @@ impl Default for Process {
             name: None, 
             description: None, 
             help: None, 
-            form: None, 
-            browse: None,
+            access_level: None,
             client_id: None,
             index_value: None,
             language: None,
             role_id: None,
             user_id: None,
-            access_level: None,
-            browser_id: None,
-            class_name: None,
             entity_type: None,
-            form_id: None,
-            is_report: None,
-            jasper_report: None,
-            print_format_id: None,
-            procedure_name: None,
-            report_view_id: None,
-            show_help: None,
-            workflow_id: None,
-            workflow: None,
-            parameters: None,
-            has_parameters: None
+            is_sales_transaction: None,
+            tabs: None,
+            window_type: None
         }
     }
 }
 
-impl Process {
+impl Window {
     pub fn from_id(_id: Option<i32>) -> Self {
-        let mut process = Process::default();
-        process.id = _id;
-        process
+        let mut window = Window::default();
+        window.id = _id;
+        window
     }
 }
 
-impl IndexDocument for Process {
+impl IndexDocument for Window {
     fn mapping(self: &Self) -> serde_json::Value {
         json!({
             "mappings" : {
@@ -157,7 +157,7 @@ impl IndexDocument for Process {
     fn index_name(self: &Self) -> String {
         match &self.index_value {
             Some(value) => value.to_string(),
-            None => "process".to_string(),
+            None => "window".to_string(),
         }
     }
 
@@ -177,7 +177,7 @@ impl IndexDocument for Process {
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct Form {
+pub struct Process {
     pub uuid: Option<String>,
     pub id: Option<i32>,
     pub name: Option<String>,
@@ -186,21 +186,16 @@ pub struct Form {
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct Browse {
+pub struct Table {
     pub uuid: Option<String>,
     pub id: Option<i32>,
     pub name: Option<String>,
+    pub table_name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
-}
-
-#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct Workflow {
-    pub uuid: Option<String>,
-    pub id: Option<i32>,
-    pub name: Option<String>,
-    pub description: Option<String>,
-    pub help: Option<String>,
+    pub is_document: Option<bool>,
+    pub is_deleteable: Option<bool>,
+    pub is_view: Option<bool>,
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
@@ -212,15 +207,15 @@ pub struct DisplayType {
     pub help: Option<String>,
 }
 
-pub async fn process_from_id(_id: Option<i32>) -> Result<ProcessResponse, String> {
-    let mut _document = Process::from_id(_id);
+pub async fn window_from_id(_id: Option<i32>) -> Result<WindowResponse, String> {
+    let mut _document = Window::from_id(_id);
     let _menu_document: &dyn IndexDocument = &_document;
     match get_by_id(_menu_document).await {
         Ok(value) => {
-            let menu: Process = serde_json::from_value(value).unwrap();
+            let menu: Window = serde_json::from_value(value).unwrap();
             log::info!("Finded Value: {:?}", menu);
-            Ok(ProcessResponse {
-                process: Some(menu)
+            Ok(WindowResponse {
+                window: Some(menu)
             })
         },
         Err(error) => {
@@ -230,7 +225,7 @@ pub async fn process_from_id(_id: Option<i32>) -> Result<ProcessResponse, String
     }
 }
 
-pub async fn processes(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _search_value: Option<&String>) -> Result<ProcessListResponse, std::io::Error> {
+pub async fn windows(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _search_value: Option<&String>) -> Result<WindowListResponse, std::io::Error> {
     //  Validate
     if _language.is_none() {
         return Err(Error::new(ErrorKind::InvalidData.into(), "Language is Mandatory"));
@@ -241,7 +236,7 @@ pub async fn processes(_language: Option<&String>, _client_id: Option<&String>, 
     if _role_id.is_none() {
         return Err(Error::new(ErrorKind::InvalidData.into(), "Role is Mandatory"));
     }
-    let _index = "process".to_string();
+    let _index = "window".to_string();
     let _user_index = match _user_id {
         Some(_) => user_index(_index.to_owned(), _language, _client_id, _role_id, _user_id),
         None => role_index(_index.to_owned(), _language, _client_id, _role_id)
@@ -277,21 +272,21 @@ pub async fn processes(_language: Option<&String>, _client_id: Option<&String>, 
         }
     };
     log::info!("Index to search {:}", _index_name);
-    let mut _document = Process::default();
+    let mut _document = Window::default();
     _document.index_value = Some(_index_name);
     let _menu_document: &dyn IndexDocument = &_document;
     match find(_menu_document, _search_value, 0, 10).await {
         Ok(values) => {
-            let mut menus: Vec<Process> = vec![];
+            let mut menus: Vec<Window> = vec![];
             for value in values {
-                let menu: Process = serde_json::from_value(value).unwrap();
+                let menu: Window = serde_json::from_value(value).unwrap();
                 menus.push(menu.to_owned());
             }
-            Ok(ProcessListResponse {
-                processes: Some(menus)
+            Ok(WindowListResponse {
+                windows: Some(menus)
             })
         },
         Err(error) => Err(Error::new(ErrorKind::InvalidData.into(), error))
     }
-    // Ok(ProcessResponse::default())
+    // Ok(WindowResponse::default())
 }
