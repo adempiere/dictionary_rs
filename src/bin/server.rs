@@ -96,17 +96,17 @@ async fn get_menu<'a>(_req: &mut Request, _res: &mut Response) {
 #[handler]
 async fn get_process<'a>(_req: &mut Request, _res: &mut Response) {
     let _id = _req.param::<i32>("id");
+    let _language = _req.queries().get("language");
+    let _client_id = _req.queries().get("client_id");
+    let _role_id = _req.queries().get("role_id");
+    let _user_id = _req.queries().get("user_id");
+    let _search_value = _req.queries().get("search_value");
     if _id.is_some() {
-        match process_from_id(_id).await {
+        match process_from_id(_language, _client_id, _role_id, _user_id, _id).await {
             Ok(process) => _res.render(Json(process)),
             Err(error) => _res.render(Json(error))
         }
     } else {
-        let _language = _req.queries().get("language");
-        let _client_id = _req.queries().get("client_id");
-        let _role_id = _req.queries().get("role_id");
-        let _user_id = _req.queries().get("user_id");
-        let _search_value = _req.queries().get("search_value");
         match processes(_language, _client_id, _role_id, _user_id, _search_value).await {
             Ok(menu) => _res.render(Json(menu)),
             Err(e) => {
@@ -120,17 +120,17 @@ async fn get_process<'a>(_req: &mut Request, _res: &mut Response) {
 #[handler]
 async fn get_browsers<'a>(_req: &mut Request, _res: &mut Response) {
     let _id = _req.param::<i32>("id");
+    let _language = _req.queries().get("language");
+    let _client_id = _req.queries().get("client_id");
+    let _role_id = _req.queries().get("role_id");
+    let _user_id = _req.queries().get("user_id");
+    let _search_value = _req.queries().get("search_value");
     if _id.is_some() {
-        match browser_from_id(_id).await {
+        match browser_from_id(_language, _client_id, _role_id, _user_id, _id).await {
             Ok(browser) => _res.render(Json(browser)),
             Err(error) => _res.render(Json(error))
         }
     } else {
-        let _language = _req.queries().get("language");
-        let _client_id = _req.queries().get("client_id");
-        let _role_id = _req.queries().get("role_id");
-        let _user_id = _req.queries().get("user_id");
-        let _search_value = _req.queries().get("search_value");
         match browsers(_language, _client_id, _role_id, _user_id, _search_value).await {
             Ok(menu) => _res.render(Json(menu)),
             Err(e) => {
@@ -144,17 +144,17 @@ async fn get_browsers<'a>(_req: &mut Request, _res: &mut Response) {
 #[handler]
 async fn get_windows<'a>(_req: &mut Request, _res: &mut Response) {
     let _id = _req.param::<i32>("id");
+    let _language = _req.queries().get("language");
+    let _client_id = _req.queries().get("client_id");
+    let _role_id = _req.queries().get("role_id");
+    let _user_id = _req.queries().get("user_id");
+    let _search_value = _req.queries().get("search_value");
     if _id.is_some() {
-        match window_from_id(_id).await {
+        match window_from_id(_language, _client_id, _role_id, _user_id, _id).await {
             Ok(window) => _res.render(Json(window)),
             Err(error) => _res.render(Json(error))
         }
     } else {
-        let _language = _req.queries().get("language");
-        let _client_id = _req.queries().get("client_id");
-        let _role_id = _req.queries().get("role_id");
-        let _user_id = _req.queries().get("user_id");
-        let _search_value = _req.queries().get("search_value");
         match windows(_language, _client_id, _role_id, _user_id, _search_value).await {
             Ok(menu) => _res.render(Json(menu)),
             Err(e) => {

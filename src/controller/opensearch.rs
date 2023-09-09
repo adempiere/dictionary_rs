@@ -289,7 +289,9 @@ pub async fn get_by_id(_document: &dyn IndexDocument) -> Result<Value, std::stri
         return Err(format!("Error finding record by ID {:?}", _response.text().await));
     }
     let response_body = match _response.json::<Value>().await {
-        Ok(response) => response,
+        Ok(response) => {
+            response["_source"].to_owned()
+        },
         Err(error) => {
             log::error!("{:?}", error);
             return Err(error.to_string());

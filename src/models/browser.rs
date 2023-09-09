@@ -214,15 +214,18 @@ pub struct DisplayType {
     pub help: Option<String>,
 }
 
-pub async fn browser_from_id(_id: Option<i32>) -> Result<BrowserResponse, String> {
+pub async fn browser_from_id(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _id: Option<i32>) -> Result<BrowserResponse, String> {
     let mut _document = Browser::from_id(_id);
+    let _index_name = get_index_name(_language, _client_id, _role_id, _user_id).await.expect("Error getting index");
+    log::info!("Index to search {:}", _index_name);
+    _document.index_value = Some(_index_name);
     let _menu_document: &dyn IndexDocument = &_document;
     match get_by_id(_menu_document).await {
         Ok(value) => {
-            let menu: Browser = serde_json::from_value(value).unwrap();
-            log::info!("Finded Value: {:?}", menu);
+            let browser: Browser = serde_json::from_value(value).unwrap();
+            log::info!("Finded Value: {:?}", browser.id);
             Ok(BrowserResponse {
-                browser: Some(menu)
+                browser: Some(browser)
             })
         },
         Err(error) => {
@@ -232,7 +235,7 @@ pub async fn browser_from_id(_id: Option<i32>) -> Result<BrowserResponse, String
     }
 }
 
-pub async fn browsers(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _search_value: Option<&String>) -> Result<BrowserListResponse, std::io::Error> {
+async fn get_index_name(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<String, std::io::Error> {
     //  Validate
     if _language.is_none() {
         return Err(Error::new(ErrorKind::InvalidData.into(), "Language is Mandatory"));
@@ -252,24 +255,20 @@ pub async fn browsers(_language: Option<&String>, _client_id: Option<&String>, _
     let _client_index = client_index(_index.to_owned(), _language, _client_id, _role_id);
     let _language_index = language_index(_index.to_owned(), _language, _client_id, _role_id);
     let _default_index = default_index(_index.to_owned(), _language, _client_id, _role_id);
-    let _search_value = match _search_value {
-        Some(value) => value.clone(),
-        None => "".to_owned()
-    };
     //  Find index
-    let _index_name = match exists_index(_user_index.to_owned()).await {
-        Ok(_) => _user_index,
+    match exists_index(_user_index.to_owned()).await {
+        Ok(_) => Ok(_user_index),
         Err(_) => {
             match exists_index(_role_index.to_owned()).await {
-                Ok(_) => _role_index,
+                Ok(_) => Ok(_role_index),
                 Err(_) => {
                     match exists_index(_client_index.to_owned()).await {
-                        Ok(_) => _client_index,
+                        Ok(_) => Ok(_client_index),
                         Err(_) => {
                             match exists_index(_language_index.to_owned()).await {
-                                Ok(_) => _language_index,
+                                Ok(_) => Ok(_language_index),
                                 Err(_) => {
-                                    _default_index
+                                    Ok(_default_index)
                                 }
                             }
                         }
@@ -277,7 +276,15 @@ pub async fn browsers(_language: Option<&String>, _client_id: Option<&String>, _
                 }
             }
         }
+    }
+}
+
+pub async fn browsers(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _search_value: Option<&String>) -> Result<BrowserListResponse, std::io::Error> {
+    let _search_value = match _search_value {
+        Some(value) => value.clone(),
+        None => "".to_owned()
     };
+    let _index_name = get_index_name(_language, _client_id, _role_id, _user_id).await.expect("Error getting index");
     log::info!("Index to search {:}", _index_name);
     let mut _document = Browser::default();
     _document.index_value = Some(_index_name);

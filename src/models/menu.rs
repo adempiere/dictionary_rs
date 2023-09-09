@@ -187,7 +187,7 @@ pub async fn menu_from_id(_id: Option<i32>) -> Result<MenuResponse, String> {
     match get_by_id(_menu_document).await {
         Ok(value) => {
             let menu: Menu = serde_json::from_value(value).unwrap();
-            log::info!("Finded Value: {:?}", menu);
+            log::info!("Finded Value: {:?}", menu.id);
             Ok(MenuResponse {
                 menu: Some(menu)
             })
