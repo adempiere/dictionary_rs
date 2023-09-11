@@ -17,6 +17,7 @@ ENV \
     RUST_LOG="info" \
     KAFKA_ENABLED="Y" \
     KAFKA_QUEUES="menu process browser window" \
+    ALLOWED_ORIGIN="*"  \
     KAFKA_HOST="0.0.0.0:9092" \
     KAFKA_GROUP="default" \
     OPENSEARCH_URL="http://localhost:9200" \
@@ -32,6 +33,7 @@ RUN apt-get update && \
     apt-get install -y pkg-config openssl libssl-dev tzdata && \
     rm -rf /var/lib/apt/lists/* && \
     sed -i "s|info|$RUST_LOG|g" /opt/apps/server/.env && \
+    sed -i "s|allowed_origin|$ALLOWED_ORIGIN|g" /opt/apps/server/.env && \
     sed -i "s|kafka_enabled|$KAFKA_ENABLED|g" /opt/apps/server/.env && \
     sed -i "s|kafka_queues|$KAFKA_QUEUES|g" /opt/apps/server/.env && \
     sed -i "s|kafka_host|$KAFKA_HOST|g" /opt/apps/server/.env && \

@@ -2,7 +2,7 @@ use std::env;
 use opensearch_gateway_rs::{models::{menu::{menu_from_id, menus, MenuDocument}, process::{ProcessDocument, process_from_id, processes}, browser::{BrowserDocument, browsers, browser_from_id}, window::{WindowDocument, windows, window_from_id}}, controller::{kafka::create_consumer, opensearch::{create, IndexDocument, delete}}};
 use dotenv::dotenv;
 use rdkafka::{Message, consumer::{CommitMode, Consumer}};
-use salvo::prelude::*;
+use salvo::{prelude::*, cors::Cors, hyper::Method};
 extern crate serde_json;
 use simple_logger::SimpleLogger;
 use futures::future::join_all;
@@ -25,9 +25,20 @@ async fn main() {
             "Y".to_owned()
         }.to_owned(),
     };
+    let allowed_origin =  match env::var("ALLOWED_ORIGIN") {
+        Ok(value) => value,
+        Err(_) => {
+            log::info!("Variable `ALLOWED_ORIGIN` Not found from enviroment");
+            "*".to_owned()
+        }.to_owned(),
+    };
     //  Send Device Info
     log::info!("Server Address: {:?}", host.clone());
+    let cors_handler = Cors::new()
+    .allow_origin(&allowed_origin.to_owned())
+    .allow_methods(vec![Method::GET, Method::POST, Method::DELETE]).into_handler();
     let router = Router::new()
+        .hoop(cors_handler)
         .push(
             Router::with_path("v1/menus")
                 .get(get_menu)
