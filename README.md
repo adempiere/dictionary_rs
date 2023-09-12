@@ -1,7 +1,11 @@
 # Microservice with Open Search gateway for Rust
 A microservice that publish a Rest API based on [salvo.rs](https://salvo.rs/)
 
-![Queue config](docs/Queue_Config.png)
+![Setup Create Config](docs/Setup_Create_Config.png)
+
+![Setup Deploy Validator](docs/Setup_Deploy_Validator.png)
+
+![App Registration Queue config](docs/App_Registration_Queue.png)
 
 ![Running OpenSearch Gateway](docs/Exporting_Menu.gif)
 
@@ -62,13 +66,13 @@ apt install pkg-config openssl libssl-dev
 
 You can build images using the follow command
 
-```
+```bash
 docker build -t opensearch-gateway-rs -f docker/Dockerfile .
 ```
 
 After build just run it
 
-```
+```bash
 docker run -d -p 7878:7878 --name opensearch-gateway-rs -e KAFKA_ENABLED="N" -e KAFKA_QUEUES="menu" -e KAFKA_HOST="0.0.0.0:29092" -e KAFKA_GROUP="default" -e OPENSEARCH_URL="http://localhost:9200" opensearch-gateway-rs
 ```
 
@@ -117,13 +121,13 @@ Server Address: "0.0.0.0:7878"
 
 For test it just run a CURL like this:
 
-```
+```bash
 curl --location 'http://localhost:9200'
 ```
 
 The response:
 
-```
+```json
 {
   "name" : "opensearch-node",
   "cluster_name" : "docker-cluster",
@@ -143,9 +147,36 @@ The response:
 }
 ```
 
+For test indices
+
+```bash
+curl --location 'http://localhost:9200/_cat/indices'
+```
+
+Response:
+```log
+green  open .opensearch-observability X0Wr0fFwRkG1yC3J44HXKQ 1 0  0 0    208b    208b
+yellow open .plugins-ml-config        VkMxei-eShu1qheHm09Wlw 1 1  1 0   3.9kb   3.9kb
+yellow open menu_es_mx_100            -Z-4RN-UQemsuly7bycdfw 1 1 11 0 288.3kb 288.3kb
+yellow open menu_100                  V9PfwckfTi22c1Wv_RhkAg 1 1 11 0 264.2kb 264.2kb
+yellow open menu                      A8Wtsq9KR7O6vjLDi96xXA 1 1 11 0 640.2kb 640.2kb
+yellow open menu_es_mx                2DEc951TS1a0Z33UhoZuJg 1 1 11 0   694kb   694kb
+```
+
+For delete specific index
+```bash
+curl -X DELETE 'http://localhost:9200/menu_es_mx_100'
+```
+
+For delete all indices with wildcard patterns (`menu`, `menu_100`, `menu_es_mx`, `menu_es_mx_100`...)
+```bash
+curl -X DELETE 'http://localhost:9200/menu*'
+```
+
 The OpenSearch have a defaul size for data, the size is very little and can be increase running 
 
-```curl --location --request PUT 'http://localhost:9200/_all/_settings' \
+```bash
+curl --location --request PUT 'http://localhost:9200/_all/_settings' \
 --header 'Content-Type: application/json' \
 --data '{"index.blocks.read_only_allow_delete": null}'
 ```
@@ -160,7 +191,7 @@ The OpenSearch-Gateway-rs is a microservice that is subscribed to `menu` topic f
 
 For search a index example you can use this:
 
-```
+```bash
 curl --location 'http://localhost:7878/v1/menus?language=es_MX&client_id=11&role_id=103&search_value=compra'
 ```
 
