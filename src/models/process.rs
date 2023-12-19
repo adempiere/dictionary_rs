@@ -37,13 +37,8 @@ pub struct Process {
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
-    pub entity_type: Option<String>,
-    pub access_level: Option<String>,
-    pub class_name: Option<String>,
     pub is_report: Option<bool>,
     pub show_help: Option<String>,
-    pub jasper_report: Option<String>,
-    pub procedure_name: Option<String>,
     pub workflow_id: Option<i32>,
     pub form_id: Option<i32>,
     pub browser_id: Option<i32>,
@@ -69,7 +64,6 @@ pub struct ProcessParameters {
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
-    pub entity_type: Option<String>,
     pub column_name: Option<String>,
     pub default_value: Option<String>,
     pub default_value_to: Option<String>,
@@ -77,6 +71,7 @@ pub struct ProcessParameters {
     pub is_mandatory: Option<bool>,
     pub is_info_only: Option<bool>,
     pub display_logic: Option<String>,
+    pub read_only_logic: Option<String>,
     pub value_format: Option<String>,
     pub min_value: Option<String>,
     pub max_value: Option<String>,
@@ -85,6 +80,7 @@ pub struct ProcessParameters {
     pub display_type: Option<DisplayType>,
     pub reference_value_id: Option<i32>,
     pub validation_id: Option<i32>,
+    pub context_column_names: Option<Vec<String>>
 }
 
 impl Default for Process {
@@ -103,15 +99,10 @@ impl Default for Process {
             language: None,
             role_id: None,
             user_id: None,
-            access_level: None,
             browser_id: None,
-            class_name: None,
-            entity_type: None,
             form_id: None,
             is_report: None,
-            jasper_report: None,
             print_format_id: None,
-            procedure_name: None,
             report_view_id: None,
             show_help: None,
             workflow_id: None,
@@ -205,11 +196,8 @@ pub struct Workflow {
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct DisplayType {
-    pub uuid: Option<String>,
     pub id: Option<i32>,
-    pub name: Option<String>,
-    pub description: Option<String>,
-    pub help: Option<String>,
+    pub table_name: Option<String>
 }
 
 pub async fn process_from_id(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _id: Option<i32>) -> Result<ProcessResponse, String> {
