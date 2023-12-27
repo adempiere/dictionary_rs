@@ -87,16 +87,20 @@ pub struct WindowField {
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
-    pub entity_type: Option<String>,
     pub column_name: Option<String>,
     pub default_value: Option<String>,
     pub display_logic: Option<String>,
+    pub read_only_logic: Option<String>,
+    pub mandatory_logic: Option<String>,
+    pub value_format: Option<String>,
+    pub is_mandatory: Option<bool>,
     pub sequence: Option<i32>,
     pub grid_sequence: Option<i32>,
     pub reference_id: Option<i32>,
     pub display_type: Option<DisplayType>,
     pub reference_value_id: Option<i32>,
-    pub validation_id: Option<i32>
+    pub validation_id: Option<i32>,
+    pub context_column_names: Option<Vec<String>>
 }
 
 impl Default for Window {
