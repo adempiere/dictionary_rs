@@ -1,4 +1,4 @@
-FROM rust:1.67 as builder
+FROM rust:1.74 as builder
 
 LABEL maintainer="ysenih@erpya.com" \
 	description="A Image for start service from rust binary"
