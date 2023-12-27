@@ -5,7 +5,7 @@ use serde_json::json;
 use crate::controller::opensearch::IndexDocument;
 
 #[derive(Deserialize, Extractible, Debug, Clone)]
-#[extract(default_source(from = "body", format = "json"))]
+#[salvo(extract(default_source(from = "body")))]
 pub struct GenericDocument {
     pub document: Option<Generic>
 }

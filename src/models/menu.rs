@@ -6,7 +6,7 @@ use std::{io::ErrorKind, io::Error};
 use crate::{controller::opensearch::{IndexDocument, get_by_id, find, exists_index}, models::{user_index, role_index, client_index, language_index, default_index}};
 
 #[derive(Deserialize, Extractible, Debug, Clone)]
-#[extract(default_source(from = "body", format = "json"))]
+#[salvo(extract(default_source(from = "body")))]
 pub struct MenuDocument {
     pub document: Option<Menu>
 }
