@@ -1,4 +1,4 @@
-FROM rust:1.74 as builder
+FROM rust:1.75.0-bullseye as builder
 
 LABEL maintainer="ysenih@erpya.com" \
 	description="A Image for start service from rust binary"

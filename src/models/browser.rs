@@ -83,7 +83,9 @@ pub struct BrowserField {
     pub reference_id: Option<i32>,
     pub display_type: Option<DisplayType>,
     pub reference_value_id: Option<i32>,
-    pub validation_id: Option<i32>
+    pub validation_id: Option<i32>,
+    pub context_column_names: Option<Vec<String>>,
+    pub dependent_fields: Option<Vec<DependendField>>
 }
 
 impl Default for Browser {
@@ -207,11 +209,18 @@ pub struct Table {
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct DisplayType {
+    pub id: Option<i32>,
+    pub table_name: Option<String>
+}
+
+
+#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
+pub struct DependendField {
     pub uuid: Option<String>,
     pub id: Option<i32>,
-    pub name: Option<String>,
-    pub description: Option<String>,
-    pub help: Option<String>,
+    pub column_name: Option<String>,
+    pub parent_id: Option<i32>,
+    pub parent_uuid: Option<String>,
 }
 
 pub async fn browser_from_id(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _id: Option<i32>) -> Result<BrowserResponse, String> {

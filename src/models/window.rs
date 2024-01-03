@@ -37,9 +37,7 @@ pub struct Window {
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
-    pub entity_type: Option<String>,
     pub window_type: Option<String>,
-    pub access_level: Option<String>,
     pub index_value: Option<String>,
     pub language: Option<String>,
     pub client_id: Option<i32>,
@@ -58,7 +56,6 @@ pub struct WindowTab {
     pub description: Option<String>,
     pub help: Option<String>,
     pub commit_warning: Option<String>,
-    pub entity_type: Option<String>,
     pub display_logic: Option<String>,
     pub read_only_logic: Option<String>,
     pub is_active: Option<bool>,
@@ -77,6 +74,15 @@ pub struct WindowTab {
     pub fields: Option<Vec<WindowField>>,
     pub row_fields: Option<Vec<WindowField>>,
     pub grid_fields: Option<Vec<WindowField>>
+}
+
+#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
+pub struct DependendField {
+    pub uuid: Option<String>,
+    pub id: Option<i32>,
+    pub column_name: Option<String>,
+    pub parent_id: Option<i32>,
+    pub parent_uuid: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
@@ -100,7 +106,8 @@ pub struct WindowField {
     pub display_type: Option<DisplayType>,
     pub reference_value_id: Option<i32>,
     pub validation_id: Option<i32>,
-    pub context_column_names: Option<Vec<String>>
+    pub context_column_names: Option<Vec<String>>,
+    pub dependent_fields: Option<Vec<DependendField>>
 }
 
 impl Default for Window {
@@ -112,13 +119,11 @@ impl Default for Window {
             name: None, 
             description: None, 
             help: None, 
-            access_level: None,
             client_id: None,
             index_value: None,
             language: None,
             role_id: None,
             user_id: None,
-            entity_type: None,
             is_sales_transaction: None,
             tabs: None,
             window_type: None
@@ -204,11 +209,8 @@ pub struct Table {
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct DisplayType {
-    pub uuid: Option<String>,
     pub id: Option<i32>,
-    pub name: Option<String>,
-    pub description: Option<String>,
-    pub help: Option<String>,
+    pub table_name: Option<String>
 }
 
 pub async fn window_from_id(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _id: Option<i32>) -> Result<WindowResponse, String> {
