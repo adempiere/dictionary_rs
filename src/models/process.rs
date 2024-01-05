@@ -86,7 +86,7 @@ pub struct ProcessParameters {
     pub max_value: Option<String>,
     pub sequence: Option<i32>,
     pub reference_id: Option<i32>,
-    pub display_type: Option<DisplayType>,
+    pub display_type: Option<i32>,
     pub reference_value_id: Option<i32>,
     pub validation_id: Option<i32>,
     pub context_column_names: Option<Vec<String>>,
@@ -202,12 +202,6 @@ pub struct Workflow {
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
-}
-
-#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct DisplayType {
-    pub id: Option<i32>,
-    pub table_name: Option<String>
 }
 
 pub async fn process_from_id(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _id: Option<i32>) -> Result<ProcessResponse, String> {

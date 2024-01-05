@@ -103,7 +103,7 @@ pub struct WindowField {
     pub sequence: Option<i32>,
     pub grid_sequence: Option<i32>,
     pub reference_id: Option<i32>,
-    pub display_type: Option<DisplayType>,
+    pub display_type: Option<i32>,
     pub reference_value_id: Option<i32>,
     pub validation_id: Option<i32>,
     pub context_column_names: Option<Vec<String>>,
@@ -205,12 +205,6 @@ pub struct Table {
     pub is_document: Option<bool>,
     pub is_deleteable: Option<bool>,
     pub is_view: Option<bool>,
-}
-
-#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct DisplayType {
-    pub id: Option<i32>,
-    pub table_name: Option<String>
 }
 
 pub async fn window_from_id(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _id: Option<i32>) -> Result<WindowResponse, String> {

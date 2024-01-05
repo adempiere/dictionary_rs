@@ -81,7 +81,7 @@ pub struct BrowserField {
     pub max_value: Option<String>,
     pub sequence: Option<i32>,
     pub reference_id: Option<i32>,
-    pub display_type: Option<DisplayType>,
+    pub display_type: Option<i32>,
     pub reference_value_id: Option<i32>,
     pub validation_id: Option<i32>,
     pub context_column_names: Option<Vec<String>>,
@@ -206,13 +206,6 @@ pub struct Table {
     pub is_deleteable: Option<bool>,
     pub is_view: Option<bool>,
 }
-
-#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct DisplayType {
-    pub id: Option<i32>,
-    pub table_name: Option<String>
-}
-
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct DependendField {
