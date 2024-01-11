@@ -85,7 +85,6 @@ pub struct ProcessParameters {
     pub min_value: Option<String>,
     pub max_value: Option<String>,
     pub sequence: Option<i32>,
-    pub reference_id: Option<i32>,
     pub display_type: Option<i32>,
     pub reference_value_id: Option<i32>,
     pub validation_id: Option<i32>,
