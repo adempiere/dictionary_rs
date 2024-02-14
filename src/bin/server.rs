@@ -36,7 +36,7 @@ async fn main() {
     log::info!("Server Address: {:?}", host.clone());
     let cors_handler = Cors::new()
     .allow_origin(&allowed_origin.to_owned())
-    .allow_methods(vec![Method::GET, Method::POST, Method::DELETE]).into_handler();
+    .allow_methods(vec![Method::OPTIONS, Method::GET]).into_handler();
     let router = Router::new()
         .hoop(cors_handler)
         .push(
