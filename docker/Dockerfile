@@ -1,4 +1,4 @@
-FROM rust:1.75.0-bullseye as builder
+FROM rust:1.76.0-bullseye as builder
 
 LABEL maintainer="ysenih@erpya.com" \
 	description="A Image for start service from rust binary"
@@ -17,7 +17,7 @@ ENV \
     RUST_LOG="info" \
     KAFKA_ENABLED="Y" \
     KAFKA_QUEUES="menu process browser window" \
-    ALLOWED_ORIGIN="*"  \
+    ALLOWED_ORIGIN="*" \
     KAFKA_HOST="0.0.0.0:9092" \
     KAFKA_GROUP="default" \
     OPENSEARCH_URL="http://localhost:9200" \
