@@ -50,12 +50,12 @@ async fn main() {
                 .get(get_menu)
         )
         .push(
-            Router::with_path("v1/process/<id>")
+            Router::with_path("v1/processes/<id>")
                 .options(get_process)
                 .get(get_process)
         )
         .push(
-            Router::with_path("v1/process")
+            Router::with_path("v1/processes")
                 .options(get_process)
                 .get(get_process)
         )
