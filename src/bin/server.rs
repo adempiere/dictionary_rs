@@ -2,7 +2,7 @@ use std::env;
 use opensearch_gateway_rs::{models::{menu::{menu_from_id, menus, MenuDocument}, process::{ProcessDocument, process_from_id, processes}, browser::{BrowserDocument, browsers, browser_from_id}, window::{WindowDocument, windows, window_from_id}}, controller::{kafka::create_consumer, opensearch::{create, IndexDocument, delete}}};
 use dotenv::dotenv;
 use rdkafka::{Message, consumer::{CommitMode, Consumer}};
-use salvo::{prelude::*, cors::Cors, hyper::Method};
+use salvo::{prelude::*, cors::Cors, http::header, hyper::Method};
 extern crate serde_json;
 use simple_logger::SimpleLogger;
 use futures::future::join_all;
@@ -25,7 +25,8 @@ async fn main() {
             "Y".to_owned()
         }.to_owned(),
     };
-    let allowed_origin =  match env::var("ALLOWED_ORIGIN") {
+    // TODO: Add support to allow requests from multiple origin
+    let allowed_origin = match env::var("ALLOWED_ORIGIN") {
         Ok(value) => value,
         Err(_) => {
             log::info!("Variable `ALLOWED_ORIGIN` Not found from enviroment");
@@ -35,39 +36,50 @@ async fn main() {
     //  Send Device Info
     log::info!("Server Address: {:?}", host.clone());
     let cors_handler = Cors::new()
-    .allow_origin(&allowed_origin.to_owned())
-    .allow_methods(vec![Method::OPTIONS, Method::GET]).into_handler();
+        .allow_origin(&allowed_origin.to_owned())
+        .allow_methods(vec![Method::OPTIONS, Method::GET])
+        .allow_headers(vec![header::ACCESS_CONTROL_REQUEST_METHOD, header::ACCESS_CONTROL_REQUEST_HEADERS, header::AUTHORIZATION])
+        .into_handler()
+    ;
+    // TODO: Add generic ok response to OPTIONS http method
     let router = Router::new()
         .hoop(cors_handler)
         .push(
             Router::with_path("v1/menus")
+                .options(get_menu)
                 .get(get_menu)
         )
         .push(
             Router::with_path("v1/process/<id>")
+                .options(get_process)
                 .get(get_process)
         )
         .push(
             Router::with_path("v1/process")
+                .options(get_process)
                 .get(get_process)
         )
         .push(
             Router::with_path("v1/browsers/<id>")
+                .options(get_browsers)
                 .get(get_browsers)
         )
         .push(
             Router::with_path("v1/browsers")
+                .options(get_browsers)
                 .get(get_browsers)
         )
         .push(
             Router::with_path("v1/windows/<id>")
+                .options(get_windows)
                 .get(get_windows)
         )
         .push(
             Router::with_path("v1/windows")
+                .options(get_windows)
                 .get(get_windows)
         )
-        ;
+    ;
     log::info!("{:#?}", router);
     let acceptor = TcpListener::new(&host).bind().await;
     let mut futures = vec![tokio::spawn(async move { Server::new(acceptor).serve(router).await; })];
