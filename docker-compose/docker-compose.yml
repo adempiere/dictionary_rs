@@ -48,6 +48,8 @@ services:
         hard: 65536
     volumes:
       - volume_opensearch:/usr/share/opensearch/data
+      - ./opensearch/snapshots:/mnt/snapshots
+      - ./opensearch/opensearch.yml:/usr/share/opensearch/config/opensearch.yml
     ports:
       - ${OPENSEARCH_PORT}:9200
       - ${OPENSEARCH_PERFORMANCE_PORT}:9600 # required for Performance Analyzer
