@@ -30,29 +30,46 @@ impl Default for BrowserResponse {
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
+pub struct DictionaryEntity {
+	pub id: Option<i32>,
+	pub uuid: Option<String>,
+	pub name: Option<String>,
+	pub description: Option<String>,
+	pub help: Option<String>
+}
+
+#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Browser {
     pub uuid: Option<String>,
     pub id: Option<i32>,
-    pub value: Option<String>,
+	pub code: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
-    pub entity_type: Option<String>,
+	pub is_execute_query_by_default: Option<bool>,
+	pub is_collapsible_by_default: Option<bool>,
+	pub is_selected_by_default: Option<bool>,
+	pub is_show_total: Option<bool>,
+	pub field_key: Option<String>,
+	// Record Attributes
     pub access_level: Option<String>,
+	pub is_updateable: Option<bool>,
+	pub is_deleteable: Option<bool>,
+	pub table_name: Option<String>,
+	pub table: Option<Table>,
+	//	Index
     pub index_value: Option<String>,
     pub language: Option<String>,
     pub client_id: Option<i32>,
     pub role_id: Option<i32>,
     pub user_id: Option<i32>,
-    pub is_collapsible_by_default: Option<bool>,
-    pub is_deleteable: Option<bool>,
-    pub is_execute_query_by_default: Option<bool>,
-    pub is_selected_by_default: Option<bool>,
-    pub is_show_total: Option<bool>,
-    pub is_updateable: Option<bool>,
-    pub process: Option<Process>,
-    pub window: Option<Window>,
-    pub table: Option<Table>,
+	// External Reference
+	pub context_column_names: Option<String>,
+	pub process_id: Option<i32>,
+	pub process: Option<DictionaryEntity>,
+	pub window_id: Option<i32>,
+	pub window: Option<DictionaryEntity>,
+	//	Browse Fields
     pub display_fields: Option<Vec<BrowserField>>,
     pub criteria_fields: Option<Vec<BrowserField>>,
     pub identifier_fields: Option<Vec<BrowserField>>,
@@ -64,33 +81,37 @@ pub struct Browser {
 pub struct BrowserField {
     pub uuid: Option<String>,
     pub id: Option<i32>,
-    pub value: Option<String>,
+	pub column_name: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
-    pub entity_type: Option<String>,
-    pub column_name: Option<String>,
-    pub element_name: Option<String>,
+	pub display_type: Option<i32>,
+	pub callout: Option<String>,
+	pub is_order_by: Option<bool>,
+	pub sort_sequence: Option<String>,
+	pub is_key: Option<bool>,
+	pub is_identifier: Option<bool>,
+	//	Value Properties
+    pub is_range: Option<bool>,
     pub default_value: Option<String>,
     pub default_value_to: Option<String>,
-    pub is_range: Option<bool>,
-    pub is_mandatory: Option<bool>,
-    pub is_info_only: Option<bool>,
-    pub display_logic: Option<String>,
     pub value_format: Option<String>,
     pub min_value: Option<String>,
     pub max_value: Option<String>,
-    pub sequence: Option<i32>,
-    pub grid_sequence: Option<i32>,
+	//	Display Properties
     pub is_displayed: Option<bool>,
     pub is_query_criteria: Option<bool>,
-    pub is_order_by: Option<bool>,
+	pub display_logic: Option<String>,
+	pub sequence: Option<i32>,
+	pub grid_sequence: Option<i32>,
+	//	Editable Properties
     pub is_read_only: Option<bool>,
-    pub is_key: Option<bool>,
-    pub is_identifier: Option<bool>,
-    pub display_type: Option<i32>,
-    pub reference_value_id: Option<i32>,
-    pub validation_id: Option<i32>,
+	pub read_only_logic: Option<String>,
+	pub is_info_only: Option<bool>,
+	//	Mandatory Properties
+	pub is_mandatory: Option<bool>,
+	//	External Info
+	pub element_name: Option<String>,
     pub context_column_names: Option<Vec<String>>,
     pub dependent_fields: Option<Vec<DependendField>>
 }
@@ -100,31 +121,39 @@ impl Default for Browser {
         Self { 
             uuid: None, 
             id: None, 
-            value: None, 
+			code: None,
             name: None, 
             description: None, 
             help: None, 
-            access_level: None,
-            process: None,
-            criteria_fields: None,
-            display_fields: None,
-            editable_fields: None,
-            entity_type: None,
-            identifier_fields: None,
-            is_collapsible_by_default: None,
-            is_deleteable: None,
             is_execute_query_by_default: None,
+			is_collapsible_by_default: None,
             is_selected_by_default: None,
             is_show_total: None,
+			field_key: None,
+			// Record Attributes
+			access_level: None,
             is_updateable: None,
-            order_fields: None,
+			is_deleteable: None,
+			table_name: None,
             table: None,
-            window: None,
-            client_id: None,
+			//	Index
             index_value: None,
             language: None,
+			client_id: None,
             role_id: None,
-            user_id: None
+			user_id: None,
+			// External Reference
+			context_column_names: None,
+			process_id: None,
+			process: None,
+			window_id: None,
+			window: None,
+			//	Browse Fields
+			display_fields: None,
+			criteria_fields: None,
+			identifier_fields: None,
+			order_fields: None,
+			editable_fields: None
         }
     }
 }
@@ -144,7 +173,7 @@ impl IndexDocument for Browser {
                 "properties" : {
                     "uuid" : { "type" : "text" },
                     "id" : { "type" : "integer" },
-                    "value" : { "type" : "text" },
+                    "code" : { "type" : "text" },
                     "name" : { "type" : "text" },
                     "description" : { "type" : "text" },
                     "help" : { "type" : "text" }
