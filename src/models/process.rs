@@ -39,28 +39,41 @@ pub struct DependendField {
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
+pub struct DictionaryEntity {
+	pub id: Option<i32>,
+	pub uuid: Option<String>,
+	pub name: Option<String>,
+	pub description: Option<String>,
+	pub help: Option<String>
+}
+
+#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Process {
     pub uuid: Option<String>,
     pub id: Option<i32>,
-    pub value: Option<String>,
+	pub code: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
-    pub is_report: Option<bool>,
     pub show_help: Option<String>,
-    pub workflow_id: Option<i32>,
-    pub form_id: Option<i32>,
-    pub browser_id: Option<i32>,
+	//	Report
+    pub is_report: Option<bool>,
     pub report_view_id: Option<i32>,
     pub print_format_id: Option<i32>,
-    pub form: Option<Form>,
-    pub browse: Option<Browse>,
-    pub workflow: Option<Workflow>,
+	//	Linked
+	pub browse: Option<DictionaryEntity>,
+	pub browser_id: Option<i32>,
+	pub form_id: Option<i32>,
+	pub form: Option<DictionaryEntity>,
+	pub workflow_id: Option<i32>,
+	pub workflow: Option<DictionaryEntity>,
+	//	Index
     pub index_value: Option<String>,
     pub language: Option<String>,
     pub client_id: Option<i32>,
     pub role_id: Option<i32>,
     pub user_id: Option<i32>,
+	//	Parameters
     pub has_parameters: Option<bool>,
     pub parameters: Option<Vec<ProcessParameters>>
 }
@@ -69,25 +82,28 @@ pub struct Process {
 pub struct ProcessParameters {
     pub uuid: Option<String>,
     pub id: Option<i32>,
-    pub value: Option<String>,
+	pub column_name: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
-    pub column_name: Option<String>,
+	pub display_type: Option<i32>,
+	//	Value Properties
+	pub is_range: Option<bool>,
     pub default_value: Option<String>,
     pub default_value_to: Option<String>,
-    pub is_range: Option<bool>,
-    pub is_mandatory: Option<bool>,
-    pub is_info_only: Option<bool>,
-    pub display_logic: Option<String>,
-    pub read_only_logic: Option<String>,
+	pub field_length: Option<i32>,
     pub value_format: Option<String>,
     pub min_value: Option<String>,
     pub max_value: Option<String>,
+	//	Display Properties
+	pub display_logic: Option<String>,
     pub sequence: Option<i32>,
-    pub display_type: Option<i32>,
-    pub reference_value_id: Option<i32>,
-    pub validation_id: Option<i32>,
+	//	Mandatory Properties
+	pub is_mandatory: Option<bool>,
+	//	Editable Properties
+	pub read_only_logic: Option<String>,
+	pub is_info_only: Option<bool>,
+	// External Info
     pub context_column_names: Option<Vec<String>>,
     pub dependent_fields: Option<Vec<DependendField>>
 }
@@ -97,25 +113,29 @@ impl Default for Process {
         Self { 
             uuid: None, 
             id: None, 
-            value: None, 
+			code: None,
             name: None, 
             description: None, 
             help: None, 
-            form: None, 
+			show_help: None,
+			//	Report
+			is_report: None,
+			print_format_id: None,
+			report_view_id: None,
+			//	Linked
+			browser_id: None,
             browse: None,
-            client_id: None,
+			form_id: None,
+			form: None, 
+			workflow_id: None,
+			workflow: None,
+			//	Index
             index_value: None,
             language: None,
+			client_id: None,
             role_id: None,
             user_id: None,
-            browser_id: None,
-            form_id: None,
-            is_report: None,
-            print_format_id: None,
-            report_view_id: None,
-            show_help: None,
-            workflow_id: None,
-            workflow: None,
+			// Parameters
             parameters: None,
             has_parameters: None
         }
@@ -137,7 +157,7 @@ impl IndexDocument for Process {
                 "properties" : {
                     "uuid" : { "type" : "text" },
                     "id" : { "type" : "integer" },
-                    "value" : { "type" : "text" },
+                    "code" : { "type" : "text" },
                     "name" : { "type" : "text" },
                     "description" : { "type" : "text" },
                     "help" : { "type" : "text" }

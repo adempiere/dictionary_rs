@@ -33,17 +33,18 @@ impl Default for WindowResponse {
 pub struct Window {
     pub uuid: Option<String>,
     pub id: Option<i32>,
-    pub value: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
     pub window_type: Option<String>,
+	pub is_sales_transaction: Option<bool>,
+	//	Index
     pub index_value: Option<String>,
     pub language: Option<String>,
     pub client_id: Option<i32>,
     pub role_id: Option<i32>,
     pub user_id: Option<i32>,
-    pub is_sales_transaction: Option<bool>,
+	//	Tabs
     pub tabs: Option<Vec<WindowTab>>,
 }
 
@@ -51,26 +52,39 @@ pub struct Window {
 pub struct WindowTab {
     pub uuid: Option<String>,
     pub id: Option<i32>,
-    pub value: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
+	// Record attributes
+	pub is_insert_record: Option<bool>,
     pub commit_warning: Option<String>,
+	// Attributes
     pub display_logic: Option<String>,
+	pub sequence: Option<i32>,
+	pub tab_level: Option<i32>,
+	pub is_read_only: Option<bool>,
     pub read_only_logic: Option<String>,
-    pub is_active: Option<bool>,
     pub is_single_row: Option<bool>,
-    pub is_has_tree: Option<bool>,
-    pub is_sort_tab: Option<bool>,
     pub is_advanced_tab: Option<bool>,
+	pub is_has_tree: Option<bool>,
     pub is_info_tab: Option<bool>,
     pub is_translation_tab: Option<bool>,
-    pub is_insert_record: Option<bool>,
-    pub is_read_only: Option<bool>,
-    pub sequence: Option<i32>,
-    pub tab_level: Option<i32>,
+	// Table attributes
+	pub table_name: Option<String>,
     pub table: Option<Table>,
-    pub process: Option<Vec<Process>>,
+	// Link attributes
+	pub parent_column_name: Option<String>,
+	pub link_column_name: Option<String>,
+	// Sort attributes
+	pub is_sort_tab: Option<bool>,
+	pub sort_order_column_name: Option<String>,
+	pub sort_yes_no_column_name: Option<String>,
+	// External info
+	pub window_id: Option<i32>,
+	pub process_id: Option<i32>,
+	pub process: Option<Process>,
+	pub processes: Option<Vec<Process>>,
+	//	Fields
     pub fields: Option<Vec<WindowField>>,
     pub row_fields: Option<Vec<WindowField>>,
     pub grid_fields: Option<Vec<WindowField>>
@@ -89,26 +103,50 @@ pub struct DependendField {
 pub struct WindowField {
     pub uuid: Option<String>,
     pub id: Option<i32>,
-    pub value: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
+	//
+	pub display_type: Option<i32>,
+	pub is_allow_copy: Option<bool>,
+	pub is_heading: Option<bool>,
+	pub is_field_only: Option<bool>,
+	//	Column Properties
     pub column_name: Option<String>,
+	pub column_sql: Option<String>,
+	pub is_key: Option<bool>,
+	pub is_translated: Option<bool>,
+	pub is_identifier: Option<bool>,
+	pub identifier_sequence: Option<i32>,
+	pub is_selection_column: Option<bool>,
+	pub callout: Option<String>,
+	//	Value Properties
     pub default_value: Option<String>,
+	pub field_length: Option<i32>,
+	pub value_format: Option<String>,
+	pub format_pattern: Option<String>,
+	pub value_min: Option<String>,
+	pub value_max: Option<String>,
+	pub is_encrypted: Option<bool>,
+	//	Display Properties
+	pub is_displayed: Option<bool>,
     pub display_logic: Option<String>,
-    pub read_only_logic: Option<String>,
-    pub mandatory_logic: Option<String>,
-    pub value_format: Option<String>,
-    pub is_mandatory: Option<bool>,
     pub sequence: Option<i32>,
+	pub is_displayed_grid: Option<bool>,
     pub grid_sequence: Option<i32>,
+	//	Editable Properties
     pub is_read_only: Option<bool>,
-    pub is_displayed: Option<bool>,
-    pub display_type: Option<i32>,
-    pub reference_value_id: Option<i32>,
-    pub validation_id: Option<i32>,
+	pub read_only_logic: Option<String>,
+	pub is_updateable: Option<bool>,
+	pub is_always_updateable: Option<bool>,
+	//	Mandatory Properties
+	pub is_mandatory: Option<bool>,
+	pub mandatory_logic: Option<String>,
+	//	External Info
     pub context_column_names: Option<Vec<String>>,
-    pub dependent_fields: Option<Vec<DependendField>>
+	pub dependent_fields: Option<Vec<DependendField>>,
+	pub process_id: Option<i32>,
+	pub process: Option<Process>
 }
 
 impl Default for Window {
@@ -116,7 +154,6 @@ impl Default for Window {
         Self { 
             uuid: None, 
             id: None, 
-            value: None, 
             name: None, 
             description: None, 
             help: None, 
@@ -147,7 +184,6 @@ impl IndexDocument for Window {
                 "properties" : {
                     "uuid" : { "type" : "text" },
                     "id" : { "type" : "integer" },
-                    "value" : { "type" : "text" },
                     "name" : { "type" : "text" },
                     "description" : { "type" : "text" },
                     "help" : { "type" : "text" }
@@ -197,15 +233,15 @@ pub struct Process {
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Table {
-    pub uuid: Option<String>,
-    pub id: Option<i32>,
-    pub name: Option<String>,
     pub table_name: Option<String>,
-    pub description: Option<String>,
-    pub help: Option<String>,
+    pub access_level: Option<String>,
+    pub key_columns: Option<Vec<String>>,
+    pub is_view: Option<bool>,
     pub is_document: Option<bool>,
     pub is_deleteable: Option<bool>,
-    pub is_view: Option<bool>,
+    pub is_change_log: Option<bool>,
+    pub identifier_columns: Option<Vec<String>>,
+    pub selection_colums: Option<Vec<String>>,
 }
 
 pub async fn window_from_id(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _id: Option<i32>) -> Result<WindowResponse, String> {
