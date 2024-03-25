@@ -61,8 +61,8 @@ pub struct Process {
     pub report_view_id: Option<i32>,
     pub print_format_id: Option<i32>,
 	//	Linked
-	pub browse: Option<DictionaryEntity>,
 	pub browser_id: Option<i32>,
+	pub browse: Option<DictionaryEntity>,
 	pub form_id: Option<i32>,
 	pub form: Option<DictionaryEntity>,
 	pub workflow_id: Option<i32>,

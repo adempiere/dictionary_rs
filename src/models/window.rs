@@ -223,12 +223,29 @@ impl IndexDocument for Window {
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
+pub struct DictionaryEntity {
+	pub uuid: Option<String>,
+	pub id: Option<i32>,
+	pub name: Option<String>,
+	pub description: Option<String>,
+	pub help: Option<String>,
+}
+
+#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Process {
     pub uuid: Option<String>,
     pub id: Option<i32>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
+	pub is_report: Option<bool>,
+	//	Linked
+	pub browser_id: Option<i32>,
+	pub browser: Option<DictionaryEntity>,
+	pub from_id: Option<i32>,
+	pub form: Option<DictionaryEntity>,
+	pub workflow_id: Option<i32>,
+	pub workflow: Option<DictionaryEntity>,
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
