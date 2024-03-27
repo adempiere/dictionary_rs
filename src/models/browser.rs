@@ -64,7 +64,7 @@ pub struct Browser {
     pub role_id: Option<i32>,
     pub user_id: Option<i32>,
 	// External Reference
-	pub context_column_names: Option<String>,
+	pub context_column_names: Option<Vec<String>>,
 	pub process_id: Option<i32>,
 	pub process: Option<DictionaryEntity>,
 	pub window_id: Option<i32>,
@@ -88,7 +88,7 @@ pub struct BrowserField {
 	pub display_type: Option<i32>,
 	pub callout: Option<String>,
 	pub is_order_by: Option<bool>,
-	pub sort_sequence: Option<String>,
+	pub sort_sequence: Option<i32>,
 	pub is_key: Option<bool>,
 	pub is_identifier: Option<bool>,
 	//	Value Properties
