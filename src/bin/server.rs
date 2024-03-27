@@ -45,39 +45,54 @@ async fn main() {
     let router = Router::new()
         .hoop(cors_handler)
         .push(
-            Router::with_path("v1/menus")
-                .options(get_menu)
-                .get(get_menu)
-        )
-        .push(
-            Router::with_path("v1/processes/<id>")
-                .options(get_process)
-                .get(get_process)
-        )
-        .push(
-            Router::with_path("v1/processes")
-                .options(get_process)
-                .get(get_process)
-        )
-        .push(
-            Router::with_path("v1/browsers/<id>")
-                .options(get_browsers)
-                .get(get_browsers)
-        )
-        .push(
-            Router::with_path("v1/browsers")
-                .options(get_browsers)
-                .get(get_browsers)
-        )
-        .push(
-            Router::with_path("v1/windows/<id>")
-                .options(get_windows)
-                .get(get_windows)
-        )
-        .push(
-            Router::with_path("v1/windows")
-                .options(get_windows)
-                .get(get_windows)
+            // /api
+            Router::with_path("api")
+                .push(
+                    // /api/security/menus
+                    Router::with_path("security/menus")
+                        .options(get_menu)
+                        .get(get_menu)
+                )
+                .push(
+                    // /api/dictionary
+                    Router::with_path("dictionary")
+                        .push(
+                            // /api/dictionary/processes/:id
+                            Router::with_path("processes/<id>")
+                                .options(get_process)
+                                .get(get_process)
+                        )
+                        .push(
+                            // /api/dictionary/processes
+                            Router::with_path("processes")
+                                .options(get_process)
+                                .get(get_process)
+                        )
+                        .push(
+                            // /api/dictionary/browsers/:id
+                            Router::with_path("browsers/<id>")
+                                .options(get_browsers)
+                                .get(get_browsers)
+                        )
+                        .push(
+                            // /api/dictionary/browsers/
+                            Router::with_path("browsers")
+                                .options(get_browsers)
+                                .get(get_browsers)
+                        )
+                        .push(
+                            // /api/dictionary/windows/:id
+                            Router::with_path("windows/<id>")
+                                .options(get_windows)
+                                .get(get_windows)
+                        )
+                        .push(
+                            // /api/dictionary/windows/
+                            Router::with_path("windows")
+                                .options(get_windows)
+                                .get(get_windows)
+                        )
+                )
         )
     ;
     log::info!("{:#?}", router);
