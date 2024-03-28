@@ -122,7 +122,9 @@ async fn get_menu<'a>(_req: &mut Request, _res: &mut Response) {
         let _user_id = _req.queries().get("user_id");
         let _search_value = _req.queries().get("search_value");
         match menus(_language, _client_id, _role_id, _user_id, _search_value).await {
-            Ok(menu) => _res.render(Json(menu)),
+            Ok(menus_list) => {
+                _res.render(Json(menus_list));
+            },
             Err(e) => {
                 _res.render(e.to_string());
                 _res.status_code(StatusCode::INTERNAL_SERVER_ERROR);    
@@ -146,7 +148,9 @@ async fn get_process<'a>(_req: &mut Request, _res: &mut Response) {
         }
     } else {
         match processes(_language, _client_id, _role_id, _user_id, _search_value).await {
-            Ok(menu) => _res.render(Json(menu)),
+            Ok(processes_list) => {
+                _res.render(Json(processes_list));
+            },
             Err(e) => {
                 _res.render(e.to_string());
                 _res.status_code(StatusCode::INTERNAL_SERVER_ERROR);    
@@ -170,7 +174,9 @@ async fn get_browsers<'a>(_req: &mut Request, _res: &mut Response) {
         }
     } else {
         match browsers(_language, _client_id, _role_id, _user_id, _search_value).await {
-            Ok(menu) => _res.render(Json(menu)),
+            Ok(browsers_list) => {
+                _res.render(Json(browsers_list));
+            },
             Err(e) => {
                 _res.render(e.to_string());
                 _res.status_code(StatusCode::INTERNAL_SERVER_ERROR);    
@@ -194,7 +200,9 @@ async fn get_windows<'a>(_req: &mut Request, _res: &mut Response) {
         }
     } else {
         match windows(_language, _client_id, _role_id, _user_id, _search_value).await {
-            Ok(menu) => _res.render(Json(menu)),
+            Ok(windows_list) => {
+                _res.render(Json(windows_list));
+            },
             Err(e) => {
                 _res.render(e.to_string());
                 _res.status_code(StatusCode::INTERNAL_SERVER_ERROR);    

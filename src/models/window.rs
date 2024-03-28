@@ -261,19 +261,20 @@ pub struct Table {
     pub selection_colums: Option<Vec<String>>,
 }
 
-pub async fn window_from_id(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _id: Option<i32>) -> Result<WindowResponse, String> {
+pub async fn window_from_id(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _id: Option<i32>) -> Result<Window, String> {
     let mut _document = Window::from_id(_id);
     let _index_name = get_index_name(_language, _client_id, _role_id, _user_id).await.expect("Error getting index");
     log::info!("Index to search {:}", _index_name);
     _document.index_value = Some(_index_name);
-    let _menu_document: &dyn IndexDocument = &_document;
-    match get_by_id(_menu_document).await {
+    let _window_document: &dyn IndexDocument = &_document;
+    match get_by_id(_window_document).await {
         Ok(value) => {
             let window: Window = serde_json::from_value(value).unwrap();
             log::info!("Finded Value: {:?}", window.id);
-            Ok(WindowResponse {
-                window: Some(window)
-            })
+            // Ok(WindowResponse {
+            //     window: Some(window)
+            // })
+            Ok(window)
         },
         Err(error) => {
             log::warn!("{}", error);
@@ -336,16 +337,16 @@ pub async fn windows(_language: Option<&String>, _client_id: Option<&String>, _r
     log::info!("Index to search {:}", _index_name);
     let mut _document = Window::default();
     _document.index_value = Some(_index_name);
-    let _menu_document: &dyn IndexDocument = &_document;
-    match find(_menu_document, _search_value, 0, 10).await {
+    let _window_document: &dyn IndexDocument = &_document;
+    match find(_window_document, _search_value, 0, 10).await {
         Ok(values) => {
-            let mut menus: Vec<Window> = vec![];
+            let mut windows_list: Vec<Window> = vec![];
             for value in values {
-                let menu: Window = serde_json::from_value(value).unwrap();
-                menus.push(menu.to_owned());
+                let window: Window = serde_json::from_value(value).unwrap();
+                windows_list.push(window.to_owned());
             }
             Ok(WindowListResponse {
-                windows: Some(menus)
+                windows: Some(windows_list)
             })
         },
         Err(error) => Err(Error::new(ErrorKind::InvalidData.into(), error))

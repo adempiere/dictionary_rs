@@ -23,8 +23,8 @@ pub struct ProcessListResponse {
 
 impl Default for ProcessResponse {
     fn default() -> Self {
-        ProcessResponse { 
-            process: None 
+        ProcessResponse {
+            process: None
         }
     }
 }
@@ -223,7 +223,7 @@ pub struct Workflow {
     pub help: Option<String>,
 }
 
-pub async fn process_from_id(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _id: Option<i32>) -> Result<ProcessResponse, String> {
+pub async fn process_from_id(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _id: Option<i32>) -> Result<Process, String> {
     let mut _document = Process::from_id(_id);
     let _index_name = get_index_name(_language, _client_id, _role_id, _user_id).await.expect("Error getting index");
     log::info!("Index to search {:}", _index_name);
@@ -233,9 +233,12 @@ pub async fn process_from_id(_language: Option<&String>, _client_id: Option<&Str
         Ok(value) => {
             let process: Process = serde_json::from_value(value).unwrap();
             log::info!("Finded Value: {:?}", process.id);
-            Ok(ProcessResponse {
-                process: Some(process)
-            })
+            // Ok(ProcessResponse {
+            //     process: Some(process)
+            // })
+            Ok(
+                process
+            )
         },
         Err(error) => {
             log::warn!("{}", error);
@@ -297,16 +300,16 @@ pub async fn processes(_language: Option<&String>, _client_id: Option<&String>, 
     log::info!("Index to search {:}", _index_name);
     let mut _document = Process::default();
     _document.index_value = Some(_index_name);
-    let _menu_document: &dyn IndexDocument = &_document;
-    match find(_menu_document, _search_value, 0, 10).await {
+    let _process_document: &dyn IndexDocument = &_document;
+    match find(_process_document, _search_value, 0, 10).await {
         Ok(values) => {
-            let mut menus: Vec<Process> = vec![];
+            let mut processes_list: Vec<Process> = vec![];
             for value in values {
-                let menu: Process = serde_json::from_value(value).unwrap();
-                menus.push(menu.to_owned());
+                let process: Process = serde_json::from_value(value).unwrap();
+                processes_list.push(process.to_owned());
             }
             Ok(ProcessListResponse {
-                processes: Some(menus)
+                processes: Some(processes_list)
             })
         },
         Err(error) => Err(Error::new(ErrorKind::InvalidData.into(), error))

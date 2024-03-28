@@ -181,16 +181,19 @@ pub struct Workflow {
     pub help: Option<String>,
 }
 
-pub async fn menu_from_id(_id: Option<i32>) -> Result<MenuResponse, String> {
+pub async fn menu_from_id(_id: Option<i32>) -> Result<Menu, String> {
     let mut _document = Menu::from_id(_id);
     let _menu_document: &dyn IndexDocument = &_document;
     match get_by_id(_menu_document).await {
         Ok(value) => {
             let menu: Menu = serde_json::from_value(value).unwrap();
             log::info!("Finded Value: {:?}", menu.id);
-            Ok(MenuResponse {
-                menu: Some(menu)
-            })
+            // Ok(MenuResponse {
+            //     menu: Some(menu)
+            // })
+            Ok(
+                menu
+            )
         },
         Err(error) => {
             log::warn!("{}", error);
@@ -251,13 +254,13 @@ pub async fn menus(_language: Option<&String>, _client_id: Option<&String>, _rol
     let _menu_document: &dyn IndexDocument = &_document;
     match find(_menu_document, _search_value, 0, 10).await {
         Ok(values) => {
-            let mut menus: Vec<Menu> = vec![];
+            let mut menus_list: Vec<Menu> = vec![];
             for value in values {
                 let menu: Menu = serde_json::from_value(value).unwrap();
-                menus.push(menu.to_owned());
+                menus_list.push(menu.to_owned());
             }
             Ok(MenuListResponse {
-                menus: Some(menus)
+                menus: Some(menus_list)
             })
         },
         Err(error) => Err(Error::new(ErrorKind::InvalidData.into(), error))
