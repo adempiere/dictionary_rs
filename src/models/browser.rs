@@ -252,19 +252,22 @@ pub struct DependendField {
     pub parent_uuid: Option<String>,
 }
 
-pub async fn browser_from_id(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _id: Option<i32>) -> Result<BrowserResponse, String> {
+pub async fn browser_from_id(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _id: Option<i32>) -> Result<Browser, String> {
     let mut _document = Browser::from_id(_id);
     let _index_name = get_index_name(_language, _client_id, _role_id, _user_id).await.expect("Error getting index");
     log::info!("Index to search {:}", _index_name);
     _document.index_value = Some(_index_name);
-    let _menu_document: &dyn IndexDocument = &_document;
-    match get_by_id(_menu_document).await {
+    let _browser_document: &dyn IndexDocument = &_document;
+    match get_by_id(_browser_document).await {
         Ok(value) => {
             let browser: Browser = serde_json::from_value(value).unwrap();
             log::info!("Finded Value: {:?}", browser.id);
-            Ok(BrowserResponse {
-                browser: Some(browser)
-            })
+            // Ok(BrowserResponse {
+            //     browser: Some(browser)
+            // })
+            Ok( 
+                browser
+            )
         },
         Err(error) => {
             log::warn!("{}", error);
@@ -326,16 +329,16 @@ pub async fn browsers(_language: Option<&String>, _client_id: Option<&String>, _
     log::info!("Index to search {:}", _index_name);
     let mut _document = Browser::default();
     _document.index_value = Some(_index_name);
-    let _menu_document: &dyn IndexDocument = &_document;
-    match find(_menu_document, _search_value, 0, 10).await {
+    let _browser_document: &dyn IndexDocument = &_document;
+    match find(_browser_document, _search_value, 0, 10).await {
         Ok(values) => {
-            let mut menus: Vec<Browser> = vec![];
+            let mut browsers_list: Vec<Browser> = vec![];
             for value in values {
-                let menu: Browser = serde_json::from_value(value).unwrap();
-                menus.push(menu.to_owned());
+                let browser: Browser = serde_json::from_value(value).unwrap();
+                browsers_list.push(browser.to_owned());
             }
             Ok(BrowserListResponse {
-                browsers: Some(menus)
+                browsers: Some(browsers_list)
             })
         },
         Err(error) => Err(Error::new(ErrorKind::InvalidData.into(), error))
