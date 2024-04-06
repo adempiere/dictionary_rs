@@ -226,15 +226,17 @@ async fn consume_queue() {
             "default".to_owned()
         }.to_owned(),
     };
-    let kafka_queues =  match env::var("KAFKA_QUEUES") {
+	let kafka_queues: String = match env::var("KAFKA_QUEUES") {
         Ok(value) => value.clone(),
         Err(_) => {
             log::info!("Variable `KAFKA_QUEUES` Not found from enviroment, loaded with `default` value");
-            "ad_menu".to_owned()
-        }.to_owned(),
+			"menu process browser window".to_owned()
+		}.to_owned()
     };
-    
+
     let topics: Vec<&str> = kafka_queues.split_whitespace().collect();
+	log::info!("Topics to Subscribed: {:?}", topics.to_owned());
+
     let consumer = create_consumer(&kafka_host, &kafka_group, &topics);
     loop {
         match consumer.recv().await {
