@@ -40,17 +40,21 @@ pub struct Menu {
     pub is_summary: Option<bool>,
     pub is_sales_transaction: Option<bool>,
     pub is_read_only: Option<bool>,
-    pub action: Option<String>,
+    // index
     pub index_value: Option<String>,
     pub language: Option<String>,
     pub client_id: Option<i32>,
     pub role_id: Option<i32>,
     pub user_id: Option<i32>,
+    // Supported References
+    pub action: Option<String>,
+    pub action_id: Option<i32>,
     pub window: Option<Window>,
     pub process: Option<Process>,
     pub form: Option<Form>,
     pub browse: Option<Browse>,
     pub workflow: Option<Workflow>,
+    // Tree menu childs
     pub children: Option<Vec<Menu>>
 }
 
@@ -66,7 +70,8 @@ impl Default for Menu {
             is_summary: None, 
             is_sales_transaction: None, 
             is_read_only: None, 
-            action: None, 
+            action: None,
+            action_id: None,
             window: None, 
             process: None, 
             form: None, 
