@@ -77,8 +77,8 @@ docker run -d -p 7878:7878 --name opensearch-gateway-rs -e KAFKA_ENABLED="N" -e 
 ```
 
 #### Environment variables
-- `HOST`: Internal host for container. Default: `0.0.0.0:7878`
-- `KAFKA_ENABLED`: Define if the kafka consumer is enabled. Default: `N`
+- `PORT`: Internal port for container. Default: `7878`
+- `KAFKA_ENABLED`: Define if the kafka consumer is enabled. Default: `Y`
 - `KAFKA_QUEUES`: Apply for `KAFKA_ENABLED` flag, this can subscribe to many topics using space between topic. Default: `menu`
 - `KAFKA_HOST`: Kafka cluster and port for connect. Default: `0.0.0.0:29092`
 - `KAFKA_GROUP`: Kafka group for subscription. Default: `default`
