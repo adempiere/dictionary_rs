@@ -49,6 +49,7 @@ pub struct Menu {
     // Supported References
     pub action: Option<String>,
     pub action_id: Option<i32>,
+    pub action_uuid: Option<String>,
     pub window: Option<Window>,
     pub process: Option<Process>,
     pub form: Option<Form>,
@@ -70,19 +71,23 @@ impl Default for Menu {
             is_summary: None, 
             is_sales_transaction: None, 
             is_read_only: None, 
+			// index
+			index_value: None,
+			language: None,
+			client_id: None,
+			role_id: None,
+			user_id: None,
+			// Supported References
             action: None,
-            action_id: None,
+			action_id: None,
+			action_uuid: None,
             window: None, 
             process: None, 
             form: None, 
             browse: None,
-            children: None,
-            client_id: None,
-            index_value: None,
-            language: None,
-            role_id: None,
-            user_id: None,
-            workflow: None
+			workflow: None,
+			// Tree menu childs
+			children: None
         }
     }
 }
