@@ -2,7 +2,7 @@ use std::env;
 use opensearch_gateway_rs::{models::{menu::{menu_from_id, menus, MenuDocument}, process::{ProcessDocument, process_from_id, processes}, browser::{BrowserDocument, browsers, browser_from_id}, window::{WindowDocument, windows, window_from_id}}, controller::{kafka::create_consumer, opensearch::{create, IndexDocument, delete}}};
 use dotenv::dotenv;
 use rdkafka::{Message, consumer::{CommitMode, Consumer}};
-use salvo::{prelude::*, cors::Cors, http::header, hyper::Method};
+use salvo::{conn::tcp::TcpAcceptor, cors::Cors, http::header, hyper::Method, prelude::*};
 extern crate serde_json;
 use simple_logger::SimpleLogger;
 use futures::future::join_all;
@@ -11,30 +11,29 @@ use futures::future::join_all;
 async fn main() {
     dotenv().ok();
     SimpleLogger::new().env().init().unwrap();
-    let host =  match env::var("HOST") {
+
+	let port: String = match env::var("PORT") {
         Ok(value) => value,
         Err(_) => {
-            log::info!("Variable `HOST` Not found from enviroment, loaded from local IP");
-            "127.0.0.1:7878".to_owned()
-        }.to_owned(),
-    };
-    let kafka_enabled =  match env::var("KAFKA_ENABLED") {
+			log::info!("Variable `PORT` Not found from enviroment, as default 7878");
+			"7878".to_owned()
+		}.to_owned()
+	};
+
+	let host: String = "0.0.0.0:".to_owned() + &port;
+	log::info!("Server Address: {:?}", host.clone());
+	let acceptor: TcpAcceptor = TcpListener::new(&host).bind().await;
+
+	// TODO: Add support to allow requests from multiple origin
+	let allowed_origin: String = match env::var("ALLOWED_ORIGIN") {
         Ok(value) => value,
         Err(_) => {
-            log::info!("Variable `KAFKA_ENABLED` Not found from enviroment, as default Y");
-            "Y".to_owned()
-        }.to_owned(),
+			log::info!("Variable `ALLOWED_ORIGIN` Not found from enviroment");
+			"*".to_owned()
+		}.to_owned()
     };
-    // TODO: Add support to allow requests from multiple origin
-    let allowed_origin = match env::var("ALLOWED_ORIGIN") {
-        Ok(value) => value,
-        Err(_) => {
-            log::info!("Variable `ALLOWED_ORIGIN` Not found from enviroment");
-            "*".to_owned()
-        }.to_owned(),
-    };
+
     //  Send Device Info
-    log::info!("Server Address: {:?}", host.clone());
     let cors_handler = Cors::new()
         .allow_origin(&allowed_origin.to_owned())
         .allow_methods(vec![Method::OPTIONS, Method::GET])
@@ -96,9 +95,18 @@ async fn main() {
         )
     ;
     log::info!("{:#?}", router);
-    let acceptor = TcpListener::new(&host).bind().await;
+
     let mut futures = vec![tokio::spawn(async move { Server::new(acceptor).serve(router).await; })];
-    if kafka_enabled.eq("Y") {
+
+	// Kafka Queue
+	let kafka_enabled: String = match env::var("KAFKA_ENABLED") {
+		Ok(value) => value,
+		Err(_) => {
+			log::info!("Variable `KAFKA_ENABLED` Not found from enviroment, as default Y");
+			"Y".to_owned()
+		}.to_owned()
+	};
+	if kafka_enabled.trim().eq("Y") {
         log::info!("Kafka Consumer is enabled");
         futures.push(tokio::spawn(async move { consume_queue().await; }));
     } else {
@@ -226,15 +234,17 @@ async fn consume_queue() {
             "default".to_owned()
         }.to_owned(),
     };
-    let kafka_queues =  match env::var("KAFKA_QUEUES") {
+	let kafka_queues: String = match env::var("KAFKA_QUEUES") {
         Ok(value) => value.clone(),
         Err(_) => {
             log::info!("Variable `KAFKA_QUEUES` Not found from enviroment, loaded with `default` value");
-            "ad_menu".to_owned()
-        }.to_owned(),
+			"menu process browser window".to_owned()
+		}.to_owned()
     };
-    
+
     let topics: Vec<&str> = kafka_queues.split_whitespace().collect();
+	log::info!("Topics to Subscribed: {:?}", topics.to_owned());
+
     let consumer = create_consumer(&kafka_host, &kafka_group, &topics);
     loop {
         match consumer.recv().await {
