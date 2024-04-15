@@ -78,6 +78,11 @@ pub struct Browser {
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
+pub struct Reference {
+	pub context_column_names: Option<Vec<String>>
+}
+
+#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct BrowserField {
     pub uuid: Option<String>,
     pub id: Option<i32>,
@@ -113,6 +118,7 @@ pub struct BrowserField {
 	//	External Info
 	pub element_name: Option<String>,
     pub context_column_names: Option<Vec<String>>,
+	pub reference: Option<Reference>,
     pub dependent_fields: Option<Vec<DependendField>>
 }
 
