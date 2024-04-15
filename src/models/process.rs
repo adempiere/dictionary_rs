@@ -79,6 +79,12 @@ pub struct Process {
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
+pub struct Reference {
+	pub table_name: Option<String>,
+	pub context_column_names: Option<Vec<String>>
+}
+
+#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct ProcessParameters {
     pub uuid: Option<String>,
     pub id: Option<i32>,
@@ -105,6 +111,7 @@ pub struct ProcessParameters {
 	pub is_info_only: Option<bool>,
 	// External Info
     pub context_column_names: Option<Vec<String>>,
+	pub reference: Option<Reference>,
     pub dependent_fields: Option<Vec<DependendField>>
 }
 
