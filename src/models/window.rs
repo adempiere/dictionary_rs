@@ -80,6 +80,7 @@ pub struct WindowTab {
 	pub sort_order_column_name: Option<String>,
 	pub sort_yes_no_column_name: Option<String>,
 	// External info
+	pub context_columns: Option<Vec<String>>,
 	pub window_id: Option<i32>,
 	pub process_id: Option<i32>,
 	pub process: Option<Process>,
@@ -97,6 +98,12 @@ pub struct DependendField {
     pub column_name: Option<String>,
     pub parent_id: Option<i32>,
     pub parent_uuid: Option<String>,
+}
+
+#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
+pub struct Reference {
+	pub table_name: Option<String>,
+	pub context_column_names: Option<Vec<String>>
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
@@ -144,6 +151,7 @@ pub struct WindowField {
 	pub mandatory_logic: Option<String>,
 	//	External Info
     pub context_column_names: Option<Vec<String>>,
+	pub reference: Option<Reference>,
 	pub dependent_fields: Option<Vec<DependendField>>,
 	pub process_id: Option<i32>,
 	pub process: Option<Process>
