@@ -212,7 +212,10 @@ pub async fn menu_from_id(_id: Option<i32>) -> Result<Menu, String> {
     }
 }
 
-pub async fn menus(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _search_value: Option<&String>) -> Result<MenuListResponse, std::io::Error> {
+pub async fn menus(
+	_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>,
+	_search_value: Option<&String>, _page_number: Option<&String>, _page_size: Option<&String>
+) -> Result<MenuListResponse, std::io::Error> {
     //  Validate
     if _language.is_none() {
         return Err(Error::new(ErrorKind::InvalidData.into(), "Language is Mandatory"));
@@ -238,16 +241,28 @@ pub async fn menus(_language: Option<&String>, _client_id: Option<&String>, _rol
     let _default_index = default_index(_index.to_owned(), _language, _client_id, _role_id);
     //  Find index
     let _index_name = match exists_index(_user_index.to_owned()).await {
-        Ok(_) => _user_index,
+		Ok(_) => {
+			log::info!("Find with user index {:}", _user_index);
+			_user_index
+		},
         Err(_) => {
             match exists_index(_role_index.to_owned()).await {
-                Ok(_) => _role_index,
+				Ok(_) => {
+					log::info!("Find with role index {:}", _role_index);
+					_role_index
+                },
                 Err(_) => {
                     match exists_index(_client_index.to_owned()).await {
-                        Ok(_) => _client_index,
+						Ok(_) => {
+							log::info!("Find with client index {:}", _client_index);
+							_client_index
+						},
                         Err(_) => {
                             match exists_index(_language_index.to_owned()).await {
-                                Ok(_) => _language_index,
+								Ok(_) => {
+									log::info!("Find with language index {:}", _language_index);
+									_language_index
+								},
                                 Err(_) => {
                                     _default_index
                                 }
@@ -262,7 +277,18 @@ pub async fn menus(_language: Option<&String>, _client_id: Option<&String>, _rol
     let mut _document = Menu::default();
     _document.index_value = Some(_index_name);
     let _menu_document: &dyn IndexDocument = &_document;
-    match find(_menu_document, _search_value, 0, 10).await {
+
+	// pagination
+	let page_number: i64 = match _page_number {
+		Some(value) => value.clone().parse::<i64>().to_owned(),
+		None => "0".parse::<i64>().to_owned()
+	}.unwrap();
+	let page_size: i64 = match _page_size {
+		Some(value) => value.clone().parse::<i64>().to_owned(),
+		None => "100".parse::<i64>().to_owned()
+	}.unwrap();
+
+    match find(_menu_document, _search_value, page_number, page_size).await {
         Ok(values) => {
             let mut menus_list: Vec<Menu> = vec![];
             for value in values {
@@ -273,7 +299,9 @@ pub async fn menus(_language: Option<&String>, _client_id: Option<&String>, _rol
                 menus: Some(menus_list)
             })
         },
-        Err(error) => Err(Error::new(ErrorKind::InvalidData.into(), error))
+		Err(error) => {
+			Err(Error::new(ErrorKind::InvalidData.into(), error))
+		}
     }
     // Ok(MenuResponse::default())
 }
