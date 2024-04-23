@@ -227,7 +227,7 @@ pub async fn delete(_document: &dyn IndexDocument) -> Result<bool, std::string::
 }
 
 pub async fn find(_document: &dyn IndexDocument, _search_value: String, _from: i64, _size: i64) -> Result<Vec<Value>, std::string::String> {
-    let client = match create_opensearch_client() {
+	let client: OpenSearch = match create_opensearch_client() {
         Ok(client_value) => client_value,
         Err(error) => {
             log::error!("{:?}", error);
@@ -235,12 +235,14 @@ pub async fn find(_document: &dyn IndexDocument, _search_value: String, _from: i
         }
     };
     //  Create
-    let _response = client
+	let _response: Result<opensearch::http::response::Response, opensearch::Error> = client
         .search(SearchParts::Index(&[&_document.index_name()]))
         .from(_from)
         .size(_size)
         .body(_document.find(_search_value))
-        .send().await;
+        .send()
+		.await
+	;
     let response = match _response {
         Ok(value) => value,
         Err(error) => {

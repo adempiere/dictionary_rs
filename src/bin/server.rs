@@ -129,13 +129,15 @@ async fn get_menu<'a>(_req: &mut Request, _res: &mut Response) {
         let _role_id = _req.queries().get("role_id");
         let _user_id = _req.queries().get("user_id");
         let _search_value = _req.queries().get("search_value");
-        match menus(_language, _client_id, _role_id, _user_id, _search_value).await {
+		let _page_number: Option<&String> = _req.queries().get("page_number");
+		let _page_size: Option<&String> = _req.queries().get("page_size");
+		match menus(_language, _client_id, _role_id, _user_id, _search_value, _page_number, _page_size).await {
             Ok(menus_list) => {
                 _res.render(Json(menus_list));
             },
             Err(e) => {
                 _res.render(e.to_string());
-                _res.status_code(StatusCode::INTERNAL_SERVER_ERROR);    
+				_res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
             }
         }
     }
@@ -220,13 +222,15 @@ async fn get_windows<'a>(_req: &mut Request, _res: &mut Response) {
 }
 
 async fn consume_queue() {
-    let kafka_host =  match env::var("KAFKA_HOST") {
+	let kafka_host = match env::var("KAFKA_HOST") {
         Ok(value) => value,
         Err(_) => {
             log::info!("Variable `KAFKA_HOST` Not found from enviroment, loaded from local IP");
             "127.0.0.1:9092".to_owned()
         }.to_owned(),
     };
+	log::info!("Kafka queue: {:?}", kafka_host.to_owned());
+
     let kafka_group =  match env::var("KAFKA_GROUP") {
         Ok(value) => value,
         Err(_) => {
