@@ -70,11 +70,12 @@ pub struct Browser {
 	pub window_id: Option<i32>,
 	pub window: Option<DictionaryEntity>,
 	//	Browse Fields
-    pub display_fields: Option<Vec<BrowserField>>,
-    pub criteria_fields: Option<Vec<BrowserField>>,
-    pub identifier_fields: Option<Vec<BrowserField>>,
-    pub order_fields: Option<Vec<BrowserField>>,
-    pub editable_fields: Option<Vec<BrowserField>>
+    pub fields: Option<Vec<BrowserField>>
+    // pub display_fields: Option<Vec<BrowserField>>,
+    // pub criteria_fields: Option<Vec<BrowserField>>,
+    // pub identifier_fields: Option<Vec<BrowserField>>,
+    // pub order_fields: Option<Vec<BrowserField>>,
+    // pub editable_fields: Option<Vec<BrowserField>>
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
@@ -109,6 +110,8 @@ pub struct BrowserField {
 	pub display_logic: Option<String>,
 	pub sequence: Option<i32>,
 	pub grid_sequence: Option<i32>,
+    pub is_displayed_as_panel: Option<String>,
+    pub is_displayed_as_table: Option<String>,
 	//	Editable Properties
     pub is_read_only: Option<bool>,
 	pub read_only_logic: Option<String>,
@@ -155,11 +158,12 @@ impl Default for Browser {
 			window_id: None,
 			window: None,
 			//	Browse Fields
-			display_fields: None,
-			criteria_fields: None,
-			identifier_fields: None,
-			order_fields: None,
-			editable_fields: None
+			fields: None
+			// display_fields: None,
+			// criteria_fields: None,
+			// identifier_fields: None,
+			// order_fields: None,
+			// editable_fields: None
         }
     }
 }
@@ -256,6 +260,7 @@ pub struct DependendField {
     pub column_name: Option<String>,
     pub parent_id: Option<i32>,
     pub parent_uuid: Option<String>,
+    pub parent_name: Option<String>
 }
 
 pub async fn browser_from_id(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _id: Option<i32>) -> Result<Browser, String> {
