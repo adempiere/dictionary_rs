@@ -3,6 +3,8 @@ use rdkafka::consumer::stream_consumer::StreamConsumer;
 use rdkafka::consumer::{Consumer, ConsumerContext, Rebalance};
 use rdkafka::error::KafkaResult;
 use rdkafka::{ClientConfig, TopicPartitionList, ClientContext};
+use std::thread;
+use std::time::Duration;
 use std::{io::Error, io::ErrorKind};
 
 pub struct CustomContext;
@@ -26,21 +28,7 @@ impl ConsumerContext for CustomContext {
 // A type alias with your custom consumer can be created for convenience.
 type LoggingConsumer = StreamConsumer<CustomContext>;
 
-pub fn subscribe_topics(consumer: LoggingConsumer, topics: &[&str]) {
-	loop {
-		match consumer.subscribe(&topics.to_vec()) {
-			Ok(value) => {
-				log::info!("Subscribed to topics: {:?}", value);
-				break
-			},
-			Err(e) => {
-				log::warn!("Can't subscribe to specified topics '{:?}': {}", topics, e);
-			},
-		}
-	}
-}
-
-pub fn create_consumer(brokers: &str, group_id: &str) -> Result<StreamConsumer<CustomContext>, Error> {
+pub fn create_consumer(brokers: &str, group_id: &str, topics: &[&str]) -> Result<LoggingConsumer, Error> {
 	let context: CustomContext = CustomContext;
 
 	let consumer_value : KafkaResult<LoggingConsumer> = ClientConfig::new()
@@ -60,10 +48,23 @@ pub fn create_consumer(brokers: &str, group_id: &str) -> Result<StreamConsumer<C
 		.set("fetch.max.bytes", "2147483135")
         .set_log_level(RDKafkaLogLevel::Debug)
         .create_with_context(context);
-
-	match consumer_value {
-		Ok(value) => Ok(value),
-		Err(error) => Err(Error::new(ErrorKind::InvalidData.into(), error))
+	if consumer_value.is_err() {
+		return Err(Error::new(ErrorKind::InvalidData.into(), consumer_value.err().unwrap()))
 	}
+	let consumer = consumer_value.unwrap();
+	loop {
+		match consumer.subscribe(&topics.to_vec()) {
+			Ok(value) => {
+				log::info!("Subscribed to topics: {:?}", value);
+				break
+			},
+			Err(e) => {
+				log::warn!("Can't subscribe to specified topics '{:?}': {}", topics, e);
+			},
+		}
+		let waiting_time = Duration::from_secs(5);
+		thread::sleep(waiting_time);
+	}
+	Ok(consumer)
     // consumer
 }

@@ -1,5 +1,5 @@
 use std::env;
-use opensearch_gateway_rs::{controller::{kafka::{create_consumer, subscribe_topics}, opensearch::{create, delete, IndexDocument}}, models::{browser::{browser_from_id, browsers, BrowserDocument}, menu::{menu_from_id, menus, MenuDocument}, process::{process_from_id, processes, ProcessDocument}, window::{window_from_id, windows, WindowDocument}}};
+use opensearch_gateway_rs::{controller::{kafka::create_consumer, opensearch::{create, delete, IndexDocument}}, models::{browser::{browser_from_id, browsers, BrowserDocument}, menu::{menu_from_id, menus, MenuDocument}, process::{process_from_id, processes, ProcessDocument}, window::{window_from_id, windows, WindowDocument}}};
 use dotenv::dotenv;
 use rdkafka::{Message, consumer::{CommitMode, Consumer}};
 use salvo::{conn::tcp::TcpAcceptor, cors::Cors, http::header, hyper::Method, prelude::*};
@@ -249,108 +249,112 @@ async fn consume_queue() {
     let topics: Vec<&str> = kafka_queues.split_whitespace().collect();
 	log::info!("Topics to Subscribed: {:?}", topics.to_owned());
 
-    let consumer = create_consumer(&kafka_host, &kafka_group);
-    subscribe_topics(consumer, , &topics)
-    loop {
-        match consumer.recv().await {
-            Err(e) => log::error!("Kafka error: {}", e),
-            Ok(message) => {
-                let payload = match message.payload_view::<str>() {
-                    None => "",
-                    Some(Ok(s)) => s,
-                    Some(Err(e)) => {
-                        log::info!("Error while deserializing message payload: {:?}", e);
-                        ""
+    let consumer_result = create_consumer(&kafka_host, &kafka_group, &topics);
+    match consumer_result {
+        Ok(consumer) => {
+            loop {
+                match consumer.recv().await {
+                    Err(e) => log::error!("Kafka error: {}", e),
+                    Ok(message) => {
+                        let payload = match message.payload_view::<str>() {
+                            None => "",
+                            Some(Ok(s)) => s,
+                            Some(Err(e)) => {
+                                log::info!("Error while deserializing message payload: {:?}", e);
+                                ""
+                            }
+                        };
+                        let key = match message.key_view::<str>() {
+                            None => "",
+                            Some(Ok(s)) => s,
+                            Some(Err(e)) => {
+                                log::info!("Error while deserializing message key: {:?}", e);
+                                ""
+                            }
+                        };
+                        let event_type = key.replace("\"", "");
+                        let topic = message.topic();
+                        if topic == "menu" {
+                            let _document = match serde_json::from_str(payload) {
+                                Ok(value) => value,
+                                Err(error) => {
+                                    log::warn!("{}", error);
+                                    MenuDocument {
+                                        document: None
+                                    }
+                                },
+                            };
+                            if _document.document.is_some() {
+                                let _menu_document: &dyn IndexDocument = &(_document.document.unwrap());
+                                match process_index(event_type, _menu_document).await {
+                                    Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
+                                    Err(error) => log::warn!("{}", error)
+                                }
+                            }
+                        } else if topic == "process" {
+                            let _document = match serde_json::from_str(payload) {
+                                Ok(value) => value,
+                                Err(error) => {
+                                    log::warn!("{}", error);
+                                    ProcessDocument {
+                                        document: None
+                                    }
+                                },
+                            };
+                            if _document.document.is_some() {
+                                let _process_document: &dyn IndexDocument = &(_document.document.unwrap());
+                                match process_index(event_type, _process_document).await {
+                                    Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
+                                    Err(error) => log::warn!("{}", error)
+                                }
+                            }
+                        } else if topic == "browser" {
+                            let _document = match serde_json::from_str(payload) {
+                                Ok(value) => value,
+                                Err(error) => {
+                                    log::warn!("{}", error);
+                                    BrowserDocument {
+                                        document: None
+                                    }
+                                },
+                            };
+                            if _document.document.is_some() {
+                                let _browser_document: &dyn IndexDocument = &(_document.document.unwrap());
+                                match process_index(event_type, _browser_document).await {
+                                    Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
+                                    Err(error) => log::warn!("{}", error)
+                                }
+                            }
+                        } else if topic == "window" {
+                            let _document = match serde_json::from_str(payload) {
+                                Ok(value) => value,
+                                Err(error) => {
+                                    log::warn!("{}", error);
+                                    WindowDocument {
+                                        document: None
+                                    }
+                                },
+                            };
+                            if _document.document.is_some() {
+                                let _window_document: &dyn IndexDocument = &(_document.document.unwrap());
+                                match process_index(event_type, _window_document).await {
+                                    Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
+                                    Err(error) => log::warn!("{}", error)
+                                }
+                            }
+                        }
+                        // TODO: Add token header
+                        // if let Some(headers) = message.headers() {
+                        //     for header in headers.iter() {
+                        //         log::info!("  Header {:#?}: {:?}", header.key, header.value);
+                        //     }
+                        // }
                     }
                 };
-                let key = match message.key_view::<str>() {
-                    None => "",
-                    Some(Ok(s)) => s,
-                    Some(Err(e)) => {
-                        log::info!("Error while deserializing message key: {:?}", e);
-                        ""
-                    }
-                };
-                let event_type = key.replace("\"", "");
-                let topic = message.topic();
-                if topic == "menu" {
-                    let _document = match serde_json::from_str(payload) {
-                        Ok(value) => value,
-                        Err(error) => {
-                            log::warn!("{}", error);
-                            MenuDocument {
-                                document: None
-                            }
-                        },
-                    };
-                    if _document.document.is_some() {
-                        let _menu_document: &dyn IndexDocument = &(_document.document.unwrap());
-                        match process_index(event_type, _menu_document).await {
-                            Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-                            Err(error) => log::warn!("{}", error)
-                        }
-                    }
-                } else if topic == "process" {
-                    let _document = match serde_json::from_str(payload) {
-                        Ok(value) => value,
-                        Err(error) => {
-                            log::warn!("{}", error);
-                            ProcessDocument {
-                                document: None
-                            }
-                        },
-                    };
-                    if _document.document.is_some() {
-                        let _process_document: &dyn IndexDocument = &(_document.document.unwrap());
-                        match process_index(event_type, _process_document).await {
-                            Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-                            Err(error) => log::warn!("{}", error)
-                        }
-                    }
-                } else if topic == "browser" {
-                    let _document = match serde_json::from_str(payload) {
-                        Ok(value) => value,
-                        Err(error) => {
-                            log::warn!("{}", error);
-                            BrowserDocument {
-                                document: None
-                            }
-                        },
-                    };
-                    if _document.document.is_some() {
-                        let _browser_document: &dyn IndexDocument = &(_document.document.unwrap());
-                        match process_index(event_type, _browser_document).await {
-                            Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-                            Err(error) => log::warn!("{}", error)
-                        }
-                    }
-                } else if topic == "window" {
-                    let _document = match serde_json::from_str(payload) {
-                        Ok(value) => value,
-                        Err(error) => {
-                            log::warn!("{}", error);
-                            WindowDocument {
-                                document: None
-                            }
-                        },
-                    };
-                    if _document.document.is_some() {
-                        let _window_document: &dyn IndexDocument = &(_document.document.unwrap());
-                        match process_index(event_type, _window_document).await {
-                            Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-                            Err(error) => log::warn!("{}", error)
-                        }
-                    }
-                }
-                // TODO: Add token header
-                // if let Some(headers) = message.headers() {
-                //     for header in headers.iter() {
-                //         log::info!("  Header {:#?}: {:?}", header.key, header.value);
-                //     }
-                // }
             }
-        };
-    }
+        },
+        Err(error) => log::error!("Consume Queue Error {}", error),
+    };
 }
 
 async fn process_index(_event_type: String, _document: &dyn IndexDocument) -> Result<bool, std::string::String> {
