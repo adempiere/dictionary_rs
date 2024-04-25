@@ -48,8 +48,9 @@ pub fn create_consumer(brokers: &str, group_id: &str, topics: &[&str]) -> Stream
         .expect("Consumer creation failed");
 
 	match consumer.subscribe(&topics.to_vec()) {
-		Ok(_) => {
-			log::info!("Subscribed to topics: {:?}", topics)
+		Ok(value) => {
+			log::info!("Subscribed to topics: {:?}", topics);
+			value
 		},
 		Err(e) => {
 			log::warn!("Can't subscribe to specified topics '{:?}': {}", topics, e);
