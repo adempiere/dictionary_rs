@@ -47,15 +47,14 @@ pub fn create_consumer(brokers: &str, group_id: &str, topics: &[&str]) -> Stream
         .create_with_context(context)
         .expect("Consumer creation failed");
 
-    match consumer.subscribe(&topics.to_vec()) {
-        Ok(_) => {
-            log::info!("Subscribed to topic 'my_topic'")
-        },
-        Err(e) => {
-            log::warn!("Can't subscribe to specified topics: {:?}", e);
-            // return;
-        },
-    }
+	match consumer.subscribe(&topics.to_vec()) {
+		Ok(_) => {
+			log::info!("Subscribed to topic 'my_topic'")
+		},
+		Err(e) => {
+			log::warn!("Can't subscribe to specified topics: {:?}", e);
+		},
+	}
 
     consumer
 }
