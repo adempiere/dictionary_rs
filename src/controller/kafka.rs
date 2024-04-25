@@ -45,12 +45,10 @@ pub fn create_consumer(brokers: &str, group_id: &str, topics: &[&str]) -> Stream
 		.set("fetch.max.bytes", "2147483135")
         .set_log_level(RDKafkaLogLevel::Debug)
         .create_with_context(context)
-		.expect("Consumer creation failed")
-	;
+        .expect("Consumer creation failed");
 
     consumer
         .subscribe(&topics.to_vec())
-		.expect("Can't subscribe to specified topics")
-	;
+        .expect("Can't subscribe to specified topics");
     consumer
 }
