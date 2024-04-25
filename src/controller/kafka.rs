@@ -28,7 +28,7 @@ type LoggingConsumer = StreamConsumer<CustomContext>;
 pub fn create_consumer(brokers: &str, group_id: &str, topics: &[&str]) -> StreamConsumer<CustomContext> {
 	let context: CustomContext = CustomContext;
 
-    let consumer: LoggingConsumer =  ClientConfig::new()
+	let consumer: LoggingConsumer = ClientConfig::new()
             .set("group.id", group_id)
             .set("bootstrap.servers", brokers)
             .set("enable.partition.eof", "false")
@@ -49,10 +49,10 @@ pub fn create_consumer(brokers: &str, group_id: &str, topics: &[&str]) -> Stream
 
 	match consumer.subscribe(&topics.to_vec()) {
 		Ok(_) => {
-			log::info!("Subscribed to topic 'my_topic'")
+			log::info!("Subscribed to topics: {:?}", topics)
 		},
 		Err(e) => {
-			log::warn!("Can't subscribe to specified topics: {:?}", e);
+			log::warn!("Can't subscribe to specified topics '{:?}': {}", topics, e);
 		},
 	}
 
