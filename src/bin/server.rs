@@ -1,5 +1,5 @@
 use std::env;
-use opensearch_gateway_rs::{models::{menu::{menu_from_id, menus, MenuDocument}, process::{ProcessDocument, process_from_id, processes}, browser::{BrowserDocument, browsers, browser_from_id}, window::{WindowDocument, windows, window_from_id}}, controller::{kafka::create_consumer, opensearch::{create, IndexDocument, delete}}};
+use opensearch_gateway_rs::{controller::{kafka::{create_consumer, subscribe_topics}, opensearch::{create, delete, IndexDocument}}, models::{browser::{browser_from_id, browsers, BrowserDocument}, menu::{menu_from_id, menus, MenuDocument}, process::{process_from_id, processes, ProcessDocument}, window::{window_from_id, windows, WindowDocument}}};
 use dotenv::dotenv;
 use rdkafka::{Message, consumer::{CommitMode, Consumer}};
 use salvo::{conn::tcp::TcpAcceptor, cors::Cors, http::header, hyper::Method, prelude::*};
@@ -249,7 +249,8 @@ async fn consume_queue() {
     let topics: Vec<&str> = kafka_queues.split_whitespace().collect();
 	log::info!("Topics to Subscribed: {:?}", topics.to_owned());
 
-    let consumer = create_consumer(&kafka_host, &kafka_group, &topics);
+    let consumer = create_consumer(&kafka_host, &kafka_group);
+    subscribe_topics(consumer, , &topics)
     loop {
         match consumer.recv().await {
             Err(e) => log::error!("Kafka error: {}", e),
