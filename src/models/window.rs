@@ -86,9 +86,9 @@ pub struct WindowTab {
 	pub process: Option<Process>,
 	pub processes: Option<Vec<Process>>,
 	//	Fields
-    pub fields: Option<Vec<WindowField>>,
-    pub row_fields: Option<Vec<WindowField>>,
-    pub grid_fields: Option<Vec<WindowField>>
+    pub fields: Option<Vec<WindowField>>
+    // pub row_fields: Option<Vec<WindowField>>,
+    // pub grid_fields: Option<Vec<WindowField>>
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
@@ -98,6 +98,7 @@ pub struct DependendField {
     pub column_name: Option<String>,
     pub parent_id: Option<i32>,
     pub parent_uuid: Option<String>,
+    pub parent_name: Option<String>
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
@@ -140,6 +141,8 @@ pub struct WindowField {
     pub sequence: Option<i32>,
 	pub is_displayed_grid: Option<bool>,
     pub grid_sequence: Option<i32>,
+    pub is_displayed_as_panel: Option<String>,
+    pub is_displayed_as_table: Option<String>,
 	//	Editable Properties
     pub is_read_only: Option<bool>,
 	pub read_only_logic: Option<String>,
