@@ -1,4 +1,4 @@
-# Microservice with Open Search gateway for Rust
+# Microservice with Open Search gateway for ADempiere Dictionary using Rust
 A microservice that publish a Rest API based on [salvo.rs](https://salvo.rs/)
 
 ![Setup Create Config](docs/Setup_Create_Config.png)
@@ -16,7 +16,7 @@ You can run it with `docker compose` for develop enviroment, the complete servic
 - Kafka
 - Zookeeper
 - OpenSearch
-- OpenSearch-Gateway-RS
+- Dictionary-RS
 
 ### Requirements
 
@@ -32,8 +32,8 @@ Docker Compose version v2.16.0
 Just clone it
 
 ```Shell
-git clone https://github.com/adempiere/opensearch_gateway_rs
-cd opensearch_gateway_rs/docker-compose
+git clone https://github.com/adempiere/dictionary_rs
+cd dictionary_rs/docker-compose
 ```
 
 ```Shell
@@ -67,13 +67,13 @@ apt install pkg-config openssl libssl-dev
 You can build images using the follow command
 
 ```bash
-docker build -t opensearch-gateway-rs -f docker/Dockerfile .
+docker build -t dictionary-rs -f docker/Dockerfile .
 ```
 
 After build just run it
 
 ```bash
-docker run -d -p 7878:7878 --name opensearch-gateway-rs -e KAFKA_ENABLED="N" -e KAFKA_QUEUES="menu" -e KAFKA_HOST="0.0.0.0:29092" -e KAFKA_GROUP="default" -e OPENSEARCH_URL="http://localhost:9200" opensearch-gateway-rs
+docker run -d -p 7878:7878 --name dictionary-rs -e KAFKA_ENABLED="N" -e KAFKA_QUEUES="menu" -e KAFKA_HOST="0.0.0.0:29092" -e KAFKA_GROUP="default" -e OPENSEARCH_URL="http://localhost:9200" dictionary-rs
 ```
 
 #### Environment variables
@@ -193,7 +193,7 @@ curl --location --request PUT 'http://localhost:9200/_all/_settings' \
 
 ## Testing for Kafka
 
-The kafka service can be called from ADempiere using [adempiere-kafka-connector](https://github.com/adempiere/adempiere-kafka-connector), you use two possible ports `29092` and `9092`, internally the opensearch-gateway-rs use the `9092`
+The kafka service can be called from ADempiere using [adempiere-kafka-connector](https://github.com/adempiere/adempiere-kafka-connector), you use two possible ports `29092` and `9092`, internally the dictionary-rs use the `9092`
 
 
 ## Testing OpenSearch-Gateway-rs
@@ -240,7 +240,7 @@ A simple request for adempiere menu using [adempiere-grpc-server](https://github
 
 ![Java Service 1.02 seconds](docs/Java_Menu_Service.png)
 
-A request using the [OpenSearch-Gateway-rs](https://github.com/adempiere/opensearch_gateway_rs) take almost **47 ms**.
+A request using the [OpenSearch-Gateway-rs](https://github.com/adempiere/dictionary_rs) take almost **47 ms**.
 
 ![OpenSearch Service 47 ms](docs/OpenSearch_Menu_Service.png)
 

@@ -33,5 +33,5 @@ jobs:
     - name: Upload Binary Files
       uses: actions/upload-artifact@v3
       with:
-          name: play-backend-rs
+          name: dictionary_rs
           path: distributions/

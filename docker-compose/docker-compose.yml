@@ -57,8 +57,8 @@ services:
       - shared_network
   
   opensearch.gateway.rs:
-    image: ${OPENSEARCH_GATEWAY_RS_IMAGE}
-    container_name: ${OPENSEARCH_GATEWAY_RS_HOST}
+    image: ${DICTIONARY_RS_IMAGE}
+    container_name: ${DICTIONARY_RS_HOST}
     restart: ${GENERIC_RESTART}
     depends_on:
       - kafka
@@ -67,7 +67,7 @@ services:
       KAFKA_HOST: "kafka:9092"
       OPENSEARCH_URL: "http://opensearch-service:9200"
     ports:
-      - ${OPENSEARCH_GATEWAY_RS_PORT}:7878
+      - ${DICTIONARY_RS_PORT}:7878
     networks:
       - shared_network
 

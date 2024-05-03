@@ -1,5 +1,5 @@
 use std::env;
-use opensearch_gateway_rs::{controller::{kafka::create_consumer, opensearch::{create, delete, IndexDocument}}, models::{browser::{browser_from_id, browsers, BrowserDocument}, menu::{menu_from_id, menus, MenuDocument}, process::{process_from_id, processes, ProcessDocument}, window::{window_from_id, windows, WindowDocument}}};
+use dictionary_rs::{controller::{kafka::create_consumer, opensearch::{create, delete, IndexDocument}}, models::{browser::{browser_from_id, browsers, BrowserDocument}, menu::{menu_from_id, menus, MenuDocument}, process::{process_from_id, processes, ProcessDocument}, window::{window_from_id, windows, WindowDocument}}};
 use dotenv::dotenv;
 use rdkafka::{Message, consumer::{CommitMode, Consumer}};
 use salvo::{conn::tcp::TcpAcceptor, cors::Cors, http::header, hyper::Method, prelude::*};

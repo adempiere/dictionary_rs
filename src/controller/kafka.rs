@@ -46,6 +46,7 @@ pub fn create_consumer(brokers: &str, group_id: &str, topics: &[&str]) -> Result
 		.set("fetch.message.max.bytes", "1000000000")
 		.set("max.partition.fetch.bytes", "1000000000")
 		.set("fetch.max.bytes", "2147483135")
+		.set("auto.offset.reset", "earliest")
         .set_log_level(RDKafkaLogLevel::Debug)
         .create_with_context(context);
 	if consumer_value.is_err() {
