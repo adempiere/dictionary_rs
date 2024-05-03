@@ -1,6 +1,8 @@
 # Microservice with Open Search gateway for ADempiere Dictionary using Rust
 A microservice that publish a Rest API based on [salvo.rs](https://salvo.rs/)
 
+Hey! Note that the docker image was changed to `openls/dictionary-rs`
+
 ![Setup Create Config](docs/Setup_Create_Config.png)
 
 ![Setup Deploy Validator](docs/Setup_Deploy_Validator.png)
