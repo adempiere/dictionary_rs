@@ -1,4 +1,4 @@
-FROM rust:1.77.1-bullseye as builder
+FROM rust:1.78.0-bullseye as builder
 
 LABEL maintainer="ysenih@erpya.com; EdwinBetanc0urt@outlook.com;" \
 	description="A Image for start service from rust binary"
@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/li
     cargo install --config net.git-fetch-with-cli=true --path . && \
     mv docker/.env /usr/local/cargo/bin/
 
-FROM debian:bullseye
+FROM debian:bullseye-20240423
 
 ENV \
     RUST_LOG="info" \
