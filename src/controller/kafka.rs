@@ -54,9 +54,9 @@ pub fn create_consumer(brokers: &str, group_id: &str, topics: &[&str]) -> Result
 	}
 	let consumer = consumer_value.unwrap();
 	loop {
-		match consumer.subscribe(&topics.to_vec()) {
-			Ok(value) => {
-				log::info!("Subscribed to topics: {:?}", value);
+		match consumer.subscribe(&topics) {
+			Ok(()) => {
+				log::info!("Subscribed to topics successfully: {:?}", topics.join(" "));
 				break
 			},
 			Err(e) => {
