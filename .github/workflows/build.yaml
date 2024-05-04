@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Build
       run: cargo build --verbose
     - name: Run tests
@@ -31,7 +31,7 @@ jobs:
           cp target/debug/server distributions/
 
     - name: Upload Binary Files
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
           name: dictionary_rs
           path: distributions/
