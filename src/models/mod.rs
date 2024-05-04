@@ -1,11 +1,13 @@
+pub mod browser;
+pub mod form;
 pub mod menu;
 pub mod process;
-pub mod browser;
 pub mod window;
 pub mod generic;
 
 use serde::{Deserialize, Serialize};
 use salvo::prelude::*;
+
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Metadata {
     pub index_value: Option<String>,

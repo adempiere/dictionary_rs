@@ -1,5 +1,5 @@
 use std::env;
-use dictionary_rs::{controller::{kafka::create_consumer, opensearch::{create, delete, IndexDocument}}, models::{browser::{browser_from_id, browsers, BrowserDocument}, menu::{menu_from_id, menus, MenuDocument}, process::{process_from_id, processes, ProcessDocument}, window::{window_from_id, windows, WindowDocument}}};
+use dictionary_rs::{controller::{kafka::create_consumer, opensearch::{create, delete, IndexDocument}}, models::{browser::{browser_from_id, browsers, BrowserDocument}, form::{form_from_id, forms, FormDocument}, menu::{menu_from_id, menus, MenuDocument}, process::{process_from_id, processes, ProcessDocument}, window::{window_from_id, windows, WindowDocument}}};
 use dotenv::dotenv;
 use rdkafka::{Message, consumer::{CommitMode, Consumer}};
 use salvo::{conn::tcp::TcpAcceptor, cors::Cors, http::header, hyper::Method, prelude::*};
@@ -55,7 +55,31 @@ async fn main() {
                 .push(
                     // /api/dictionary
                     Router::with_path("dictionary")
-                        .push(
+						.push(
+							// /api/dictionary/browsers/:id
+							Router::with_path("browsers/<id>")
+								.options(get_browsers)
+								.get(get_browsers)
+						)
+						.push(
+							// /api/dictionary/browsers/
+							Router::with_path("browsers")
+								.options(get_browsers)
+								.get(get_browsers)
+						)
+						.push(
+							// /api/dictionary/forms/:id
+							Router::with_path("forms/<id>")
+								.options(get_forms)
+								.get(get_forms)
+						)
+						.push(
+							// /api/dictionary/browsers/
+							Router::with_path("forms")
+								.options(get_forms)
+								.get(get_forms)
+						)
+						.push(
                             // /api/dictionary/processes/:id
                             Router::with_path("processes/<id>")
                                 .options(get_process)
@@ -66,18 +90,6 @@ async fn main() {
                             Router::with_path("processes")
                                 .options(get_process)
                                 .get(get_process)
-                        )
-                        .push(
-                            // /api/dictionary/browsers/:id
-                            Router::with_path("browsers/<id>")
-                                .options(get_browsers)
-                                .get(get_browsers)
-                        )
-                        .push(
-                            // /api/dictionary/browsers/
-                            Router::with_path("browsers")
-                                .options(get_browsers)
-                                .get(get_browsers)
                         )
                         .push(
                             // /api/dictionary/windows/:id
@@ -113,6 +125,33 @@ async fn main() {
         log::info!("Kafka Consumer is disabled");
     }
     join_all(futures).await;
+}
+
+#[handler]
+async fn get_forms<'a>(_req: &mut Request, _res: &mut Response) {
+	let _id: Option<i32> = _req.param::<i32>("id");
+	let _language: Option<&String> = _req.queries().get("language");
+	let _client_id: Option<&String> = _req.queries().get("client_id");
+	let _role_id: Option<&String> = _req.queries().get("role_id");
+	let _user_id: Option<&String> = _req.queries().get("user_id");
+	if _id.is_some() {
+		match form_from_id(_language, _client_id, _role_id, _user_id, _id).await {
+			Ok(form) => _res.render(Json(form)),
+			Err(error) => _res.render(Json(error))
+		}
+	} else {
+		let _search_value: Option<&String> = _req.queries().get("search_value");
+
+		match forms(_language, _client_id, _role_id, _user_id, _search_value).await {
+			Ok(forms_list) => {
+				_res.render(Json(forms_list));
+			},
+			Err(e) => {
+				_res.render(e.to_string());
+				_res.status_code(StatusCode::INTERNAL_SERVER_ERROR);    
+			}
+		}
+	}
 }
 
 #[handler]
@@ -342,6 +381,23 @@ async fn consume_queue() {
                                     Err(error) => log::warn!("{}", error)
                                 }
                             }
+						} else if topic == "form" {
+							let _document = match serde_json::from_str(payload) {
+								Ok(value) => value,
+								Err(error) => {
+									log::warn!("{}", error);
+									FormDocument {
+										document: None
+									}
+								},
+							};
+							if _document.document.is_some() {
+								let _form_document: &dyn IndexDocument = &(_document.document.unwrap());
+								match process_index(event_type, _form_document).await {
+									Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
+									Err(error) => log::warn!("{}", error)
+								}
+							}
                         }
                         // TODO: Add token header
                         // if let Some(headers) = message.headers() {
