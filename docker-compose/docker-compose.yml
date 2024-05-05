@@ -1,39 +1,75 @@
-version: "3.9"
 services:
+
   zookeeper:
-    image: ${ZOOKEEPER_IMAGE}
-    container_name: ${ZOOKEEPER_HOST}
-    restart: ${GENERIC_RESTART}
+    image: $ZOOKEEPER_IMAGE
+    container_name: $ZOOKEEPER_HOST
+    restart: $GENERIC_RESTART
+    healthcheck:
+      test: "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/$ZOOKEEPER_PORT; exit $?;'"
+      interval: 10s
+      retries: 60
+      start_period: 20s
+      timeout: 10s
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - ${ZOOKEEPER_PORT}:2181
+      ZOOKEEPER_CLIENT_PORT: $ZOOKEEPER_PORT
+      ZOOKEEPER_TICK_TIME: ${ZOOKEEPER_TICK_TIME}
+    # ports:
+    #   - ${ZOOKEEPER_PORT}:2181
     networks:
       - shared_network
-  
+
   kafka:
     image: ${KAFKA_IMAGE}
     container_name: ${KAFKA_HOST}
     restart: ${GENERIC_RESTART}
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
+    healthcheck:
+      test: "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/${KAFKA_PORT}; exit $?;'"
+      interval: 10s
+      retries: 60
+      start_period: 20s
+      timeout: 10s
     ports:
-      - ${KAFKA_PORT}:29092
+      - ${KAFKA_BROKER_EXTERNAL_PORT}:${KAFKA_BROKER_PORT}
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://${KAFKA_BROKER_HOST}:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://${KAFKA_BROKERCONNECT},PLAINTEXT_HOST://${KAFKA_EXTERNAL_BROKERCONNECT}
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
       - shared_network
 
+  kafdrop:
+    image: ${KAFDROP_IMAGE}
+    container_name: ${KAFDROP_HOST}
+    hostname: ${KAFDROP_HOST}
+    restart: ${GENERIC_RESTART}
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKERCONNECT: ${KAFDROP_KAFKA_HOST}
+    ports:
+      - ${KAFDROP_EXTERNAL_PORT}:${KAFDROP_PORT}
+    networks:
+      - shared_network
+
+
+
   opensearch-service:
     image: ${OPENSEARCH_IMAGE}
     container_name: ${OPENSEARCH_HOST}
     restart: ${GENERIC_RESTART}
+    healthcheck:
+      test: "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/9200; exit $?;'"
+      interval: 10s
+      retries: 60
+      start_period: 20s
+      timeout: 10s 
     environment:
       - node.name=opensearch-service
       - discovery.type=single-node
@@ -55,14 +91,53 @@ services:
       - ${OPENSEARCH_PERFORMANCE_PORT}:9600 # required for Performance Analyzer
     networks:
       - shared_network
-  
-  opensearch.gateway.rs:
+
+  opensearch-setup:
+    build:
+      context: opensearch/
+      dockerfile: setup.Dockerfile
+    container_name: ${OPENSEARCH_SETUP_HOST}
+    hostname: ${OPENSEARCH_SETUP_HOST}
+    depends_on:
+      opensearch-service:
+        condition: service_healthy
+    environment:
+      OPENSEARCH_HOST: ${OPENSEARCH_SETUP_NODE_HOSTNAME}
+    networks:
+      - shared_network
+
+  opensearch-dashboards:
+    image: ${OPENSEARCH_DASHBOARDS_IMAGE}
+    container_name: ${OPENSEARCH_DASHBOARDS_HOST}
+    hostname: ${OPENSEARCH_DASHBOARDS_HOST}
+    healthcheck:
+      test: "bash -c 'printf \"GET / HTTP/1.1\n\n\" > /dev/tcp/127.0.0.1/5601; exit $?;'"
+      interval: 10s
+      retries: 60
+      start_period: 20s
+      timeout: 10s
+    depends_on:
+      opensearch-service:
+        condition: service_healthy
+    environment:
+      OPENSEARCH_HOSTS: ${OPENSEARCH_DASHBOARDS_OPENSEARCH_HOSTS}
+      DISABLE_SECURITY_DASHBOARDS_PLUGIN: true
+    ports:
+      - ${OPENSEARCH_DASHBOARDS_EXTERNAL_PORT}:5601 # Map host port 5601 to container port 5601
+    networks:
+      - shared_network
+
+
+
+  dictionary-rs:
     image: ${DICTIONARY_RS_IMAGE}
     container_name: ${DICTIONARY_RS_HOST}
     restart: ${GENERIC_RESTART}
     depends_on:
-      - kafka
-      - opensearch-service
+      opensearch-service:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     environment:
       KAFKA_HOST: "kafka:9092"
       OPENSEARCH_URL: "http://opensearch-service:9200"
@@ -71,10 +146,12 @@ services:
     networks:
       - shared_network
 
+
+
 networks:
   shared_network:
     name: ${DEFAULT_NETWORK}
-     
+
 volumes:
   volume_opensearch:
     name: ${OPENSEARCH_VOLUME}
