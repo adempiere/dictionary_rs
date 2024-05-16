@@ -36,6 +36,7 @@ pub struct Window {
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
+	pub is_active: Option<bool>,
     pub window_type: Option<String>,
 	pub is_sales_transaction: Option<bool>,
 	//	Index
@@ -55,6 +56,7 @@ pub struct WindowTab {
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
+	pub is_active: Option<bool>,
 	// Record attributes
 	pub is_insert_record: Option<bool>,
     pub commit_warning: Option<String>,
@@ -80,7 +82,7 @@ pub struct WindowTab {
 	pub sort_order_column_name: Option<String>,
 	pub sort_yes_no_column_name: Option<String>,
 	// External info
-	pub context_columns: Option<Vec<String>>,
+	pub context_column_names: Option<Vec<String>>,
 	pub window_id: Option<i32>,
 	pub process_id: Option<i32>,
 	pub process: Option<Process>,
@@ -113,6 +115,7 @@ pub struct WindowField {
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
+	pub is_active: Option<bool>,
 	//
 	pub display_type: Option<i32>,
 	pub is_allow_copy: Option<bool>,
@@ -122,6 +125,7 @@ pub struct WindowField {
     pub column_name: Option<String>,
 	pub column_sql: Option<String>,
 	pub is_key: Option<bool>,
+	pub is_parent: Option<bool>,
 	pub is_translated: Option<bool>,
 	pub is_identifier: Option<bool>,
 	pub identifier_sequence: Option<i32>,
@@ -167,6 +171,7 @@ impl Default for Window {
             name: None, 
             description: None, 
             help: None, 
+			is_active: None,
             client_id: None,
             index_value: None,
             language: None,
