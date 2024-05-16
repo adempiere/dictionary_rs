@@ -36,6 +36,7 @@ pub struct Window {
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
+	pub is_active: Option<bool>,
     pub window_type: Option<String>,
 	pub is_sales_transaction: Option<bool>,
 	//	Index
@@ -55,6 +56,7 @@ pub struct WindowTab {
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
+	pub is_active: Option<bool>,
 	// Record attributes
 	pub is_insert_record: Option<bool>,
     pub commit_warning: Option<String>,
@@ -113,6 +115,7 @@ pub struct WindowField {
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
+	pub is_active: Option<bool>,
 	//
 	pub display_type: Option<i32>,
 	pub is_allow_copy: Option<bool>,
@@ -167,6 +170,7 @@ impl Default for Window {
             name: None, 
             description: None, 
             help: None, 
+			is_active: None,
             client_id: None,
             index_value: None,
             language: None,

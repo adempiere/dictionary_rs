@@ -56,6 +56,7 @@ pub struct Process {
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
+	pub is_active: Option<bool>,
     pub show_help: Option<String>,
 	//	Report
     pub is_report: Option<bool>,
@@ -91,6 +92,7 @@ pub struct ProcessParameters {
 	pub column_name: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
+	pub is_active: Option<bool>,
     pub help: Option<String>,
 	pub display_type: Option<i32>,
 	//	Value Properties
@@ -125,6 +127,7 @@ impl Default for Process {
             name: None, 
             description: None, 
             help: None, 
+			is_active: None,
 			show_help: None,
 			//	Report
 			is_report: None,
