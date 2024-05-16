@@ -82,7 +82,7 @@ pub struct WindowTab {
 	pub sort_order_column_name: Option<String>,
 	pub sort_yes_no_column_name: Option<String>,
 	// External info
-	pub context_columns: Option<Vec<String>>,
+	pub context_column_names: Option<Vec<String>>,
 	pub window_id: Option<i32>,
 	pub process_id: Option<i32>,
 	pub process: Option<Process>,
