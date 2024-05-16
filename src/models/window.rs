@@ -127,6 +127,7 @@ pub struct WindowField {
 	pub is_key: Option<bool>,
 	pub is_translated: Option<bool>,
 	pub is_identifier: Option<bool>,
+	pub is_parent: Option<bool>,
 	pub identifier_sequence: Option<i32>,
 	pub is_selection_column: Option<bool>,
 	pub callout: Option<String>,
