@@ -49,7 +49,7 @@ async fn main() {
                 .push(
                     // /api/security/menus
                     Router::with_path("security/menus")
-                        .options(get_menu)
+						.options(options_response)
                         .get(get_menu)
                 )
                 .push(
@@ -58,49 +58,49 @@ async fn main() {
 						.push(
 							// /api/dictionary/browsers/:id
 							Router::with_path("browsers/<id>")
-								.options(get_browsers)
+								.options(options_response)
 								.get(get_browsers)
 						)
 						.push(
 							// /api/dictionary/browsers/
 							Router::with_path("browsers")
-								.options(get_browsers)
+								.options(options_response)
 								.get(get_browsers)
 						)
 						.push(
 							// /api/dictionary/forms/:id
 							Router::with_path("forms/<id>")
-								.options(get_forms)
+								.options(options_response)
 								.get(get_forms)
 						)
 						.push(
-							// /api/dictionary/browsers/
+							// /api/dictionary/forms/
 							Router::with_path("forms")
-								.options(get_forms)
+								.options(options_response)
 								.get(get_forms)
 						)
 						.push(
                             // /api/dictionary/processes/:id
                             Router::with_path("processes/<id>")
-                                .options(get_process)
+								.options(options_response)
                                 .get(get_process)
                         )
                         .push(
                             // /api/dictionary/processes
                             Router::with_path("processes")
-                                .options(get_process)
+								.options(options_response)
                                 .get(get_process)
                         )
                         .push(
                             // /api/dictionary/windows/:id
                             Router::with_path("windows/<id>")
-                                .options(get_windows)
+								.options(options_response)
                                 .get(get_windows)
                         )
                         .push(
                             // /api/dictionary/windows/
                             Router::with_path("windows")
-                                .options(get_windows)
+								.options(options_response)
                                 .get(get_windows)
                         )
                 )
@@ -125,6 +125,11 @@ async fn main() {
         log::info!("Kafka Consumer is disabled");
     }
     join_all(futures).await;
+}
+
+#[handler]
+async fn options_response<'a>(_req: &mut Request, _res: &mut Response) {
+	_res.status_code(StatusCode::NO_CONTENT);
 }
 
 #[handler]
