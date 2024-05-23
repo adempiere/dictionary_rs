@@ -3,7 +3,7 @@ use salvo::prelude::*;
 use serde_json::json;
 use std::{io::ErrorKind, io::Error};
 
-use crate::{controller::opensearch::{IndexDocument, get_by_id, find, exists_index}, models::{default_index, language_index}};
+use crate::{controller::opensearch::{IndexDocument, get_by_id, find, exists_index}, models::{client_index, default_index, language_index}};
 
 #[derive(Deserialize, Extractible, Debug, Clone)]
 #[salvo(extract(default_source(from = "body")))]
@@ -152,18 +152,31 @@ async fn get_index_name(_language: Option<&String>, _client_id: Option<&String>,
 	if _client_id.is_none() {
 		return Err(Error::new(ErrorKind::InvalidData.into(), "Client is Mandatory"));
 	}
-	// if _role_id.is_none() {
-	// 	return Err(Error::new(ErrorKind::InvalidData.into(), "Role is Mandatory"));
-	// }
-	let _index = "form".to_string();
 
-	let _language_index = language_index(_index.to_owned(), _language, _client_id, _role_id);
-	let _default_index = default_index(_index.to_owned(), _language, _client_id, _role_id);
+	let _index: String = "form".to_string();
+
+	let _client_index = client_index(_index.to_owned(), _language, _client_id);
+	let _language_index = language_index(_index.to_owned(), _language);
+	let _default_index = default_index(_index.to_owned());
+
 	//  Find index
-	match exists_index(_language_index.to_owned()).await {
-		Ok(_) => Ok(_language_index),
+	match exists_index(_client_index.to_owned()).await {
+		Ok(_) => {
+			log::info!("Find with client index `{:}`", _client_index);
+			Ok(_client_index)
+		},
 		Err(_) => {
-			Ok(_default_index)
+			log::info!("No client index `{:}`", _client_index);
+			match exists_index(_language_index.to_owned()).await {
+				Ok(_) => {
+					log::info!("Find with language index `{:}`", _language_index);
+					Ok(_language_index)
+				},
+				Err(_) => {
+					log::info!("No language index `{:}`. Find with default index `{:}`.", _language_index, _default_index);
+					Ok(_default_index)
+				}
+			}
 		}
 	}
 }
@@ -173,8 +186,10 @@ pub async fn forms(_language: Option<&String>, _client_id: Option<&String>, _rol
 		Some(value) => value.clone(),
 		None => "".to_owned()
 	};
+
 	let _index_name = get_index_name(_language, _client_id, _role_id, _user_id).await.expect("Error getting index");
 	log::info!("Index to search {:}", _index_name);
+
 	let mut _document = Form::default();
 	_document.index_value = Some(_index_name);
 	let _forms_document: &dyn IndexDocument = &_document;
