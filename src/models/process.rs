@@ -269,28 +269,44 @@ async fn get_index_name(_language: Option<&String>, _client_id: Option<&String>,
     if _role_id.is_none() {
         return Err(Error::new(ErrorKind::InvalidData.into(), "Role is Mandatory"));
     }
-    let _index = "process".to_string();
-    let _user_index = match _user_id {
-        Some(_) => user_index(_index.to_owned(), _language, _client_id, _role_id, _user_id),
-        None => role_index(_index.to_owned(), _language, _client_id, _role_id)
-    };
+
+	let _index: String = "process".to_string();
+
+	let _user_index = user_index(_index.to_owned(), _language, _client_id, _role_id, _user_id);
     let _role_index = role_index(_index.to_owned(), _language, _client_id, _role_id);
-    let _client_index = client_index(_index.to_owned(), _language, _client_id, _role_id);
-    let _language_index = language_index(_index.to_owned(), _language, _client_id, _role_id);
-    let _default_index = default_index(_index.to_owned(), _language, _client_id, _role_id);
+	let _client_index = client_index(_index.to_owned(), _language, _client_id);
+	let _language_index = language_index(_index.to_owned(), _language);
+	let _default_index = default_index(_index.to_owned());
+
     //  Find index
     match exists_index(_user_index.to_owned()).await {
-        Ok(_) => Ok(_user_index),
+		Ok(_) => {
+			log::info!("Find with user index `{:}`", _user_index);
+			Ok(_user_index)
+		},
         Err(_) => {
+			log::info!("No user index `{:}`", _user_index);
             match exists_index(_role_index.to_owned()).await {
-                Ok(_) => Ok(_role_index),
+                Ok(_) => {
+					log::info!("Find with role index `{:}`", _role_index);
+					Ok(_role_index)
+				},
                 Err(_) => {
+					log::info!("No role index `{:}`", _role_index);
                     match exists_index(_client_index.to_owned()).await {
-                        Ok(_) => Ok(_client_index),
+                        Ok(_) => {
+							log::info!("Find with client index `{:}`", _client_index);
+							Ok(_client_index)
+						},
                         Err(_) => {
-                            match exists_index(_language_index.to_owned()).await {
-                                Ok(_) => Ok(_language_index),
+							log::info!("No client index `{:}`", _client_index);
+							match exists_index(_language_index.to_owned()).await {
+								Ok(_) => {
+									log::info!("Find with language index `{:}`", _language_index);
+									Ok(_language_index)
+								},
                                 Err(_) => {
+									log::info!("No language index `{:}`. Find with default index `{:}`.", _language_index, _default_index);
                                     Ok(_default_index)
                                 }
                             }
@@ -307,8 +323,10 @@ pub async fn processes(_language: Option<&String>, _client_id: Option<&String>, 
         Some(value) => value.clone(),
         None => "".to_owned()
     };
+
     let _index_name = get_index_name(_language, _client_id, _role_id, _user_id).await.expect("Error getting index");
     log::info!("Index to search {:}", _index_name);
+
     let mut _document = Process::default();
     _document.index_value = Some(_index_name);
     let _process_document: &dyn IndexDocument = &_document;

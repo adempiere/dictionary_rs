@@ -17,35 +17,57 @@ pub struct Metadata {
     pub user_id: Option<i32>,
 }
 
-fn default_index(_index_name: String, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>) -> String {
+fn default_index(_index_name: String) -> String {
 	let mut _index_to_find: String = _index_name.to_owned();
 	_index_to_find.to_lowercase()
 }
 
-fn language_index(_index_name: String, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>) -> String {
-	let mut _index_to_find: String = default_index(_index_name, _language, _client_id, _role_id);
-	_index_to_find.push_str("_");
-	_index_to_find.push_str(_language.unwrap());
+fn language_index(_index_name: String, _language: Option<&String>) -> String {
+	let mut _index_to_find: String = default_index(_index_name);
+	if let Some(language) = _language {
+		if language != "en_US" {
+			_index_to_find.push_str("_");
+			_index_to_find.push_str(language);
+		}
+	}
 	_index_to_find.to_lowercase()
 }
 
-fn client_index(_index_name: String, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>) -> String {
-	let mut _index_to_find: String = language_index(_index_name, _language, _client_id, _role_id);
-	_index_to_find.push_str("_");
-	_index_to_find.push_str(_client_id.unwrap());
+fn client_index(_index_name: String, _language: Option<&String>, _client_id: Option<&String>) -> String {
+	let mut _index_to_find: String = language_index(_index_name, _language);
+	if let Some(client_id) = _client_id {
+		if let Ok(id) = client_id.parse::<i32>() {
+			if id > 0 {
+				_index_to_find.push_str("_");
+				_index_to_find.push_str(client_id);
+			}
+		}
+	}
 	_index_to_find.to_lowercase()
 }
 
 fn role_index(_index_name: String, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>) -> String {
-	let mut _index_to_find: String = client_index(_index_name, _language, _client_id, _role_id);
-	_index_to_find.push_str("_");
-	_index_to_find.push_str(_role_id.unwrap());
+	let mut _index_to_find: String = client_index(_index_name, _language, _client_id);
+	if let Some(role_id) = _role_id {
+		if let Ok(id) = role_id.parse::<i32>() {
+			if id > 0 {
+				_index_to_find.push_str("_");
+				_index_to_find.push_str(role_id);
+			}
+		}
+	}
 	_index_to_find.to_lowercase()
 }
 
 fn user_index(_index_name: String, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> String {
 	let mut _index_to_find: String = role_index(_index_name, _language, _client_id, _role_id);
-	_index_to_find.push_str("_");
-	_index_to_find.push_str(_user_id.unwrap());
+	if let Some(user_id) = _user_id {
+		if let Ok(id) = user_id.parse::<i32>() {
+			if id > 0 {
+				_index_to_find.push_str("_");
+				_index_to_find.push_str(user_id);
+			}
+		}
+	}
 	_index_to_find.to_lowercase()
 }
