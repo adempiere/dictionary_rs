@@ -276,10 +276,21 @@ pub struct Table {
     pub selection_colums: Option<Vec<String>>,
 }
 
-pub async fn window_from_id(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _id: Option<i32>) -> Result<Window, String> {
+pub async fn window_from_id(_id: Option<i32>, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<Window, String> {
+	if _id.is_none() || _id.map(|id| id <= 0).unwrap_or(false) {
+		return Err(Error::new(ErrorKind::InvalidData.into(), "Window Identifier is Mandatory").to_string());
+	}
     let mut _document = Window::from_id(_id);
-    let _index_name = get_index_name(_language, _client_id, _role_id, _user_id).await.expect("Error getting index");
-    log::info!("Index to search {:}", _index_name);
+
+	let _index_name = match get_index_name(_language, _client_id, _role_id, _user_id).await {
+		Ok(index_name) => index_name,
+		Err(error) => {
+			log::error!("Index name error to {:?}: {:?}", _id.to_owned(), error.to_string());
+			return Err(error.to_string())
+		}
+	};
+	log::info!("Index to search {:}", _index_name);
+
     _document.index_value = Some(_index_name);
     let _window_document: &dyn IndexDocument = &_document;
     match get_by_id(_window_document).await {
@@ -292,7 +303,7 @@ pub async fn window_from_id(_language: Option<&String>, _client_id: Option<&Stri
             Ok(window)
         },
         Err(error) => {
-            log::warn!("{}", error);
+			log::error!("{}", error);
             Err(error)
         },
     }
@@ -338,15 +349,15 @@ async fn get_index_name(_language: Option<&String>, _client_id: Option<&String>,
 							log::info!("Find with client index `{:}`", _client_index);
 							Ok(_client_index)
 						},
-                        Err(_) => {
-							log::info!("No client index `{:}`", _client_index);
+						Err(_) => {
+							log::warn!("No client index `{:}`", _client_index);
 							match exists_index(_language_index.to_owned()).await {
 								Ok(_) => {
 									log::info!("Find with language index `{:}`", _language_index);
 									Ok(_language_index)
 								},
-                                Err(_) => {
-									log::info!("No language index `{:}`. Find with default index `{:}`.", _language_index, _default_index);
+								Err(_) => {
+									log::warn!("No language index `{:}`. Find with default index `{:}`.", _language_index, _default_index);
                                     Ok(_default_index)
                                 }
                             }
@@ -363,9 +374,17 @@ pub async fn windows(_language: Option<&String>, _client_id: Option<&String>, _r
         Some(value) => value.clone(),
         None => "".to_owned()
     };
-    //  Find index
-    let _index_name = get_index_name(_language, _client_id, _role_id, _user_id).await.expect("Error getting index");
-    log::info!("Index to search {:}", _index_name);
+
+	//  Find index
+	let _index_name = match get_index_name(_language, _client_id, _role_id, _user_id).await {
+		Ok(index_name) => index_name,
+		Err(error) => {
+			log::error!("Index name error: {:?}", error.to_string());
+			return Err(Error::new(ErrorKind::InvalidData.into(), error))
+		}
+	};
+	log::info!("Index to search {:}", _index_name);
+
     let mut _document = Window::default();
     _document.index_value = Some(_index_name);
     let _window_document: &dyn IndexDocument = &_document;
@@ -382,5 +401,4 @@ pub async fn windows(_language: Option<&String>, _client_id: Option<&String>, _r
         },
         Err(error) => Err(Error::new(ErrorKind::InvalidData.into(), error))
     }
-    // Ok(WindowResponse::default())
 }
