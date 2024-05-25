@@ -120,10 +120,21 @@ impl IndexDocument for Form {
 	}
 }
 
-pub async fn form_from_id(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _id: Option<i32>) -> Result<Form, String> {
+pub async fn form_from_id(_id: Option<i32>, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<Form, String> {
+	if _id.is_none() || _id.map(|id| id <= 0).unwrap_or(false) {
+		return Err(Error::new(ErrorKind::InvalidData.into(), "Form Identifier is Mandatory").to_string());
+	}
 	let mut _document = Form::from_id(_id);
-	let _index_name = get_index_name(_language, _client_id, _role_id, _user_id).await.expect("Error getting index");
+
+	let _index_name = match get_index_name(_language, _client_id, _role_id, _user_id).await {
+		Ok(index_name) => index_name,
+		Err(error) => {
+			log::error!("Index name error: {:?}", error.to_string());
+			return Err(error.to_string())
+		}
+	};
 	log::info!("Index to search {:}", _index_name);
+
 	_document.index_value = Some(_index_name);
 	let _form_document: &dyn IndexDocument = &_document;
 	match get_by_id(_form_document).await {
@@ -138,7 +149,7 @@ pub async fn form_from_id(_language: Option<&String>, _client_id: Option<&String
 			)
 		},
 		Err(error) => {
-			log::warn!("{}", error);
+			log::error!("{}", error);
 			Err(error)
 		},
 	}
@@ -166,14 +177,14 @@ async fn get_index_name(_language: Option<&String>, _client_id: Option<&String>,
 			Ok(_client_index)
 		},
 		Err(_) => {
-			log::info!("No client index `{:}`", _client_index);
+			log::warn!("No client index `{:}`", _client_index);
 			match exists_index(_language_index.to_owned()).await {
 				Ok(_) => {
 					log::info!("Find with language index `{:}`", _language_index);
 					Ok(_language_index)
 				},
 				Err(_) => {
-					log::info!("No language index `{:}`. Find with default index `{:}`.", _language_index, _default_index);
+					log::warn!("No language index `{:}`. Find with default index `{:}`.", _language_index, _default_index);
 					Ok(_default_index)
 				}
 			}
@@ -187,7 +198,14 @@ pub async fn forms(_language: Option<&String>, _client_id: Option<&String>, _rol
 		None => "".to_owned()
 	};
 
-	let _index_name = get_index_name(_language, _client_id, _role_id, _user_id).await.expect("Error getting index");
+	//  Find index
+	let _index_name = match get_index_name(_language, _client_id, _role_id, _user_id).await {
+		Ok(index_name) => index_name,
+		Err(error) => {
+			log::error!("Index name error: {:?}", error.to_string());
+			return Err(Error::new(ErrorKind::InvalidData.into(), error))
+		}
+	};
 	log::info!("Index to search {:}", _index_name);
 
 	let mut _document = Form::default();

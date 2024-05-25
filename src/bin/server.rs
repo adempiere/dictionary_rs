@@ -4,6 +4,7 @@ use dotenv::dotenv;
 use rdkafka::{Message, consumer::{CommitMode, Consumer}};
 use salvo::{conn::tcp::TcpAcceptor, cors::Cors, http::header, hyper::Method, prelude::*};
 extern crate serde_json;
+use serde::Serialize;
 use simple_logger::SimpleLogger;
 use futures::future::join_all;
 
@@ -132,6 +133,12 @@ async fn options_response<'a>(_req: &mut Request, _res: &mut Response) {
 	_res.status_code(StatusCode::NO_CONTENT);
 }
 
+#[derive(Serialize)]
+struct ErrorResponse {
+	status: u16,
+	message: String
+}
+
 #[handler]
 async fn get_forms<'a>(_req: &mut Request, _res: &mut Response) {
 	let _id: Option<i32> = _req.param::<i32>("id");
@@ -139,10 +146,20 @@ async fn get_forms<'a>(_req: &mut Request, _res: &mut Response) {
 	let _client_id: Option<&String> = _req.queries().get("client_id");
 	let _role_id: Option<&String> = _req.queries().get("role_id");
 	let _user_id: Option<&String> = _req.queries().get("user_id");
+
 	if _id.is_some() {
-		match form_from_id(_language, _client_id, _role_id, _user_id, _id).await {
+		match form_from_id(_id, _language, _client_id, _role_id, _user_id).await {
 			Ok(form) => _res.render(Json(form)),
-			Err(error) => _res.render(Json(error))
+			Err(error) => {
+				let error_response = ErrorResponse {
+					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
+					message: error.to_string()
+				};
+				_res.render(
+					Json(error_response)
+				);
+				_res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
+			}
 		}
 	} else {
 		let _search_value: Option<&String> = _req.queries().get("search_value");
@@ -151,9 +168,15 @@ async fn get_forms<'a>(_req: &mut Request, _res: &mut Response) {
 			Ok(forms_list) => {
 				_res.render(Json(forms_list));
 			},
-			Err(e) => {
-				_res.render(e.to_string());
-				_res.status_code(StatusCode::INTERNAL_SERVER_ERROR);    
+			Err(error) => {
+				let error_response = ErrorResponse {
+					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
+					message: error.to_string()
+				};
+				_res.render(
+					Json(error_response)
+				);
+				_res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
 			}
 		}
 	}
@@ -162,16 +185,26 @@ async fn get_forms<'a>(_req: &mut Request, _res: &mut Response) {
 #[handler]
 async fn get_menu<'a>(_req: &mut Request, _res: &mut Response) {
     let _id = _req.param::<i32>("id");
-    if _id.is_some() {
-        match menu_from_id(_id).await {
-            Ok(menu) => _res.render(Json(menu)),
-            Err(error) => _res.render(Json(error))
-        }
-    } else {
-        let _language = _req.queries().get("language");
-        let _client_id = _req.queries().get("client_id");
-        let _role_id = _req.queries().get("role_id");
-        let _user_id = _req.queries().get("user_id");
+	let _language = _req.queries().get("language");
+	let _client_id = _req.queries().get("client_id");
+	let _role_id = _req.queries().get("role_id");
+	let _user_id = _req.queries().get("user_id");
+
+	if _id.is_some() {
+		match menu_from_id(_id, _language, _client_id, _role_id, _user_id).await {
+			Ok(menu) => _res.render(Json(menu)),
+			Err(error) => {
+				let error_response = ErrorResponse {
+					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
+					message: error.to_string()
+				};
+				_res.render(
+					Json(error_response)
+				);
+				_res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
+			}
+		}
+	} else {
         let _search_value = _req.queries().get("search_value");
 		let _page_number: Option<&String> = _req.queries().get("page_number");
 		let _page_size: Option<&String> = _req.queries().get("page_size");
@@ -179,10 +212,16 @@ async fn get_menu<'a>(_req: &mut Request, _res: &mut Response) {
             Ok(menus_list) => {
                 _res.render(Json(menus_list));
             },
-            Err(e) => {
-                _res.render(e.to_string());
+			Err(error) => {
+				let error_response = ErrorResponse {
+					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
+					message: error.to_string()
+				};
+				_res.render(
+					Json(error_response)
+				);
 				_res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
-            }
+			}
         }
     }
 }
@@ -195,20 +234,36 @@ async fn get_process<'a>(_req: &mut Request, _res: &mut Response) {
     let _role_id = _req.queries().get("role_id");
     let _user_id = _req.queries().get("user_id");
     let _search_value = _req.queries().get("search_value");
+
     if _id.is_some() {
-        match process_from_id(_language, _client_id, _role_id, _user_id, _id).await {
+		match process_from_id(_id, _language, _client_id, _role_id, _user_id).await {
             Ok(process) => _res.render(Json(process)),
-            Err(error) => _res.render(Json(error))
+			Err(error) => {
+				let error_response = ErrorResponse {
+					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
+					message: error.to_string()
+				};
+				_res.render(
+					Json(error_response)
+				);
+				_res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
+			}
         }
     } else {
         match processes(_language, _client_id, _role_id, _user_id, _search_value).await {
             Ok(processes_list) => {
                 _res.render(Json(processes_list));
             },
-            Err(e) => {
-                _res.render(e.to_string());
-                _res.status_code(StatusCode::INTERNAL_SERVER_ERROR);    
-            }
+			Err(error) => {
+				let error_response = ErrorResponse {
+					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
+					message: error.to_string()
+				};
+				_res.render(
+					Json(error_response)
+				);
+				_res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
+			}
         }
     }
 }
@@ -221,20 +276,36 @@ async fn get_browsers<'a>(_req: &mut Request, _res: &mut Response) {
     let _role_id = _req.queries().get("role_id");
     let _user_id = _req.queries().get("user_id");
     let _search_value = _req.queries().get("search_value");
+
     if _id.is_some() {
-        match browser_from_id(_language, _client_id, _role_id, _user_id, _id).await {
+		match browser_from_id(_id, _language, _client_id, _role_id, _user_id).await {
             Ok(browser) => _res.render(Json(browser)),
-            Err(error) => _res.render(Json(error))
+			Err(error) => {
+				let error_response = ErrorResponse {
+					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
+					message: error.to_string()
+				};
+				_res.render(
+					Json(error_response)
+				);
+				_res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
+			}
         }
     } else {
         match browsers(_language, _client_id, _role_id, _user_id, _search_value).await {
             Ok(browsers_list) => {
                 _res.render(Json(browsers_list));
             },
-            Err(e) => {
-                _res.render(e.to_string());
-                _res.status_code(StatusCode::INTERNAL_SERVER_ERROR);    
-            }
+			Err(error) => {
+				let error_response = ErrorResponse {
+					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
+					message: error.to_string()
+				};
+				_res.render(
+					Json(error_response)
+				);
+				_res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
+			}
         }
     }
 }
@@ -247,19 +318,35 @@ async fn get_windows<'a>(_req: &mut Request, _res: &mut Response) {
     let _role_id = _req.queries().get("role_id");
     let _user_id = _req.queries().get("user_id");
     let _search_value = _req.queries().get("search_value");
+
     if _id.is_some() {
-        match window_from_id(_language, _client_id, _role_id, _user_id, _id).await {
+		match window_from_id(_id, _language, _client_id, _role_id, _user_id).await {
             Ok(window) => _res.render(Json(window)),
-            Err(error) => _res.render(Json(error))
+			Err(error) => {
+				let error_response = ErrorResponse {
+					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
+					message: error.to_string()
+				};
+				_res.render(
+					Json(error_response)
+				);
+				_res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
+			}
         }
     } else {
         match windows(_language, _client_id, _role_id, _user_id, _search_value).await {
             Ok(windows_list) => {
                 _res.render(Json(windows_list));
             },
-            Err(e) => {
-                _res.render(e.to_string());
-                _res.status_code(StatusCode::INTERNAL_SERVER_ERROR);    
+			Err(error) => {
+				let error_response = ErrorResponse {
+					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
+					message: error.to_string()
+				};
+				_res.render(
+					Json(error_response)
+				);
+				_res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
             }
         }
     }

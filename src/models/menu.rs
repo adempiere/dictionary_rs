@@ -191,8 +191,22 @@ pub struct Workflow {
     pub help: Option<String>,
 }
 
-pub async fn menu_from_id(_id: Option<i32>) -> Result<Menu, String> {
+pub async fn menu_from_id(_id: Option<i32>, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<Menu, String> {
+	if _id.is_none() || _id.map(|id| id <= 0).unwrap_or(false) {
+		return Err(Error::new(ErrorKind::InvalidData.into(), "Menu Identifier is Mandatory").to_string());
+	}
     let mut _document = Menu::from_id(_id);
+
+	let _index_name = match get_index_name(_language, _client_id, _role_id, _user_id).await {
+		Ok(index_name) => index_name,
+		Err(error) => {
+			log::error!("Index name error: {:?}", error.to_string());
+			return Err(error.to_string())
+		}
+	};
+	log::info!("Index to search {:}", _index_name);
+
+	_document.index_value = Some(_index_name);
     let _menu_document: &dyn IndexDocument = &_document;
     match get_by_id(_menu_document).await {
         Ok(value) => {
@@ -206,7 +220,7 @@ pub async fn menu_from_id(_id: Option<i32>) -> Result<Menu, String> {
             )
         },
         Err(error) => {
-            log::warn!("{}", error);
+			log::error!("{}", error);
             Err(error)
         },
     }
@@ -281,8 +295,15 @@ pub async fn menus(
 		None => "".to_owned()
 	};
 
-	let _index_name = get_index_name(_language, _client_id, _role_id, _user_id).await.expect("Error getting index");
-    log::info!("Index to search {:}", _index_name);
+	//  Find index
+	let _index_name = match get_index_name(_language, _client_id, _role_id, _user_id).await {
+		Ok(index_name) => index_name,
+		Err(error) => {
+			log::error!("Index name error: {:?}", error.to_string());
+			return Err(Error::new(ErrorKind::InvalidData.into(), error))
+		}
+	};
+	log::info!("Index to search {:}", _index_name);
 
     let mut _document = Menu::default();
     _document.index_value = Some(_index_name);
@@ -313,5 +334,4 @@ pub async fn menus(
 			Err(Error::new(ErrorKind::InvalidData.into(), error))
 		}
     }
-    // Ok(MenuResponse::default())
 }
