@@ -3,7 +3,7 @@ use salvo::prelude::*;
 use serde_json::json;
 use std::{io::ErrorKind, io::Error};
 
-use crate::{controller::opensearch::{IndexDocument, get_by_id, find, exists_index}, models::{user_index, role_index, default_index, language_index, client_index}};
+use crate::{controller::opensearch::{IndexDocument, get_by_id, find, exists_index}, models::{user_index, role_index}};
 
 #[derive(Deserialize, Extractible, Debug, Clone)]
 #[salvo(extract(default_source(from = "body")))]
@@ -317,9 +317,6 @@ async fn get_index_name(_language: Option<&String>, _client_id: Option<&String>,
 
 	let _user_index = user_index(_index.to_owned(), _language, _client_id, _role_id, _user_id);
     let _role_index = role_index(_index.to_owned(), _language, _client_id, _role_id);
-	let _client_index = client_index(_index.to_owned(), _language, _client_id);
-	let _language_index = language_index(_index.to_owned(), _language);
-	let _default_index = default_index(_index.to_owned());
 
 	//  Find index
     match exists_index(_user_index.to_owned()).await {
@@ -328,33 +325,15 @@ async fn get_index_name(_language: Option<&String>, _client_id: Option<&String>,
 			Ok(_user_index)
 		},
         Err(_) => {
-			log::info!("No user index `{:}`", _user_index);
+			log::warn!("No user index `{:}`", _user_index);
             match exists_index(_role_index.to_owned()).await {
                 Ok(_) => {
 					log::info!("Find with role index `{:}`", _role_index);
 					Ok(_role_index)
 				},
-                Err(_) => {
-					log::info!("No role index `{:}`", _role_index);
-                    match exists_index(_client_index.to_owned()).await {
-                        Ok(_) => {
-							log::info!("Find with client index `{:}`", _client_index);
-							Ok(_client_index)
-						},
-						Err(_) => {
-							log::warn!("No client index `{:}`", _client_index);
-							match exists_index(_language_index.to_owned()).await {
-								Ok(_) => {
-									log::info!("Find with language index `{:}`", _language_index);
-									Ok(_language_index)
-								},
-								Err(_) => {
-									log::warn!("No language index `{:}`. Find with default index `{:}`.", _language_index, _default_index);
-                                    Ok(_default_index)
-                                }
-                            }
-                        }
-                    }
+				Err(error) => {
+					log::error!("No role index `{:}`", _role_index);
+					return Err(Error::new(ErrorKind::InvalidData.into(), error))
                 }
             }
         }

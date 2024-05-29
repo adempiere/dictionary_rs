@@ -3,7 +3,7 @@ use salvo::prelude::*;
 use serde_json::json;
 use std::{io::ErrorKind, io::Error};
 
-use crate::{controller::opensearch::{IndexDocument, get_by_id, find, exists_index}, models::{client_index, default_index, language_index}};
+use crate::{controller::opensearch::{IndexDocument, get_by_id, find, exists_index}, models::client_index};
 
 #[derive(Deserialize, Extractible, Debug, Clone)]
 #[salvo(extract(default_source(from = "body")))]
@@ -167,8 +167,6 @@ async fn get_index_name(_language: Option<&String>, _client_id: Option<&String>,
 	let _index: String = "form".to_string();
 
 	let _client_index = client_index(_index.to_owned(), _language, _client_id);
-	let _language_index = language_index(_index.to_owned(), _language);
-	let _default_index = default_index(_index.to_owned());
 
 	//  Find index
 	match exists_index(_client_index.to_owned()).await {
@@ -176,18 +174,9 @@ async fn get_index_name(_language: Option<&String>, _client_id: Option<&String>,
 			log::info!("Find with client index `{:}`", _client_index);
 			Ok(_client_index)
 		},
-		Err(_) => {
-			log::warn!("No client index `{:}`", _client_index);
-			match exists_index(_language_index.to_owned()).await {
-				Ok(_) => {
-					log::info!("Find with language index `{:}`", _language_index);
-					Ok(_language_index)
-				},
-				Err(_) => {
-					log::warn!("No language index `{:}`. Find with default index `{:}`.", _language_index, _default_index);
-					Ok(_default_index)
-				}
-			}
+		Err(error) => {
+			log::error!("No client index `{:}`", _client_index);
+			return Err(Error::new(ErrorKind::InvalidData.into(), error))
 		}
 	}
 }
