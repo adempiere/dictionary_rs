@@ -3,7 +3,9 @@ use salvo::prelude::*;
 use serde_json::json;
 use std::{io::ErrorKind, io::Error};
 
-use crate::{controller::opensearch::{IndexDocument, get_by_id, find, exists_index}, models::{user_index, role_index}};
+use crate::controller::opensearch::{IndexDocument, get_by_id, find, exists_index};
+
+use super::{client_index, user_index, role_index};
 
 #[derive(Deserialize, Extractible, Debug, Clone)]
 #[salvo(extract(default_source(from = "body")))]
@@ -317,8 +319,9 @@ async fn get_index_name(_language: Option<&String>, _client_id: Option<&String>,
 
 	let _user_index = user_index(_index.to_owned(), _language, _client_id, _role_id, _user_id);
     let _role_index = role_index(_index.to_owned(), _language, _client_id, _role_id);
+	let _client_index = client_index(_index.to_owned(), _language, _client_id);
 
-	//  Find index
+    //  Find index
     match exists_index(_user_index.to_owned()).await {
 		Ok(_) => {
 			log::info!("Find with user index `{:}`", _user_index);
@@ -332,8 +335,17 @@ async fn get_index_name(_language: Option<&String>, _client_id: Option<&String>,
 					Ok(_role_index)
 				},
 				Err(error) => {
-					log::error!("No role index `{:}`", _role_index);
-					return Err(Error::new(ErrorKind::InvalidData.into(), error))
+					log::warn!("No role index `{:}`", _role_index);
+					match exists_index(_client_index.to_owned()).await {
+						Ok(_) => {
+							log::info!("Find with client index `{:}`", _client_index);
+							Ok(_client_index)
+						},
+						Err(_) => {
+							log::error!("No client index `{:}`", _client_index);
+							return Err(Error::new(ErrorKind::InvalidData.into(), error))
+						}
+					}
                 }
             }
         }
