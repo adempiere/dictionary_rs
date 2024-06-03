@@ -297,11 +297,20 @@ pub async fn window_from_id(_id: Option<i32>, _language: Option<&String>, _clien
     let _window_document: &dyn IndexDocument = &_document;
     match get_by_id(_window_document).await {
         Ok(value) => {
-            let window: Window = serde_json::from_value(value).unwrap();
+			let mut window: Window = serde_json::from_value(value).unwrap();
             log::info!("Finded Value: {:?}", window.id);
-            // Ok(WindowResponse {
-            //     window: Some(window)
-            // })
+
+			// sort tabs by sequence
+			if let Some(ref mut tabs) = window.tabs {
+				tabs.sort_by_key(|tab| tab.sequence.clone().unwrap_or(0));
+				for tab in tabs.iter_mut() {
+					// sort fields by sequence
+					if let Some(ref mut fields) = tab.fields {
+						fields.sort_by_key(|field| field.sequence.clone().unwrap_or(0));
+					}
+				}
+			}
+
             Ok(window)
         },
         Err(error) => {
@@ -383,9 +392,20 @@ pub async fn windows(_language: Option<&String>, _client_id: Option<&String>, _r
         Ok(values) => {
             let mut windows_list: Vec<Window> = vec![];
             for value in values {
-                let window: Window = serde_json::from_value(value).unwrap();
+				let mut window: Window = serde_json::from_value(value).unwrap();
+				// sort tabs by sequence
+				if let Some(ref mut tabs) = window.tabs {
+					tabs.sort_by_key(|tab| tab.sequence.clone().unwrap_or(0));
+					for tab in tabs.iter_mut() {
+						// sort fields by sequence
+						if let Some(ref mut fields) = tab.fields {
+							fields.sort_by_key(|field| field.sequence.clone().unwrap_or(0));
+						}
+					}
+				}
                 windows_list.push(window.to_owned());
             }
+
             Ok(WindowListResponse {
                 windows: Some(windows_list)
             })

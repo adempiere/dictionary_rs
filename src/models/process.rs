@@ -255,11 +255,14 @@ pub async fn process_from_id(_id: Option<i32>, _language: Option<&String>, _clie
     let _process_document: &dyn IndexDocument = &_document;
     match get_by_id(_process_document).await {
         Ok(value) => {
-            let process: Process = serde_json::from_value(value).unwrap();
+			let mut process: Process = serde_json::from_value(value).unwrap();
             log::info!("Finded Value: {:?}", process.id);
-            // Ok(ProcessResponse {
-            //     process: Some(process)
-            // })
+
+			// sort process parameter by sequence
+			if let Some(ref mut parameters) = process.parameters {
+				parameters.sort_by_key(|parameter| parameter.sequence.clone().unwrap_or(0));
+			}
+
             Ok(
                 process
             )
@@ -343,9 +346,14 @@ pub async fn processes(_language: Option<&String>, _client_id: Option<&String>, 
         Ok(values) => {
             let mut processes_list: Vec<Process> = vec![];
             for value in values {
-                let process: Process = serde_json::from_value(value).unwrap();
+				let mut process: Process = serde_json::from_value(value).unwrap();
+				// sort process parameter by sequence
+				if let Some(ref mut parameters) = process.parameters {
+					parameters.sort_by_key(|parameter| parameter.sequence.clone().unwrap_or(0));
+				}
                 processes_list.push(process.to_owned());
             }
+
             Ok(ProcessListResponse {
                 processes: Some(processes_list)
             })

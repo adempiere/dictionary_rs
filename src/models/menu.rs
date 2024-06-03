@@ -210,11 +210,14 @@ pub async fn menu_from_id(_id: Option<i32>, _language: Option<&String>, _client_
     let _menu_document: &dyn IndexDocument = &_document;
     match get_by_id(_menu_document).await {
         Ok(value) => {
-            let menu: Menu = serde_json::from_value(value).unwrap();
+			let mut menu: Menu = serde_json::from_value(value).unwrap();
             log::info!("Finded Value: {:?}", menu.id);
-            // Ok(MenuResponse {
-            //     menu: Some(menu)
-            // })
+
+			// sort menu children nodes by sequence
+			if let Some(ref mut children) = menu.children {
+				children.sort_by_key(|child| child.sequence.clone().unwrap_or(0));
+			}
+
             Ok(
                 menu
             )
@@ -302,9 +305,17 @@ pub async fn menus(
         Ok(values) => {
             let mut menus_list: Vec<Menu> = vec![];
             for value in values {
-                let menu: Menu = serde_json::from_value(value).unwrap();
+				let mut menu: Menu = serde_json::from_value(value).unwrap();
+				// sort menu children nodes by sequence
+				if let Some(ref mut children) = menu.children {
+					children.sort_by_key(|child| child.sequence.clone().unwrap_or(0));
+				}
                 menus_list.push(menu.to_owned());
             }
+
+			// sort root menu nodes by sequence
+			menus_list.sort_by_key(|menu| menu.sequence.clone().unwrap_or(0));
+
             Ok(MenuListResponse {
                 menus: Some(menus_list)
             })
