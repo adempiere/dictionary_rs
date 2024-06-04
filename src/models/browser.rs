@@ -287,12 +287,15 @@ pub async fn browser_from_id(_id: Option<i32>, _language: Option<&String>, _clie
     let _browser_document: &dyn IndexDocument = &_document;
     match get_by_id(_browser_document).await {
         Ok(value) => {
-            let browser: Browser = serde_json::from_value(value).unwrap();
+			let mut browser: Browser = serde_json::from_value(value).unwrap();
             log::info!("Finded Value: {:?}", browser.id);
-            // Ok(BrowserResponse {
-            //     browser: Some(browser)
-            // })
-            Ok( 
+
+			// sort fields by sequence
+			if let Some(ref mut fields) = browser.fields {
+				fields.sort_by_key(|field| field.sequence.clone().unwrap_or(0));
+			}
+
+            Ok(
                 browser
             )
         },
@@ -375,7 +378,11 @@ pub async fn browsers(_language: Option<&String>, _client_id: Option<&String>, _
         Ok(values) => {
             let mut browsers_list: Vec<Browser> = vec![];
             for value in values {
-                let browser: Browser = serde_json::from_value(value).unwrap();
+				let mut browser: Browser = serde_json::from_value(value).unwrap();
+				// sort fields by sequence
+				if let Some(ref mut fields) = browser.fields {
+					fields.sort_by_key(|field| field.sequence.clone().unwrap_or(0));
+				}
                 browsers_list.push(browser.to_owned());
             }
             Ok(BrowserListResponse {
