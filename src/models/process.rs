@@ -66,7 +66,7 @@ pub struct Process {
     pub print_format_id: Option<i32>,
 	//	Linked
 	pub browser_id: Option<i32>,
-	pub browse: Option<DictionaryEntity>,
+	pub browser: Option<DictionaryEntity>,
 	pub form_id: Option<i32>,
 	pub form: Option<DictionaryEntity>,
 	pub workflow_id: Option<i32>,
@@ -137,7 +137,7 @@ impl Default for Process {
 			report_view_id: None,
 			//	Linked
 			browser_id: None,
-            browse: None,
+			browser: None,
 			form_id: None,
 			form: None, 
 			workflow_id: None,
@@ -219,7 +219,7 @@ pub struct Form {
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct Browse {
+pub struct Browser {
     pub uuid: Option<String>,
     pub id: Option<i32>,
     pub name: Option<String>,
