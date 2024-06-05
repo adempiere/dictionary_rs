@@ -53,7 +53,7 @@ pub struct Menu {
     pub window: Option<Window>,
     pub process: Option<Process>,
     pub form: Option<Form>,
-    pub browse: Option<Browse>,
+	pub browser: Option<Browser>,
     pub workflow: Option<Workflow>,
     // Tree menu childs
     pub children: Option<Vec<Menu>>
@@ -84,7 +84,7 @@ impl Default for Menu {
             window: None, 
             process: None, 
             form: None, 
-            browse: None,
+			browser: None,
 			workflow: None,
 			// Tree menu childs
 			children: None
@@ -174,7 +174,7 @@ pub struct Form {
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct Browse {
+pub struct Browser {
     pub uuid: Option<String>,
     pub id: Option<i32>,
     pub name: Option<String>,
