@@ -259,7 +259,7 @@ pub struct Process {
 	//	Linked
 	pub browser_id: Option<i32>,
 	pub browser: Option<DictionaryEntity>,
-	pub from_id: Option<i32>,
+	pub form_id: Option<i32>,
 	pub form: Option<DictionaryEntity>,
 	pub workflow_id: Option<i32>,
 	pub workflow: Option<DictionaryEntity>,
