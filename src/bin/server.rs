@@ -41,13 +41,15 @@ async fn main() {
         .allow_headers(vec![header::ACCESS_CONTROL_REQUEST_METHOD, header::ACCESS_CONTROL_REQUEST_HEADERS, header::AUTHORIZATION])
         .into_handler()
     ;
-    // TODO: Add generic ok response to OPTIONS http method
-    let router = Router::new()
+
+	let router = Router::new()
         .hoop(cors_handler)
         .push(
             // /api
             Router::with_path("api")
-                .push(
+				.options(options_response)
+				.get(get_system_info)
+				.push(
                     // /api/security/menus
                     Router::with_path("security/menus")
 						.options(options_response)
@@ -132,6 +134,53 @@ async fn main() {
 async fn options_response<'a>(_req: &mut Request, _res: &mut Response) {
 	_res.status_code(StatusCode::NO_CONTENT);
 }
+
+#[derive(Serialize)]
+struct SystemInfoResponse {
+	version: String,
+	is_kafka_enabled: bool,
+	kafka_queues: String,
+}
+
+#[handler]
+async fn get_system_info<'a>(_req: &mut Request, _res: &mut Response) {
+	let version: String = match env::var("VERSION") {
+		Ok(value) => value,
+		Err(_) => {
+			log::info!("Variable `VERSION` Not found from enviroment, as default `1.0.0-dev`");
+			"1.0.0-dev".to_owned()
+		}.to_owned()
+	};
+
+	// Kafka Queue
+	let kafka_enabled: String = match env::var("KAFKA_ENABLED") {
+		Ok(value) => value,
+		Err(_) => {
+			log::info!("Variable `KAFKA_ENABLED` Not found from enviroment, as default Y");
+			"Y".to_owned()
+		}.to_owned()
+	};
+	let kafka_queues: String = match env::var("KAFKA_QUEUES") {
+		Ok(value) => value.clone(),
+		Err(_) => {
+			log::info!("Variable `KAFKA_QUEUES` Not found from enviroment, loaded with `default` value");
+			"menu process browser window".to_owned()
+		}.to_owned()
+	};
+
+	let system_info_response = SystemInfoResponse {
+		version: version.to_string(),
+		is_kafka_enabled: kafka_enabled.trim().eq("Y"),
+		kafka_queues: kafka_queues
+	};
+
+	_res.status_code(StatusCode::OK)
+		.render(
+			Json(system_info_response)
+		)
+	;
+}
+
 
 #[derive(Serialize)]
 struct ErrorResponse {
