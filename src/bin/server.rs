@@ -47,12 +47,8 @@ async fn main() {
         .push(
             // /api
             Router::with_path("api")
-				.push(
-					// /api/
-					Router::with_path("/")
-						.options(options_response)
-						.get(get_system_info)
-				)
+				.options(options_response)
+				.get(get_system_info)
 				.push(
                     // /api/security/menus
                     Router::with_path("security/menus")
@@ -63,52 +59,52 @@ async fn main() {
                     // /api/dictionary
                     Router::with_path("dictionary")
 						.push(
-							// /api/dictionary/browsers/:id
-							Router::with_path("browsers/<id>")
-								.options(options_response)
-								.get(get_browsers)
-						)
-						.push(
 							// /api/dictionary/browsers/
 							Router::with_path("browsers")
 								.options(options_response)
 								.get(get_browsers)
-						)
-						.push(
-							// /api/dictionary/forms/:id
-							Router::with_path("forms/<id>")
-								.options(options_response)
-								.get(get_forms)
+								.push(
+									// /api/dictionary/browsers/:id
+									Router::with_path("<id>")
+										.options(options_response)
+										.get(get_browsers)
+								)
 						)
 						.push(
 							// /api/dictionary/forms/
 							Router::with_path("forms")
 								.options(options_response)
 								.get(get_forms)
+								.push(
+									// /api/dictionary/forms/:id
+									Router::with_path("<id>")
+										.options(options_response)
+										.get(get_forms)
+								)
 						)
-						.push(
-                            // /api/dictionary/processes/:id
-                            Router::with_path("processes/<id>")
-								.options(options_response)
-                                .get(get_process)
-                        )
                         .push(
                             // /api/dictionary/processes
                             Router::with_path("processes")
 								.options(options_response)
                                 .get(get_process)
-                        )
-                        .push(
-                            // /api/dictionary/windows/:id
-                            Router::with_path("windows/<id>")
-								.options(options_response)
-                                .get(get_windows)
+								.push(
+									// /api/dictionary/processes/:id
+									Router::with_path("<id>")
+										.options(options_response)
+										.get(get_process)
+								)
                         )
                         .push(
                             // /api/dictionary/windows/
                             Router::with_path("windows")
 								.options(options_response)
                                 .get(get_windows)
+								.push(
+									// /api/dictionary/windows/:id
+									Router::with_path("<id>")
+										.options(options_response)
+										.get(get_windows)
+								)
                         )
                 )
         )
