@@ -106,35 +106,31 @@ INFO  [server] Server Address: "0.0.0.0:7878"
     └──api
         ├──[OPTIONS] -> server::options_response
         ├──[GET] -> server::get_system_info
-        ├──security/menus
-        │   ├──[OPTIONS] -> server::options_response
-        │   └──[GET] -> server::get_menu
         └──dictionary
+            ├──browsers/<id>
+            │   ├──[OPTIONS] -> server::get_browsers
+            │   └──[GET] -> server::get_browsers
             ├──browsers
-            │   ├──[OPTIONS] -> server::options_response
-            │   ├──[GET] -> server::get_browsers
-            │   └──<id>
-            │       ├──[OPTIONS] -> server::options_response
-            │       └──[GET] -> server::get_browsers
+            │   ├──[OPTIONS] -> server::get_browsers
+            │   └──[GET] -> server::get_browsers
+            ├──forms/<id>
+            │   ├──[OPTIONS] -> server::get_forms
+            │   └──[GET] -> server::get_forms
             ├──forms
-            │   ├──[OPTIONS] -> server::options_response
-            │   ├──[GET] -> server::get_forms
-            │   └──<id>
-            │       ├──[OPTIONS] -> server::options_response
-            │       └──[GET] -> server::get_forms
+            │   ├──[OPTIONS] -> server::get_forms
+            │   └──[GET] -> server::get_forms
+            ├──processes/<id>
+            │   ├──[OPTIONS] -> server::get_process
+            │   └──[GET] -> server::get_process
             ├──processes
-            │   ├──[OPTIONS] -> server::options_response
-            │   ├──[GET] -> server::get_process
-            │   └──<id>
-            │       ├──[OPTIONS] -> server::options_response
-            │       └──[GET] -> server::get_process
+            │   ├──[OPTIONS] -> server::get_process
+            │   └──[GET] -> server::get_process
+            ├──windows/<id>
+            │   ├──[OPTIONS] -> server::get_windows
+            │   └──[GET] -> server::get_windows
             └──windows
-                ├──[OPTIONS] -> server::options_response
-                ├──[GET] -> server::get_windows
-                └──<id>
-                    ├──[OPTIONS] -> server::options_response
-                    └──[GET] -> server::get_windows
-
+                ├──[OPTIONS] -> server::get_windows
+                └──[GET] -> server::get_windows
 INFO  [server] Kafka Consumer is enabled
 INFO  [server] Kafka queue: "0.0.0.0:29092"
 INFO  [server] Topics to Subscribed: ["menu", "browser", "form", "process", "window"]
