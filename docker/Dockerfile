@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/li
     cargo install --config net.git-fetch-with-cli=true --path . && \
     mv docker/.env /usr/local/cargo/bin/
 
-FROM debian:bullseye-20240423
+FROM debian:bullseye-20240513
 
 ENV \
     RUST_LOG="info" \
@@ -43,5 +43,14 @@ RUN apt-get update && \
     sed -i "s|opensearch_url|$OPENSEARCH_URL|g" /opt/apps/server/.env && \
     echo "Set Timezone..." && \
 	echo $TZ > /etc/timezone
+
+RUN addgroup adempiere && \
+	adduser --disabled-password --gecos "" --ingroup adempiere --no-create-home adempiere && \
+	chown -R adempiere /opt/apps/server/ && \
+	chmod +x /usr/local/bin/server && \
+	echo "Set Timezone..." && \
+	echo $TZ > /etc/timezone
+
+USER adempiere
 
 CMD ["server"]
