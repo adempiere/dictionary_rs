@@ -33,7 +33,7 @@ WORKDIR /opt/apps/server
 
 COPY --from=builder /usr/local/cargo/bin/.env /opt/apps/server/.env
 
-RUN apt-get update && \ 
+RUN apt-get update && \
     apt-get install -y pkg-config openssl libssl-dev tzdata && \
     rm -rf /var/lib/apt/lists/* && \
     sed -i "s|info|$RUST_LOG|g" /opt/apps/server/.env && \
@@ -47,5 +47,14 @@ RUN apt-get update && \
 	sed -i "s|1.0.0-dev|$VERSION|g" /opt/apps/server/.env && \
     echo "Set Timezone..." && \
 	echo $TZ > /etc/timezone
+
+RUN addgroup adempiere && \
+	adduser --disabled-password --gecos "" --ingroup adempiere --no-create-home adempiere && \
+	chown -R adempiere /opt/apps/server/ && \
+	chmod +x /usr/local/bin/server && \
+	echo "Set Timezone..." && \
+	echo $TZ > /etc/timezone
+
+USER adempiere
 
 CMD ["server"]
