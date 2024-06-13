@@ -3,7 +3,8 @@ FROM rust:1.78.0-bullseye as builder
 LABEL maintainer="ysenih@erpya.com; EdwinBetanc0urt@outlook.com;" \
 	description="Microservice with OpenSearch for ADempiere Dictionary using Rust"
 
-ARG BUILD_VERSION="1.0.0"
+ARG BUILD_VERSION "1.0.0"
+
 
 WORKDIR /opt/apps/server
 
