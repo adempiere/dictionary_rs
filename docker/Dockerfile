@@ -1,20 +1,27 @@
-FROM rust:1.78.0-bullseye as builder
+FROM rust:1.79.0-bullseye as builder
 
 LABEL maintainer="ysenih@erpya.com; EdwinBetanc0urt@outlook.com;" \
 	description="Microservice with OpenSearch for ADempiere Dictionary using Rust"
 
 ARG BUILD_VERSION "1.0.0"
 
-
 WORKDIR /opt/apps/server
 
 COPY . . /opt/apps/server/
 
-RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/* && \
+RUN apt-get update && \
+	apt-get install -y \
+		pkg-config \
+		libssl-dev && \
+	rm -rf /var/lib/apt/lists/* && \
     cargo install --config net.git-fetch-with-cli=true --path . && \
     mv docker/.env /usr/local/cargo/bin/
 
-FROM debian:bullseye-20240513
+
+FROM debian:bullseye-20240612
+
+# The argument should be duplicated at this stage
+ARG BUILD_VERSION "1.0.0"
 
 ENV \
     RUST_LOG="info" \
@@ -35,7 +42,11 @@ WORKDIR /opt/apps/server
 COPY --from=builder /usr/local/cargo/bin/.env /opt/apps/server/.env
 
 RUN apt-get update && \
-    apt-get install -y pkg-config openssl libssl-dev tzdata && \
+	apt-get install -y \
+		pkg-config \
+		openssl \
+		libssl-dev \
+		tzdata && \
     rm -rf /var/lib/apt/lists/* && \
     sed -i "s|info|$RUST_LOG|g" /opt/apps/server/.env && \
 	sed -i "s|7878|$PORT|g" /opt/apps/server/.env && \
