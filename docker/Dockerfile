@@ -13,6 +13,7 @@ RUN apt-get update && \
 	apt-get install -y \
 		pkg-config \
 		libssl-dev && \
+	rm -rf /var/lib/apt/lists/* && \
     cargo install --config net.git-fetch-with-cli=true --path . && \
     mv docker/.env /usr/local/cargo/bin/
 
