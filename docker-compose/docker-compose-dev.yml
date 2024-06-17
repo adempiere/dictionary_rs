@@ -13,8 +13,8 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_PORT}
       ZOOKEEPER_TICK_TIME: ${ZOOKEEPER_TICK_TIME}
-    # ports:
-    #   - ${ZOOKEEPER_PORT}:2181
+    ports:
+      - ${ZOOKEEPER_PORT}:2181
     networks:
       - shared_network
 
@@ -58,8 +58,6 @@ services:
     networks:
       - shared_network
 
-
-
   opensearch-service:
     image: ${OPENSEARCH_IMAGE}
     container_name: ${OPENSEARCH_HOST}
@@ -92,20 +90,6 @@ services:
     networks:
       - shared_network
 
-  opensearch-setup:
-    build:
-      context: opensearch/
-      dockerfile: setup.Dockerfile
-    container_name: ${OPENSEARCH_SETUP_HOST}
-    hostname: ${OPENSEARCH_SETUP_HOST}
-    depends_on:
-      opensearch-service:
-        condition: service_healthy
-    environment:
-      OPENSEARCH_HOST: ${OPENSEARCH_SETUP_NODE_HOSTNAME}
-    networks:
-      - shared_network
-
   opensearch-dashboards:
     image: ${OPENSEARCH_DASHBOARDS_IMAGE}
     container_name: ${OPENSEARCH_DASHBOARDS_HOST}
@@ -126,27 +110,6 @@ services:
       - ${OPENSEARCH_DASHBOARDS_EXTERNAL_PORT}:5601 # Map host port 5601 to container port 5601
     networks:
       - shared_network
-
-
-
-  dictionary-rs:
-    image: ${DICTIONARY_RS_IMAGE}
-    container_name: ${DICTIONARY_RS_HOST}
-    restart: ${GENERIC_RESTART}
-    depends_on:
-      opensearch-service:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    environment:
-      KAFKA_HOST: "kafka:9092"
-      OPENSEARCH_URL: "http://opensearch-service:9200"
-    ports:
-      - ${DICTIONARY_RS_PORT}:7878
-    networks:
-      - shared_network
-
-
 
 networks:
   shared_network:

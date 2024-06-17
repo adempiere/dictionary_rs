@@ -4,6 +4,8 @@ pub mod menu;
 pub mod process;
 pub mod window;
 pub mod generic;
+pub mod menu_item;
+pub mod menu_tree;
 
 use serde::{Deserialize, Serialize};
 use salvo::prelude::*;
