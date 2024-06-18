@@ -268,6 +268,48 @@ pub async fn find(_document: &dyn IndexDocument, _search_value: String, _from: i
     Ok(list)
 }
 
+pub async fn find_from_dsl_body(_document: &dyn IndexDocument, _body: serde_json::Value, _from: i64, _size: i64) -> Result<Vec<Value>, std::string::String> {
+	let client: OpenSearch = match create_opensearch_client() {
+        Ok(client_value) => client_value,
+        Err(error) => {
+            log::error!("{:?}", error);
+            return Err(error.to_string());
+        }
+    };
+    //  Create
+	let _response: Result<opensearch::http::response::Response, opensearch::Error> = client
+        .search(SearchParts::Index(&[&_document.index_name()]))
+        .from(_from)
+        .size(_size)
+        .body(_body)
+        .send()
+		.await
+	;
+    let response = match _response {
+        Ok(value) => value,
+        Err(error) => {
+            log::error!("{:?}", error);
+            return Err(error.to_string());
+        }
+    };
+    if !response.status_code().is_success() {
+        return Err(format!("Error finding record {:?}", response.text().await));
+    }
+    let response_body = match response.json::<Value>().await {
+        Ok(response) => response,
+        Err(error) => {
+            log::error!("{:?}", error);
+            return Err(error.to_string());
+        },
+    };
+    let mut list: Vec::<Value> = Vec::new();
+    for hit in response_body["hits"]["hits"].as_array().unwrap() {
+        let value = hit["_source"].to_owned();
+        list.push(value)
+    }
+    Ok(list)
+}
+
 pub async fn get_by_id(_document: &dyn IndexDocument) -> Result<Value, std::string::String> {
     let client = match create_opensearch_client() {
         Ok(client_value) => client_value,

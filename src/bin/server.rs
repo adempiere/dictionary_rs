@@ -1,5 +1,5 @@
 use std::env;
-use dictionary_rs::{controller::{kafka::create_consumer, opensearch::{create, delete, IndexDocument}}, models::{browser::{browser_from_id, browsers, BrowserDocument}, form::{form_from_id, forms, FormDocument}, menu::{menu_from_id, menus, MenuDocument}, menu_item::MenuItemDocument, menu_tree::MenuTreeDocument, process::{process_from_id, processes, ProcessDocument}, window::{window_from_id, windows, WindowDocument}}};
+use dictionary_rs::{controller::{kafka::create_consumer, opensearch::{create, delete, IndexDocument}}, models::{browser::{browser_from_id, browsers, BrowserDocument}, form::{form_from_id, forms, FormDocument}, menu::{menu_from_id, menus, MenuDocument}, menu_item::MenuItemDocument, menu_tree::MenuTreeDocument, process::{process_from_id, processes, ProcessDocument}, role::RoleDocument, window::{window_from_id, windows, WindowDocument}}};
 use dotenv::dotenv;
 use rdkafka::{Message, consumer::{CommitMode, Consumer}};
 use salvo::{conn::tcp::TcpAcceptor, cors::Cors, http::header, hyper::Method, prelude::*};
@@ -494,6 +494,23 @@ async fn consume_queue() {
                                 Err(error) => {
                                     log::warn!("{}", error);
                                     MenuTreeDocument {
+                                        document: None
+                                    }
+                                },
+                            };
+                            if _document.document.is_some() {
+                                let _menu_document: &dyn IndexDocument = &(_document.document.unwrap());
+                                match process_index(event_type, _menu_document).await {
+                                    Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
+                                    Err(error) => log::warn!("{}", error)
+                                }
+                            }
+                        } else if topic == "role" {
+                            let _document = match serde_json::from_str(payload) {
+                                Ok(value) => value,
+                                Err(error) => {
+                                    log::warn!("{}", error);
+                                    RoleDocument {
                                         document: None
                                     }
                                 },

@@ -5,6 +5,8 @@ use std::{io::ErrorKind, io::Error};
 
 use crate::{controller::opensearch::{IndexDocument, get_by_id, find, exists_index}, models::{user_index, role_index}};
 
+use super::role::Role;
+
 #[derive(Deserialize, Extractible, Debug, Clone)]
 #[salvo(extract(default_source(from = "body")))]
 pub struct MenuItemDocument {
@@ -97,6 +99,123 @@ impl MenuItem {
         let mut menu = MenuItem::default();
         menu.id = _id;
         menu
+    }
+
+    fn get_find_body_from_role(self: &Self, _role: Role) -> serde_json::Value {
+        // "W" Window
+        // "X" Form
+        // "S" Smart Browser
+        // "R" Report
+        // "P" Process
+        // "F" Workflow
+        let _window_access = match _role.to_owned().window_access {
+            Some(value) => value,
+            None => Vec::new()
+        };
+        let _form_access = match _role.to_owned().form_access {
+            Some(value) => value,
+            None => Vec::new()
+        };
+        let _browser_access = match _role.to_owned().browser_access {
+            Some(value) => value,
+            None => Vec::new()
+        };
+        let _process_access = match _role.to_owned().process_access {
+            Some(value) => value,
+            None => Vec::new()
+        };
+        let _workflow_access = match _role.to_owned().workflow_access {
+            Some(value) => value,
+            None => Vec::new()
+        };
+        json!({
+            "query": {
+              "bool": {
+                "should": [
+                  {
+                    "bool": {
+                      "must": [
+                        {
+                          "terms": {
+                            "action_id": _window_access
+                          }
+                        },
+                        {
+                          "match": {
+                            "action": "W"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "bool": {
+                      "must": [
+                        {
+                          "terms": {
+                            "action_id": _form_access
+                          }
+                        },
+                        {
+                          "match": {
+                            "action": "X"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "bool": {
+                      "must": [
+                        {
+                          "terms": {
+                            "action_id": _browser_access
+                          }
+                        },
+                        {
+                          "match": {
+                            "action": "S"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "bool": {
+                      "must": [
+                        {
+                          "terms": {
+                            "action_id": _process_access
+                          }
+                        },
+                        {
+                          "terms": {
+                            "action": ["R", "P"]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "bool": {
+                      "must": [
+                        {
+                          "terms": {
+                            "action_id": _workflow_access
+                          }
+                        },
+                        {
+                          "match": {
+                            "action": "F"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          })
     }
 }
 

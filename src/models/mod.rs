@@ -6,6 +6,7 @@ pub mod window;
 pub mod generic;
 pub mod menu_item;
 pub mod menu_tree;
+pub mod role;
 
 use serde::{Deserialize, Serialize};
 use salvo::prelude::*;
