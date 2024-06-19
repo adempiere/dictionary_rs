@@ -3,7 +3,9 @@ use salvo::prelude::*;
 use serde_json::json;
 use std::{io::ErrorKind, io::Error};
 
-use crate::{controller::opensearch::{IndexDocument, get_by_id, find, exists_index}, models::{user_index, role_index}};
+use crate::{controller::opensearch::IndexDocument, models::{menu_item::menu_items_from_role, menu_tree::menu_tree_from_id, role::role_from_id}};
+
+use super::{menu_item::MenuItem, menu_tree::MenuTree};
 
 #[derive(Deserialize, Extractible, Debug, Clone)]
 #[salvo(extract(default_source(from = "body")))]
@@ -96,6 +98,33 @@ impl Menu {
     pub fn from_id(_id: Option<i32>) -> Self {
         let mut menu = Menu::default();
         menu.id = _id;
+        menu
+    }
+
+    pub fn from_menu_item(_menu_item: MenuItem) -> Self {
+        let mut menu = Menu::default();
+        menu.action = _menu_item.action;
+        menu.action_id = _menu_item.action_id;
+        menu.action_uuid = _menu_item.action_uuid;
+        menu.client_id = _menu_item.client_id;
+        menu.description = _menu_item.description;
+        menu.id = _menu_item.id;
+        menu.index_value = _menu_item.index_value;
+        menu.is_read_only = _menu_item.is_read_only;
+        menu.is_sales_transaction = _menu_item.is_sales_transaction;
+        menu.is_summary = _menu_item.is_summary;
+        menu.language = _menu_item.language;
+        menu.name = _menu_item.name;
+        menu.parent_id = _menu_item.parent_id;
+        menu.role_id = _menu_item.role_id;
+        menu.sequence = _menu_item.sequence;
+        menu.user_id = _menu_item.user_id;
+        menu.uuid = _menu_item.uuid;
+        menu.window = _menu_item.window;
+        menu.workflow = _menu_item.workflow;
+        menu.browser = _menu_item.browser;
+        menu.process = _menu_item.process;
+        menu.form = _menu_item.form;
         menu
     }
 }
@@ -191,137 +220,51 @@ pub struct Workflow {
     pub help: Option<String>,
 }
 
-pub async fn menu_from_id(_id: Option<i32>, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<Menu, String> {
-	if _id.is_none() || _id.map(|id| id <= 0).unwrap_or(false) {
-		return Err(Error::new(ErrorKind::InvalidData.into(), "Menu Identifier is Mandatory").to_string());
-	}
+pub async fn menu_from_id(_id: Option<i32>, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<MenuListResponse, std::io::Error> {
     let mut _document = Menu::from_id(_id);
 
-	let _index_name = match get_index_name(_language, _client_id, _role_id, _user_id).await {
-		Ok(index_name) => index_name,
-		Err(error) => {
-			log::error!("Index name error: {:?}", error.to_string());
-			return Err(error.to_string())
-		}
-	};
-	log::info!("Index to search {:}", _index_name);
+    let _expected_role = role_from_id(_role_id, _client_id).await;
+    let _role = match _expected_role {
+        Ok(role) => role,
+        Err(error) => return Err(Error::new(ErrorKind::InvalidData.into(), error))
+    };
 
-	_document.index_value = Some(_index_name);
-    let _menu_document: &dyn IndexDocument = &_document;
-    match get_by_id(_menu_document).await {
-        Ok(value) => {
-			let mut menu: Menu = serde_json::from_value(value).unwrap();
-            log::info!("Finded Value: {:?}", menu.id);
+    let _menu_items = menu_items_from_role(_role.to_owned(), _language, None, None).await;
+    let _menu_items = match _menu_items {
+        Ok(menu) => menu,
+        Err(error) => return Err(Error::new(ErrorKind::InvalidData.into(), error))
+    };
 
-			// sort menu children nodes by sequence
-			if let Some(ref mut children) = menu.children {
-				children.sort_by_key(|child| child.sequence.clone().unwrap_or(0));
-			}
-
-            Ok(
-                menu
-            )
-        },
-        Err(error) => {
-			log::error!("{}", error);
-            Err(error)
-        },
+    if _role.tree_id.is_none() {
+        return Err(Error::new(ErrorKind::InvalidData.into(), "Tree ID not found"))
     }
+
+    let _tree_result = menu_tree_from_id(_role.tree_id).await;
+    let _tree = match _tree_result {
+        Ok(tree) => tree,
+        Err(error) => return Err(Error::new(ErrorKind::InvalidData.into(), error))
+    };
+    //  Merge tree with menu
+    //  Main Menu
+    let _tree_children = _tree.children;
+    let menus = get_valid_children(_tree_children, _menu_items);
+    Ok(MenuListResponse {
+        menus: Some(menus)
+    })
+    // Err(Error::new(ErrorKind::InvalidData.into(), "Hola"))
 }
 
-async fn get_index_name(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<String, std::io::Error> {
-	//  Validate
-	if _language.is_none() {
-		return Err(Error::new(ErrorKind::InvalidData.into(), "Language is Mandatory"));
-	}
-	if _client_id.is_none() {
-		return Err(Error::new(ErrorKind::InvalidData.into(), "Client is Mandatory"));
-	}
-	if _role_id.is_none() {
-		return Err(Error::new(ErrorKind::InvalidData.into(), "Role is Mandatory"));
-	}
-
-	let _index: String = "menu".to_string();
-
-	let _user_index = user_index(_index.to_owned(), _language, _client_id, _role_id, _user_id);
-    let _role_index = role_index(_index.to_owned(), _language, _client_id, _role_id);
-
-	//  Find index
-	match exists_index(_user_index.to_owned()).await {
-		Ok(_) => {
-			log::info!("Find with user index `{:}`", _user_index);
-			Ok(_user_index)
-		},
-		Err(_) => {
-			log::warn!("No user index `{:}`", _user_index);
-			match exists_index(_role_index.to_owned()).await {
-				Ok(_) => {
-					log::info!("Find with role index `{:}`", _role_index);
-					Ok(_role_index)
-				},
-				Err(error) => {
-					log::error!("No role index `{:}`", _role_index);
-					return Err(Error::new(ErrorKind::InvalidData.into(), error))
-				}
-            }
-		}
-	}
-}
-
-pub async fn menus(
-	_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>,
-	_search_value: Option<&String>, _page_number: Option<&String>, _page_size: Option<&String>
-) -> Result<MenuListResponse, std::io::Error> {
-	let _search_value = match _search_value {
-		Some(value) => value.clone(),
-		None => "".to_owned()
-	};
-
-	//  Find index
-	let _index_name = match get_index_name(_language, _client_id, _role_id, _user_id).await {
-		Ok(index_name) => index_name,
-		Err(error) => {
-			log::error!("Index name error: {:?}", error.to_string());
-			return Err(Error::new(ErrorKind::InvalidData.into(), error))
-		}
-	};
-	log::info!("Index to search {:}", _index_name);
-
-    let mut _document = Menu::default();
-    _document.index_value = Some(_index_name);
-    let _menu_document: &dyn IndexDocument = &_document;
-
-	// pagination
-	let page_number: i64 = match _page_number {
-		Some(value) => value.clone().parse::<i64>().to_owned(),
-		None => "0".parse::<i64>().to_owned()
-	}.unwrap();
-	let page_size: i64 = match _page_size {
-		Some(value) => value.clone().parse::<i64>().to_owned(),
-		None => "100".parse::<i64>().to_owned()
-	}.unwrap();
-
-    match find(_menu_document, _search_value, page_number, page_size).await {
-        Ok(values) => {
-            let mut menus_list: Vec<Menu> = vec![];
-            for value in values {
-				let mut menu: Menu = serde_json::from_value(value).unwrap();
-				// sort menu children nodes by sequence
-				if let Some(ref mut children) = menu.children {
-					children.sort_by_key(|child| child.sequence.clone().unwrap_or(0));
-				}
-                menus_list.push(menu.to_owned());
-            }
-
-			// sort root menu nodes by sequence
-			menus_list.sort_by_key(|menu| menu.sequence.clone().unwrap_or(0));
-
-            Ok(MenuListResponse {
-                menus: Some(menus_list)
-            })
-        },
-		Err(error) => {
-			Err(Error::new(ErrorKind::InvalidData.into(), error))
-		}
+fn get_valid_children(_tree: Option<Vec<MenuTree>>, _allowed_menu_items: Vec<MenuItem>) -> Vec<Menu> {
+    let mut menus = Vec::new();
+    if _tree.is_none() {
+        return menus
     }
+    let _tree = _tree.unwrap();
+    for _tree_value in _tree {
+        let _allowed_item = _allowed_menu_items.clone().into_iter().find(|_item| _item.id.is_some() && _item.id == _tree_value.node_id);
+        if _allowed_item.is_some() {
+            menus.push(Menu::from_menu_item(_allowed_item.unwrap()));
+        }
+    }
+    menus
 }

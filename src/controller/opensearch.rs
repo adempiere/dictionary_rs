@@ -268,7 +268,7 @@ pub async fn find(_document: &dyn IndexDocument, _search_value: String, _from: i
     Ok(list)
 }
 
-pub async fn find_from_dsl_body(_document: &dyn IndexDocument, _body: serde_json::Value, _from: i64, _size: i64) -> Result<Vec<Value>, std::string::String> {
+pub async fn find_from_dsl_body(_index_name: String, _body: serde_json::Value, _from: i64, _size: i64) -> Result<Vec<Value>, std::string::String> {
 	let client: OpenSearch = match create_opensearch_client() {
         Ok(client_value) => client_value,
         Err(error) => {
@@ -278,7 +278,7 @@ pub async fn find_from_dsl_body(_document: &dyn IndexDocument, _body: serde_json
     };
     //  Create
 	let _response: Result<opensearch::http::response::Response, opensearch::Error> = client
-        .search(SearchParts::Index(&[&_document.index_name()]))
+        .search(SearchParts::Index(&[&_index_name]))
         .from(_from)
         .size(_size)
         .body(_body)

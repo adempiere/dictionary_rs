@@ -3,7 +3,9 @@ use salvo::prelude::*;
 use serde_json::json;
 use std::{io::ErrorKind, io::Error};
 
-use crate::{controller::opensearch::{IndexDocument, get_by_id, find, exists_index}, models::{user_index, role_index}};
+use crate::controller::opensearch::{IndexDocument, get_by_id, exists_index};
+
+use super::client_index_only;
 
 #[derive(Deserialize, Extractible, Debug, Clone)]
 #[salvo(extract(default_source(from = "body")))]
@@ -77,9 +79,9 @@ impl Default for Role {
 }
 
 impl Role {
-    pub fn from_id(_id: Option<i32>) -> Self {
+    pub fn from_id(_id: Option<&String>) -> Self {
         let mut menu = Role::default();
-        menu.id = _id;
+        menu.uuid = _id.cloned();
         menu
     }
 }
@@ -104,7 +106,7 @@ impl IndexDocument for Role {
     }
 
     fn id(self: &Self) -> String {
-        self.id.unwrap().to_string()
+        self.uuid.to_owned().unwrap()
     }
 
     fn index_name(self: &Self) -> String {
@@ -129,13 +131,13 @@ impl IndexDocument for Role {
     }
 }
 
-pub async fn role_from_id(_id: Option<i32>, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<Role, String> {
-	if _id.is_none() || _id.map(|id| id <= 0).unwrap_or(false) {
+pub async fn role_from_id(_id: Option<&String>, _client_id: Option<&String>) -> Result<Role, String> {
+	if _id.is_none() {
 		return Err(Error::new(ErrorKind::InvalidData.into(), "Role Identifier is Mandatory").to_string());
 	}
     let mut _document = Role::from_id(_id);
 
-	let _index_name = match get_index_name(_language, _client_id, _role_id, _user_id).await {
+	let _index_name = match get_index_name(_client_id).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			log::error!("Index name error: {:?}", error.to_string());
@@ -145,13 +147,13 @@ pub async fn role_from_id(_id: Option<i32>, _language: Option<&String>, _client_
 	log::info!("Index to search {:}", _index_name);
 
 	_document.index_value = Some(_index_name);
-    let _menu_document: &dyn IndexDocument = &_document;
-    match get_by_id(_menu_document).await {
+    let _role_document: &dyn IndexDocument = &_document;
+    match get_by_id(_role_document).await {
         Ok(value) => {
-			let menu: Role = serde_json::from_value(value).unwrap();
-            log::info!("Finded Value: {:?}", menu.id);
+			let role: Role = serde_json::from_value(value).unwrap();
+            log::info!("Finded Value: {:?}", role.id);
             Ok(
-                menu
+                role
             )
         },
         Err(error) => {
@@ -161,91 +163,23 @@ pub async fn role_from_id(_id: Option<i32>, _language: Option<&String>, _client_
     }
 }
 
-async fn get_index_name(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<String, std::io::Error> {
-	//  Validate
-	if _language.is_none() {
-		return Err(Error::new(ErrorKind::InvalidData.into(), "Language is Mandatory"));
-	}
+async fn get_index_name(_client_id: Option<&String>) -> Result<String, std::io::Error> {
 	if _client_id.is_none() {
 		return Err(Error::new(ErrorKind::InvalidData.into(), "Client is Mandatory"));
 	}
-	if _role_id.is_none() {
-		return Err(Error::new(ErrorKind::InvalidData.into(), "Role is Mandatory"));
-	}
 
-	let _index: String = "menu".to_string();
-
-	let _user_index = user_index(_index.to_owned(), _language, _client_id, _role_id, _user_id);
-    let _role_index = role_index(_index.to_owned(), _language, _client_id, _role_id);
+    let _base_index: String = "role".to_string();
+	let _index = client_index_only(_base_index.to_owned(), _client_id);
 
 	//  Find index
-	match exists_index(_user_index.to_owned()).await {
+	match exists_index(_index.to_owned()).await {
 		Ok(_) => {
-			log::info!("Find with user index `{:}`", _user_index);
-			Ok(_user_index)
+			log::info!("Find with role index `{:}`", _index);
+			Ok(_index)
 		},
 		Err(_) => {
-			log::warn!("No user index `{:}`", _user_index);
-			match exists_index(_role_index.to_owned()).await {
-				Ok(_) => {
-					log::info!("Find with role index `{:}`", _role_index);
-					Ok(_role_index)
-				},
-				Err(error) => {
-					log::error!("No role index `{:}`", _role_index);
-					return Err(Error::new(ErrorKind::InvalidData.into(), error))
-				}
-            }
+			log::error!("No index found `{:}`", _index);
+            return Err(Error::new(ErrorKind::InvalidData.into(), "No Index Found"))
 		}
 	}
-}
-
-pub async fn roles(
-	_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>,
-	_search_value: Option<&String>, _page_number: Option<&String>, _page_size: Option<&String>
-) -> Result<RoleListResponse, std::io::Error> {
-	let _search_value = match _search_value {
-		Some(value) => value.clone(),
-		None => "".to_owned()
-	};
-
-	//  Find index
-	let _index_name = match get_index_name(_language, _client_id, _role_id, _user_id).await {
-		Ok(index_name) => index_name,
-		Err(error) => {
-			log::error!("Index name error: {:?}", error.to_string());
-			return Err(Error::new(ErrorKind::InvalidData.into(), error))
-		}
-	};
-	log::info!("Index to search {:}", _index_name);
-
-    let mut _document = Role::default();
-    _document.index_value = Some(_index_name);
-    let _menu_document: &dyn IndexDocument = &_document;
-
-	// pagination
-	let page_number: i64 = match _page_number {
-		Some(value) => value.clone().parse::<i64>().to_owned(),
-		None => "0".parse::<i64>().to_owned()
-	}.unwrap();
-	let page_size: i64 = match _page_size {
-		Some(value) => value.clone().parse::<i64>().to_owned(),
-		None => "100".parse::<i64>().to_owned()
-	}.unwrap();
-
-    match find(_menu_document, _search_value, page_number, page_size).await {
-        Ok(values) => {
-            let mut roles_list: Vec<Role> = vec![];
-            for value in values {
-				let menu: Role = serde_json::from_value(value).unwrap();
-				roles_list.push(menu.to_owned());
-            }
-            Ok(RoleListResponse {
-                roles: Some(roles_list)
-            })
-        },
-		Err(error) => {
-			Err(Error::new(ErrorKind::InvalidData.into(), error))
-		}
-    }
 }

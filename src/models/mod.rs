@@ -34,6 +34,15 @@ fn language_index(_index_name: String, _language: Option<&String>) -> String {
 	_index_to_find.to_lowercase()
 }
 
+fn client_index_only(_index_name: String, _client_id: Option<&String>) -> String {
+	let mut _index_to_find: String = default_index(_index_name);
+	if let Some(language) = _client_id {
+		_index_to_find.push_str("_");
+		_index_to_find.push_str(language);
+	}
+	_index_to_find.to_lowercase()
+}
+
 fn client_index(_index_name: String, _language: Option<&String>, _client_id: Option<&String>) -> String {
 	let mut _index_to_find: String = language_index(_index_name, _language);
 	if let Some(client_id) = _client_id {

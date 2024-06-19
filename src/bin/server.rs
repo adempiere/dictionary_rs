@@ -1,5 +1,5 @@
 use std::env;
-use dictionary_rs::{controller::{kafka::create_consumer, opensearch::{create, delete, IndexDocument}}, models::{browser::{browser_from_id, browsers, BrowserDocument}, form::{form_from_id, forms, FormDocument}, menu::{menu_from_id, menus, MenuDocument}, menu_item::MenuItemDocument, menu_tree::MenuTreeDocument, process::{process_from_id, processes, ProcessDocument}, role::RoleDocument, window::{window_from_id, windows, WindowDocument}}};
+use dictionary_rs::{controller::{kafka::create_consumer, opensearch::{create, delete, IndexDocument}}, models::{browser::{browser_from_id, browsers, BrowserDocument}, form::{form_from_id, forms, FormDocument}, menu::{menu_from_id, MenuDocument}, menu_item::MenuItemDocument, menu_tree::MenuTreeDocument, process::{process_from_id, processes, ProcessDocument}, role::RoleDocument, window::{window_from_id, windows, WindowDocument}}};
 use dotenv::dotenv;
 use rdkafka::{Message, consumer::{CommitMode, Consumer}};
 use salvo::{conn::tcp::TcpAcceptor, cors::Cors, http::header, hyper::Method, prelude::*};
@@ -52,8 +52,12 @@ async fn main() {
 				.push(
                     // /api/security/menus
                     Router::with_path("security/menus")
-						.options(options_response)
-                        .get(get_menu)
+						.push(
+							// /api/security/menus/:id
+							Router::with_path("<id>")
+								.options(options_response)
+								.get(get_menu)
+						)
                 )
 				.push(
 					// /api/dictionary
@@ -238,8 +242,16 @@ async fn get_menu<'a>(_req: &mut Request, _res: &mut Response) {
 	let _client_id = _req.queries().get("client_id");
 	let _role_id = _req.queries().get("role_id");
 	let _user_id = _req.queries().get("user_id");
-
-	if _id.is_some() {
+	if _id.is_none() {
+		let error_response = ErrorResponse {
+			status: StatusCode::INTERNAL_SERVER_ERROR.into(),
+			message: "ID is Mandatory".to_string()
+		};
+		_res.render(
+			Json(error_response)
+		);
+		_res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
+	} else {
 		match menu_from_id(_id, _language, _client_id, _role_id, _user_id).await {
 			Ok(menu) => _res.render(Json(menu)),
 			Err(error) => {
@@ -253,26 +265,7 @@ async fn get_menu<'a>(_req: &mut Request, _res: &mut Response) {
 				_res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
 			}
 		}
-	} else {
-        let _search_value = _req.queries().get("search_value");
-		let _page_number: Option<&String> = _req.queries().get("page_number");
-		let _page_size: Option<&String> = _req.queries().get("page_size");
-		match menus(_language, _client_id, _role_id, _user_id, _search_value, _page_number, _page_size).await {
-            Ok(menus_list) => {
-                _res.render(Json(menus_list));
-            },
-			Err(error) => {
-				let error_response = ErrorResponse {
-					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
-					message: error.to_string()
-				};
-				_res.render(
-					Json(error_response)
-				);
-				_res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
-			}
-        }
-    }
+	}
 }
 
 #[handler]
