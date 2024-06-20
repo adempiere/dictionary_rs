@@ -85,6 +85,7 @@ pub struct WindowTab {
 	pub is_sort_tab: Option<bool>,
 	pub sort_order_column_name: Option<String>,
 	pub sort_yes_no_column_name: Option<String>,
+	pub filter_column_name: Option<String>,
 	// External info
 	pub context_column_names: Option<Vec<String>>,
 	pub window_id: Option<i32>,
