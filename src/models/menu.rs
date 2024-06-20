@@ -163,7 +163,7 @@ pub struct Workflow {
     pub help: Option<String>,
 }
 
-pub async fn allowed_menu(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<MenuListResponse, std::io::Error> {
+pub async fn allowed_menu(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>) -> Result<MenuListResponse, std::io::Error> {
     let _expected_role = role_from_id(_role_id, _client_id).await;
     let _role = match _expected_role {
         Ok(role) => role,

@@ -192,12 +192,9 @@ struct ErrorResponse {
 async fn get_forms<'a>(_req: &mut Request, _res: &mut Response) {
 	let _id: Option<String> = _req.param::<String>("id");
 	let _language: Option<&String> = _req.queries().get("language");
-	let _client_id: Option<&String> = _req.queries().get("client_id");
-	let _role_id: Option<&String> = _req.queries().get("role_id");
-	let _user_id: Option<&String> = _req.queries().get("user_id");
-
+    let _search_value = _req.queries().get("search_value");
 	if _id.is_some() {
-		match form_from_id(_id, _language, _client_id, _role_id, _user_id).await {
+		match form_from_id(_id, _language).await {
 			Ok(form) => _res.render(Json(form)),
 			Err(error) => {
 				let error_response = ErrorResponse {
@@ -213,7 +210,7 @@ async fn get_forms<'a>(_req: &mut Request, _res: &mut Response) {
 	} else {
 		let _search_value: Option<&String> = _req.queries().get("search_value");
 
-		match forms(_language, _client_id, _role_id, _user_id, _search_value).await {
+		match forms(_language, _search_value).await {
 			Ok(forms_list) => {
 				_res.render(Json(forms_list));
 			},
@@ -236,8 +233,7 @@ async fn get_allowed_menu<'a>(_req: &mut Request, _res: &mut Response) {
     let _language = _req.queries().get("language");
 	let _client_id = _req.queries().get("client_id");
 	let _role_id = _req.queries().get("role_id");
-	let _user_id = _req.queries().get("user_id");
-	match allowed_menu(_language, _client_id, _role_id, _user_id).await {
+	match allowed_menu(_language, _client_id, _role_id).await {
         Ok(menu) => _res.render(Json(menu)),
         Err(error) => {
             let error_response = ErrorResponse {
@@ -256,13 +252,9 @@ async fn get_allowed_menu<'a>(_req: &mut Request, _res: &mut Response) {
 async fn get_processes<'a>(_req: &mut Request, _res: &mut Response) {
     let _id = _req.param::<String>("id");
     let _language = _req.queries().get("language");
-    let _client_id = _req.queries().get("client_id");
-    let _role_id = _req.queries().get("role_id");
-    let _user_id = _req.queries().get("user_id");
     let _search_value = _req.queries().get("search_value");
-
     if _id.is_some() {
-		match process_from_id(_id, _language, _client_id, _role_id, _user_id).await {
+		match process_from_id(_id, _language).await {
             Ok(process) => _res.render(Json(process)),
 			Err(error) => {
 				let error_response = ErrorResponse {
@@ -276,7 +268,7 @@ async fn get_processes<'a>(_req: &mut Request, _res: &mut Response) {
 			}
         }
     } else {
-        match processes(_language, _client_id, _role_id, _user_id, _search_value).await {
+        match processes(_language, _search_value).await {
             Ok(processes_list) => {
                 _res.render(Json(processes_list));
             },
@@ -298,13 +290,9 @@ async fn get_processes<'a>(_req: &mut Request, _res: &mut Response) {
 async fn get_browsers<'a>(_req: &mut Request, _res: &mut Response) {
     let _id = _req.param::<String>("id");
     let _language = _req.queries().get("language");
-    let _client_id = _req.queries().get("client_id");
-    let _role_id = _req.queries().get("role_id");
-    let _user_id = _req.queries().get("user_id");
     let _search_value = _req.queries().get("search_value");
-
     if _id.is_some() {
-		match browser_from_id(_id, _language, _client_id, _role_id, _user_id).await {
+		match browser_from_id(_id, _language).await {
             Ok(browser) => _res.render(Json(browser)),
 			Err(error) => {
 				let error_response = ErrorResponse {
@@ -318,7 +306,7 @@ async fn get_browsers<'a>(_req: &mut Request, _res: &mut Response) {
 			}
         }
     } else {
-        match browsers(_language, _client_id, _role_id, _user_id, _search_value).await {
+        match browsers(_language, _search_value).await {
             Ok(browsers_list) => {
                 _res.render(Json(browsers_list));
             },
@@ -338,15 +326,11 @@ async fn get_browsers<'a>(_req: &mut Request, _res: &mut Response) {
 
 #[handler]
 async fn get_windows<'a>(_req: &mut Request, _res: &mut Response) {
-    let _id = _req.param::<String>("id");
+    let _id: Option<String> = _req.param::<String>("id");
     let _language = _req.queries().get("language");
-    let _client_id = _req.queries().get("client_id");
-    let _role_id = _req.queries().get("role_id");
-    let _user_id = _req.queries().get("user_id");
     let _search_value = _req.queries().get("search_value");
-
     if _id.is_some() {
-		match window_from_id(_id, _language, _client_id, _role_id, _user_id).await {
+		match window_from_id(_id, _language).await {
             Ok(window) => _res.render(Json(window)),
 			Err(error) => {
 				let error_response = ErrorResponse {
@@ -360,7 +344,7 @@ async fn get_windows<'a>(_req: &mut Request, _res: &mut Response) {
 			}
         }
     } else {
-        match windows(_language, _client_id, _role_id, _user_id, _search_value).await {
+        match windows(_language, _search_value).await {
             Ok(windows_list) => {
                 _res.render(Json(windows_list));
             },
@@ -435,7 +419,7 @@ async fn consume_queue() {
                             let _document = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {
-                                    log::warn!("{}", error);
+                                    log::warn!("Topic: {:?}, {}", topic, error);
                                     MenuItemDocument {
                                         document: None
                                     }
@@ -445,14 +429,14 @@ async fn consume_queue() {
                                 let _menu_document: &dyn IndexDocument = &(_document.document.unwrap());
                                 match process_index(event_type, _menu_document).await {
                                     Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-                                    Err(error) => log::warn!("{}", error)
+                                    Err(error) => log::warn!("Document: {:?} {}", _menu_document.index_name(), error)
                                 }
                             }
                         } else if topic == "menu_tree" {
                             let _document = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {
-                                    log::warn!("{}", error);
+                                    log::warn!("Topic: {:?}, {}", topic, error);
                                     MenuTreeDocument {
                                         document: None
                                     }
@@ -462,14 +446,14 @@ async fn consume_queue() {
                                 let _menu_document: &dyn IndexDocument = &(_document.document.unwrap());
                                 match process_index(event_type, _menu_document).await {
                                     Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-                                    Err(error) => log::warn!("{}", error)
+                                    Err(error) => log::warn!("Document: {:?} {}", _menu_document.index_name(), error)
                                 }
                             }
                         } else if topic == "role" {
                             let _document = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {
-                                    log::warn!("{}", error);
+                                    log::warn!("Topic: {:?}, {}", topic, error);
                                     RoleDocument {
                                         document: None
                                     }
@@ -479,14 +463,14 @@ async fn consume_queue() {
                                 let _menu_document: &dyn IndexDocument = &(_document.document.unwrap());
                                 match process_index(event_type, _menu_document).await {
                                     Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-                                    Err(error) => log::warn!("{}", error)
+                                    Err(error) => log::warn!("Document: {:?} {}", _menu_document.index_name(), error)
                                 }
                             }
                         } else if topic == "process" {
                             let _document = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {
-                                    log::warn!("{}", error);
+                                    log::warn!("Topic: {:?}, {}", topic, error);
                                     ProcessDocument {
                                         document: None
                                     }
@@ -496,14 +480,14 @@ async fn consume_queue() {
                                 let _process_document: &dyn IndexDocument = &(_document.document.unwrap());
                                 match process_index(event_type, _process_document).await {
                                     Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-                                    Err(error) => log::warn!("{}", error)
+                                    Err(error) => log::warn!("Document: {:?} {}", _process_document.index_name(), error)
                                 }
                             }
                         } else if topic == "browser" {
                             let _document = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {
-                                    log::warn!("{}", error);
+                                    log::warn!("Topic: {:?}, {}", topic, error);
                                     BrowserDocument {
                                         document: None
                                     }
@@ -513,14 +497,14 @@ async fn consume_queue() {
                                 let _browser_document: &dyn IndexDocument = &(_document.document.unwrap());
                                 match process_index(event_type, _browser_document).await {
                                     Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-                                    Err(error) => log::warn!("{}", error)
+                                    Err(error) => log::warn!("Document: {:?} {}", _browser_document.index_name(), error)
                                 }
                             }
                         } else if topic == "window" {
                             let _document = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {
-                                    log::warn!("{}", error);
+                                    log::warn!("Topic: {:?}, {}", topic, error);
                                     WindowDocument {
                                         document: None
                                     }
@@ -530,14 +514,14 @@ async fn consume_queue() {
                                 let _window_document: &dyn IndexDocument = &(_document.document.unwrap());
                                 match process_index(event_type, _window_document).await {
                                     Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-                                    Err(error) => log::warn!("{}", error)
+                                    Err(error) => log::warn!("Document: {:?} {}", _window_document.index_name(), error)
                                 }
                             }
 						} else if topic == "form" {
 							let _document = match serde_json::from_str(payload) {
 								Ok(value) => value,
 								Err(error) => {
-									log::warn!("{}", error);
+									log::warn!("Topic: {:?}, {}", topic, error);
 									FormDocument {
 										document: None
 									}
@@ -547,7 +531,7 @@ async fn consume_queue() {
 								let _form_document: &dyn IndexDocument = &(_document.document.unwrap());
 								match process_index(event_type, _form_document).await {
 									Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-									Err(error) => log::warn!("{}", error)
+									Err(error) => log::warn!("Document: {:?} {}", _form_document.index_name(), error)
 								}
 							}
                         }

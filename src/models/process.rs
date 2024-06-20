@@ -3,9 +3,7 @@ use salvo::prelude::*;
 use serde_json::json;
 use std::{io::ErrorKind, io::Error};
 
-use crate::controller::opensearch::{IndexDocument, get_by_id, find, exists_index};
-
-use super::{client_index, user_index, role_index};
+use crate::{controller::opensearch::{find, get_by_id, IndexDocument}, models::get_index_name};
 
 #[derive(Deserialize, Extractible, Debug, Clone)]
 #[salvo(extract(default_source(from = "body")))]
@@ -244,13 +242,13 @@ pub struct Workflow {
     pub help: Option<String>,
 }
 
-pub async fn process_from_id(_id: Option<String>, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<Process, String> {
+pub async fn process_from_id(_id: Option<String>, _language: Option<&String>) -> Result<Process, String> {
 	if _id.is_none() {
 		return Err(Error::new(ErrorKind::InvalidData.into(), "Process/Report Identifier is Mandatory").to_string());
 	}
     let mut _document = Process::from_id(_id);
 
-	let _index_name = match get_index_name(_language, _client_id, _role_id, _user_id).await {
+	let _index_name = match get_index_name("process".to_string(), _language).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			log::error!("Index name error: {:?}", error.to_string());
@@ -282,63 +280,14 @@ pub async fn process_from_id(_id: Option<String>, _language: Option<&String>, _c
     }
 }
 
-async fn get_index_name(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<String, std::io::Error> {
-    //  Validate
-    if _language.is_none() {
-        return Err(Error::new(ErrorKind::InvalidData.into(), "Language is Mandatory"));
-    }
-    if _client_id.is_none() {
-        return Err(Error::new(ErrorKind::InvalidData.into(), "Client is Mandatory"));
-    }
-    if _role_id.is_none() {
-        return Err(Error::new(ErrorKind::InvalidData.into(), "Role is Mandatory"));
-    }
-
-	let _index: String = "process".to_string();
-
-	let _user_index = user_index(_index.to_owned(), _language, _client_id, _role_id, _user_id);
-    let _role_index = role_index(_index.to_owned(), _language, _client_id, _role_id);
-	let _client_index = client_index(_index.to_owned(), _language, _client_id);
-
-    //  Find index
-    match exists_index(_user_index.to_owned()).await {
-		Ok(_) => {
-			log::info!("Find with user index `{:}`", _user_index);
-			Ok(_user_index)
-		},
-        Err(_) => {
-			log::warn!("No user index `{:}`", _user_index);
-            match exists_index(_role_index.to_owned()).await {
-                Ok(_) => {
-					log::info!("Find with role index `{:}`", _role_index);
-					Ok(_role_index)
-				},
-				Err(error) => {
-					log::warn!("No role index `{:}`", _role_index);
-					match exists_index(_client_index.to_owned()).await {
-						Ok(_) => {
-							log::info!("Find with client index `{:}`", _client_index);
-							Ok(_client_index)
-						},
-						Err(_) => {
-							log::error!("No client index `{:}`", _client_index);
-							return Err(Error::new(ErrorKind::InvalidData.into(), error))
-						}
-					}
-                }
-            }
-        }
-    }
-}
-
-pub async fn processes(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _search_value: Option<&String>) -> Result<ProcessListResponse, std::io::Error> {
+pub async fn processes(_language: Option<&String>, _search_value: Option<&String>) -> Result<ProcessListResponse, std::io::Error> {
     let _search_value = match _search_value {
         Some(value) => value.clone(),
         None => "".to_owned()
     };
 
 	//  Find index
-	let _index_name = match get_index_name(_language, _client_id, _role_id, _user_id).await {
+	let _index_name = match get_index_name("process".to_string(), _language).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			log::error!("Index name error: {:?}", error.to_string());

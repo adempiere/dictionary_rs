@@ -3,7 +3,7 @@ use salvo::prelude::*;
 use serde_json::json;
 use std::{io::ErrorKind, io::Error};
 
-use crate::{controller::opensearch::{IndexDocument, get_by_id, find, exists_index}, models::client_index};
+use crate::{controller::opensearch::{find, get_by_id, IndexDocument}, models::get_index_name};
 
 #[derive(Deserialize, Extractible, Debug, Clone)]
 #[salvo(extract(default_source(from = "body")))]
@@ -122,13 +122,13 @@ impl IndexDocument for Form {
 	}
 }
 
-pub async fn form_from_id(_id: Option<String>, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<Form, String> {
+pub async fn form_from_id(_id: Option<String>, _language: Option<&String>) -> Result<Form, String> {
 	if _id.is_none() {
 		return Err(Error::new(ErrorKind::InvalidData.into(), "Form Identifier is Mandatory").to_string());
 	}
 	let mut _document = Form::from_id(_id);
 
-	let _index_name = match get_index_name(_language, _client_id, _role_id, _user_id).await {
+	let _index_name = match get_index_name("form".to_string(), _language).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			log::error!("Index name error: {:?}", error.to_string());
@@ -157,40 +157,14 @@ pub async fn form_from_id(_id: Option<String>, _language: Option<&String>, _clie
 	}
 }
 
-async fn get_index_name(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<String, std::io::Error> {
-	//  Validate
-	if _language.is_none() {
-		return Err(Error::new(ErrorKind::InvalidData.into(), "Language is Mandatory"));
-	}
-	if _client_id.is_none() {
-		return Err(Error::new(ErrorKind::InvalidData.into(), "Client is Mandatory"));
-	}
-
-	let _index: String = "form".to_string();
-
-	let _client_index = client_index(_index.to_owned(), _language, _client_id);
-
-	//  Find index
-	match exists_index(_client_index.to_owned()).await {
-		Ok(_) => {
-			log::info!("Find with client index `{:}`", _client_index);
-			Ok(_client_index)
-		},
-		Err(error) => {
-			log::error!("No client index `{:}`", _client_index);
-			return Err(Error::new(ErrorKind::InvalidData.into(), error))
-		}
-	}
-}
-
-pub async fn forms(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>, _search_value: Option<&String>) -> Result<FormsListResponse, std::io::Error> {
+pub async fn forms(_language: Option<&String>, _search_value: Option<&String>) -> Result<FormsListResponse, std::io::Error> {
 	let _search_value = match _search_value {
 		Some(value) => value.clone(),
 		None => "".to_owned()
 	};
 
 	//  Find index
-	let _index_name = match get_index_name(_language, _client_id, _role_id, _user_id).await {
+	let _index_name = match get_index_name("form".to_string(),_language).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			log::error!("Index name error: {:?}", error.to_string());
