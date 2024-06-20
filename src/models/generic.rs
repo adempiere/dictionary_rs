@@ -13,7 +13,8 @@ pub struct GenericDocument {
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Generic {
     pub uuid: Option<String>,
-    pub id: Option<i32>,
+    pub internal_id: Option<i32>,
+    pub id: Option<String>,
     pub display_value: Option<String>,
     pub index_value: Option<String>
 }
@@ -22,6 +23,7 @@ impl Default for Generic {
     fn default() -> Self {
         Self { 
             uuid: None, 
+            internal_id: None,
             id: None, 
             display_value: None,
             index_value: None
@@ -35,7 +37,7 @@ impl IndexDocument for Generic {
             "mappings" : {
                 "properties" : {
                     "uuid" : { "type" : "text" },
-                    "id" : { "type" : "integer" },
+                    "id" : { "type" : "text" },
                     "parent_id" : { "type" : "integer" },
                     "sequence" : { "type" : "integer" },
                     "name" : { "type" : "text" },
@@ -50,7 +52,7 @@ impl IndexDocument for Generic {
     }
 
     fn id(self: &Self) -> String {
-        self.id.unwrap().to_string()
+        self.id.to_owned().unwrap()
     }
 
     fn index_name(self: &Self) -> String {

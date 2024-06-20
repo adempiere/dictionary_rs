@@ -31,16 +31,17 @@ impl Default for MenuTreeResponse {
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct MenuTree {
-    pub id: Option<i32>,
+    pub internal_id: Option<i32>,
+    pub id: Option<String>,
     pub node_id: Option<i32>,
     pub parent_id: Option<i32>,
     pub sequence: Option<i32>,
     // index
     pub index_value: Option<String>,
     pub language: Option<String>,
-    pub client_id: Option<i32>,
-    pub role_id: Option<i32>,
-    pub user_id: Option<i32>,
+    pub client_id: Option<String>,
+    pub role_id: Option<String>,
+    pub user_id: Option<String>,
     // Tree menu childs
     pub children: Option<Vec<MenuTree>>
 }
@@ -49,6 +50,7 @@ impl Default for MenuTree {
     fn default() -> Self {
         Self { 
             id: None, 
+            internal_id: None,
             node_id: None,
             parent_id: None, 
             sequence: None, 
@@ -65,7 +67,7 @@ impl Default for MenuTree {
 }
 
 impl MenuTree {
-    pub fn from_id(_id: Option<i32>) -> Self {
+    pub fn from_id(_id: Option<String>) -> Self {
         let mut menu = MenuTree::default();
         menu.id = _id;
         menu
@@ -78,7 +80,7 @@ impl IndexDocument for MenuTree {
             "mappings" : {
                 "properties" : {
                     "uuid" : { "type" : "text" },
-                    "id" : { "type" : "integer" },
+                    "id" : { "type" : "text" },
                     "parent_id" : { "type" : "integer" },
                     "sequence" : { "type" : "integer" }                }
             }
@@ -90,7 +92,7 @@ impl IndexDocument for MenuTree {
     }
 
     fn id(self: &Self) -> String {
-        self.id.unwrap().to_string()
+        self.id.to_owned().unwrap()
     }
 
     fn index_name(self: &Self) -> String {
@@ -115,7 +117,7 @@ impl IndexDocument for MenuTree {
     }
 }
 
-pub async fn menu_tree_from_id(_id: Option<i32>) -> Result<MenuTree, std::io::Error> {
+pub async fn menu_tree_from_id(_id: Option<String>) -> Result<MenuTree, std::io::Error> {
 	if _id.is_none() {
         return Err(Error::new(ErrorKind::InvalidData.into(), "MenuTree Identifier is Mandatory"))
 	}

@@ -1,5 +1,5 @@
 use std::env;
-use dictionary_rs::{controller::{kafka::create_consumer, opensearch::{create, delete, IndexDocument}}, models::{browser::{browser_from_id, browsers, BrowserDocument}, form::{form_from_id, forms, FormDocument}, menu::{menu_from_id, MenuDocument}, menu_item::MenuItemDocument, menu_tree::MenuTreeDocument, process::{process_from_id, processes, ProcessDocument}, role::RoleDocument, window::{window_from_id, windows, WindowDocument}}};
+use dictionary_rs::{controller::{kafka::create_consumer, opensearch::{create, delete, IndexDocument}}, models::{browser::{browser_from_id, browsers, BrowserDocument}, form::{form_from_id, forms, FormDocument}, menu::allowed_menu, menu_item::MenuItemDocument, menu_tree::MenuTreeDocument, process::{process_from_id, processes, ProcessDocument}, role::RoleDocument, window::{window_from_id, windows, WindowDocument}}};
 use dotenv::dotenv;
 use rdkafka::{Message, consumer::{CommitMode, Consumer}};
 use salvo::{conn::tcp::TcpAcceptor, cors::Cors, http::header, hyper::Method, prelude::*};
@@ -50,14 +50,10 @@ async fn main() {
 				.options(options_response)
 				.get(get_system_info)
 				.push(
-                    // /api/security/menus
-                    Router::with_path("security/menus")
-						.push(
-							// /api/security/menus/:id
-							Router::with_path("<id>")
-								.options(options_response)
-								.get(get_menu)
-						)
+                    // /api/security/get-allowed-menu
+                    Router::with_path("security/get-allowed-menu")
+                    .options(options_response)
+					.get(get_allowed_menu)
                 )
 				.push(
 					// /api/dictionary
@@ -194,7 +190,7 @@ struct ErrorResponse {
 
 #[handler]
 async fn get_forms<'a>(_req: &mut Request, _res: &mut Response) {
-	let _id: Option<i32> = _req.param::<i32>("id");
+	let _id: Option<String> = _req.param::<String>("id");
 	let _language: Option<&String> = _req.queries().get("language");
 	let _client_id: Option<&String> = _req.queries().get("client_id");
 	let _role_id: Option<&String> = _req.queries().get("role_id");
@@ -236,41 +232,29 @@ async fn get_forms<'a>(_req: &mut Request, _res: &mut Response) {
 }
 
 #[handler]
-async fn get_menu<'a>(_req: &mut Request, _res: &mut Response) {
-    let _id = _req.param::<i32>("id");
-	let _language = _req.queries().get("language");
+async fn get_allowed_menu<'a>(_req: &mut Request, _res: &mut Response) {
+    let _language = _req.queries().get("language");
 	let _client_id = _req.queries().get("client_id");
 	let _role_id = _req.queries().get("role_id");
 	let _user_id = _req.queries().get("user_id");
-	if _id.is_none() {
-		let error_response = ErrorResponse {
-			status: StatusCode::INTERNAL_SERVER_ERROR.into(),
-			message: "ID is Mandatory".to_string()
-		};
-		_res.render(
-			Json(error_response)
-		);
-		_res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
-	} else {
-		match menu_from_id(_id, _language, _client_id, _role_id, _user_id).await {
-			Ok(menu) => _res.render(Json(menu)),
-			Err(error) => {
-				let error_response = ErrorResponse {
-					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
-					message: error.to_string()
-				};
-				_res.render(
-					Json(error_response)
-				);
-				_res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
-			}
-		}
-	}
+	match allowed_menu(_language, _client_id, _role_id, _user_id).await {
+        Ok(menu) => _res.render(Json(menu)),
+        Err(error) => {
+            let error_response = ErrorResponse {
+                status: StatusCode::INTERNAL_SERVER_ERROR.into(),
+                message: error.to_string()
+            };
+            _res.render(
+                Json(error_response)
+            );
+            _res.status_code(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
 }
 
 #[handler]
 async fn get_processes<'a>(_req: &mut Request, _res: &mut Response) {
-    let _id = _req.param::<i32>("id");
+    let _id = _req.param::<String>("id");
     let _language = _req.queries().get("language");
     let _client_id = _req.queries().get("client_id");
     let _role_id = _req.queries().get("role_id");
@@ -312,7 +296,7 @@ async fn get_processes<'a>(_req: &mut Request, _res: &mut Response) {
 
 #[handler]
 async fn get_browsers<'a>(_req: &mut Request, _res: &mut Response) {
-    let _id = _req.param::<i32>("id");
+    let _id = _req.param::<String>("id");
     let _language = _req.queries().get("language");
     let _client_id = _req.queries().get("client_id");
     let _role_id = _req.queries().get("role_id");
@@ -354,7 +338,7 @@ async fn get_browsers<'a>(_req: &mut Request, _res: &mut Response) {
 
 #[handler]
 async fn get_windows<'a>(_req: &mut Request, _res: &mut Response) {
-    let _id = _req.param::<i32>("id");
+    let _id = _req.param::<String>("id");
     let _language = _req.queries().get("language");
     let _client_id = _req.queries().get("client_id");
     let _role_id = _req.queries().get("role_id");
@@ -447,24 +431,7 @@ async fn consume_queue() {
                         };
                         let event_type = key.replace("\"", "");
                         let topic = message.topic();
-                        if topic == "menu" {
-                            let _document = match serde_json::from_str(payload) {
-                                Ok(value) => value,
-                                Err(error) => {
-                                    log::warn!("{}", error);
-                                    MenuDocument {
-                                        document: None
-                                    }
-                                },
-                            };
-                            if _document.document.is_some() {
-                                let _menu_document: &dyn IndexDocument = &(_document.document.unwrap());
-                                match process_index(event_type, _menu_document).await {
-                                    Ok(_) => consumer.commit_message(&message, CommitMode::Async).unwrap(),
-                                    Err(error) => log::warn!("{}", error)
-                                }
-                            }
-                        } else if topic == "menu_item" {
+                        if topic == "menu_item" {
                             let _document = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {

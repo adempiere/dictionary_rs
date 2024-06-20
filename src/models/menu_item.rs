@@ -34,7 +34,8 @@ impl Default for MenuItemResponse {
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct MenuItem {
     pub uuid: Option<String>,
-    pub id: Option<i32>,
+    pub internal_id: Option<i32>,
+    pub id: Option<String>,
     pub parent_id: Option<i32>,
     pub sequence: Option<i32>,
     pub name: Option<String>,
@@ -45,9 +46,9 @@ pub struct MenuItem {
     // index
     pub index_value: Option<String>,
     pub language: Option<String>,
-    pub client_id: Option<i32>,
-    pub role_id: Option<i32>,
-    pub user_id: Option<i32>,
+    pub client_id: Option<String>,
+    pub role_id: Option<String>,
+    pub user_id: Option<String>,
     // Supported References
     pub action: Option<String>,
     pub action_id: Option<i32>,
@@ -63,6 +64,7 @@ impl Default for MenuItem {
     fn default() -> Self {
         Self { 
             uuid: None, 
+            internal_id: None,
             id: None, 
             parent_id: None, 
             sequence: None, 
@@ -91,7 +93,7 @@ impl Default for MenuItem {
 }
 
 impl MenuItem {
-    pub fn from_id(_id: Option<i32>) -> Self {
+    pub fn from_id(_id: Option<String>) -> Self {
         let mut menu = MenuItem::default();
         menu.id = _id;
         menu
@@ -128,6 +130,17 @@ impl MenuItem {
             "query": {
               "bool": {
                 "should": [
+                  {
+                    "bool": {
+                      "must": [
+                        {
+                          "match": {
+                            "is_summary": true
+                          }
+                        }
+                      ]
+                    }
+                  },
                   {
                     "bool": {
                       "must": [
@@ -221,7 +234,7 @@ impl IndexDocument for MenuItem {
             "mappings" : {
                 "properties" : {
                     "uuid" : { "type" : "text" },
-                    "id" : { "type" : "integer" },
+                    "id" : { "type" : "text" },
                     "parent_id" : { "type" : "integer" },
                     "sequence" : { "type" : "integer" },
                     "name" : { "type" : "text" },
@@ -236,7 +249,7 @@ impl IndexDocument for MenuItem {
     }
 
     fn id(self: &Self) -> String {
-        self.id.unwrap().to_string()
+        self.id.to_owned().unwrap()
     }
 
     fn index_name(self: &Self) -> String {
@@ -278,10 +291,10 @@ pub async fn menu_items_from_role(_role: Role, _language: Option<&String>, _page
   };
   let page_size: i64 = match _page_size {
     Some(value) => value,
-    None => 100
+    None => 5000
   };
 
-  match find_from_dsl_body("menu_item_es_mx".to_string(), _search_body, page_number, page_size).await {
+  match find_from_dsl_body(_index_name, _search_body, page_number, page_size).await {
     Ok(values) => Ok(values.iter().map(|_value| serde_json::from_value(_value.clone()).unwrap()).collect::<Vec<MenuItem>>()),
     Err(error) => {
       Err(Error::new(ErrorKind::InvalidData.into(), error))

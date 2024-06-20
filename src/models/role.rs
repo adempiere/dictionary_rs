@@ -33,17 +33,19 @@ impl Default for RoleResponse {
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Role {
-    pub id: Option<i32>,
+    pub internal_id: Option<i32>,
+    pub id: Option<String>,
     pub uuid: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub tree_id: Option<i32>,
+    pub tree_uuid: Option<String>,
     // index
     pub index_value: Option<String>,
     pub language: Option<String>,
-    pub client_id: Option<i32>,
-    pub role_id: Option<i32>,
-    pub user_id: Option<i32>,
+    pub client_id: Option<String>,
+    pub role_id: Option<String>,
+    pub user_id: Option<String>,
     // Access
     pub window_access: Option<Vec<i32>>,
     pub process_access: Option<Vec<i32>>,
@@ -56,11 +58,13 @@ pub struct Role {
 impl Default for Role {
     fn default() -> Self {
         Self { 
-            id: None, 
+            id: None,
+            internal_id: None,
             uuid: None, 
             name: None, 
             description: None, 
             tree_id: None, 
+            tree_uuid: None, 
             // index
 			index_value: None,
 			language: None,
@@ -92,7 +96,7 @@ impl IndexDocument for Role {
             "mappings" : {
                 "properties" : {
                     "uuid" : { "type" : "text" },
-                    "id" : { "type" : "integer" },
+                    "id" : { "type" : "text" },
                     "tree_id" : { "type" : "integer" },
                     "name" : { "type" : "text" },
                     "description" : { "type" : "text" }
@@ -152,9 +156,7 @@ pub async fn role_from_id(_id: Option<&String>, _client_id: Option<&String>) -> 
         Ok(value) => {
 			let role: Role = serde_json::from_value(value).unwrap();
             log::info!("Finded Value: {:?}", role.id);
-            Ok(
-                role
-            )
+            Ok(role)
         },
         Err(error) => {
 			log::error!("{}", error);

@@ -34,7 +34,8 @@ impl Default for ProcessResponse {
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct DependendField {
     pub uuid: Option<String>,
-    pub id: Option<i32>,
+    pub internal_id: Option<i32>,
+    pub id: Option<String>,
     pub column_name: Option<String>,
     pub parent_id: Option<i32>,
     pub parent_uuid: Option<String>,
@@ -43,7 +44,8 @@ pub struct DependendField {
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct DictionaryEntity {
-	pub id: Option<i32>,
+	pub internal_id: Option<i32>,
+    pub id: Option<String>,
 	pub uuid: Option<String>,
 	pub name: Option<String>,
 	pub description: Option<String>,
@@ -53,7 +55,8 @@ pub struct DictionaryEntity {
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Process {
     pub uuid: Option<String>,
-    pub id: Option<i32>,
+    pub internal_id: Option<i32>,
+    pub id: Option<String>,
 	pub code: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
@@ -74,9 +77,9 @@ pub struct Process {
 	//	Index
     pub index_value: Option<String>,
     pub language: Option<String>,
-    pub client_id: Option<i32>,
-    pub role_id: Option<i32>,
-    pub user_id: Option<i32>,
+    pub client_id: Option<String>,
+    pub role_id: Option<String>,
+    pub user_id: Option<String>,
 	//	Parameters
     pub has_parameters: Option<bool>,
     pub parameters: Option<Vec<ProcessParameters>>
@@ -90,7 +93,8 @@ pub struct Reference {
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct ProcessParameters {
     pub uuid: Option<String>,
-    pub id: Option<i32>,
+    pub internal_id: Option<i32>,
+    pub id: Option<String>,
 	pub column_name: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
@@ -124,6 +128,7 @@ impl Default for Process {
     fn default() -> Self {
         Self { 
             uuid: None, 
+            internal_id: None,
             id: None, 
 			code: None,
             name: None, 
@@ -156,7 +161,7 @@ impl Default for Process {
 }
 
 impl Process {
-    pub fn from_id(_id: Option<i32>) -> Self {
+    pub fn from_id(_id: Option<String>) -> Self {
         let mut process = Process::default();
         process.id = _id;
         process
@@ -169,7 +174,7 @@ impl IndexDocument for Process {
             "mappings" : {
                 "properties" : {
                     "uuid" : { "type" : "text" },
-                    "id" : { "type" : "integer" },
+                    "id" : { "type" : "text" },
                     "code" : { "type" : "text" },
                     "name" : { "type" : "text" },
                     "description" : { "type" : "text" },
@@ -184,7 +189,7 @@ impl IndexDocument for Process {
     }
 
     fn id(self: &Self) -> String {
-        self.id.unwrap().to_string()
+        self.id.to_owned().unwrap()
     }
 
     fn index_name(self: &Self) -> String {
@@ -212,7 +217,8 @@ impl IndexDocument for Process {
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Form {
     pub uuid: Option<String>,
-    pub id: Option<i32>,
+    pub internal_id: Option<i32>,
+    pub id: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
@@ -221,7 +227,8 @@ pub struct Form {
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Browser {
     pub uuid: Option<String>,
-    pub id: Option<i32>,
+    pub internal_id: Option<i32>,
+    pub id: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
@@ -230,14 +237,15 @@ pub struct Browser {
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Workflow {
     pub uuid: Option<String>,
-    pub id: Option<i32>,
+    pub internal_id: Option<i32>,
+    pub id: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
 }
 
-pub async fn process_from_id(_id: Option<i32>, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<Process, String> {
-	if _id.is_none() || _id.map(|id| id <= 0).unwrap_or(false) {
+pub async fn process_from_id(_id: Option<String>, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<Process, String> {
+	if _id.is_none() {
 		return Err(Error::new(ErrorKind::InvalidData.into(), "Process/Report Identifier is Mandatory").to_string());
 	}
     let mut _document = Process::from_id(_id);

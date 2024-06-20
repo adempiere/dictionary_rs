@@ -32,7 +32,8 @@ impl Default for FormResponse {
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Form {
 	pub uuid: Option<String>,
-	pub id: Option<i32>,
+	pub internal_id: Option<i32>,
+    pub id: Option<String>,
 	pub file_name: Option<String>,
 	pub name: Option<String>,
 	pub description: Option<String>,
@@ -41,15 +42,16 @@ pub struct Form {
 	//	Index
 	pub index_value: Option<String>,
 	pub language: Option<String>,
-	pub client_id: Option<i32>,
-	pub role_id: Option<i32>,
-	pub user_id: Option<i32>
+	pub client_id: Option<String>,
+	pub role_id: Option<String>,
+	pub user_id: Option<String>
 }
 
 impl Default for Form {
 	fn default() -> Self {
 		Self {
 			uuid: None,
+            internal_id: None,
 			id: None,
 			file_name: None,
 			name: None,
@@ -67,7 +69,7 @@ impl Default for Form {
 }
 
 impl Form {
-	pub fn from_id(_id: Option<i32>) -> Self {
+	pub fn from_id(_id: Option<String>) -> Self {
 		let mut form = Form::default();
 		form.id = _id;
 		form
@@ -80,7 +82,7 @@ impl IndexDocument for Form {
 			"mappings" : {
 				"properties" : {
 					"uuid" : { "type" : "text" },
-					"id" : { "type" : "integer" },
+					"id" : { "type" : "text" },
 					"file_name" : { "type" : "text" },
 					"name" : { "type" : "text" },
 					"description" : { "type" : "text" },
@@ -95,7 +97,7 @@ impl IndexDocument for Form {
 	}
 
 	fn id(self: &Self) -> String {
-		self.id.unwrap().to_string()
+		self.id.to_owned().unwrap()
 	}
 
 	fn index_name(self: &Self) -> String {
@@ -120,8 +122,8 @@ impl IndexDocument for Form {
 	}
 }
 
-pub async fn form_from_id(_id: Option<i32>, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<Form, String> {
-	if _id.is_none() || _id.map(|id| id <= 0).unwrap_or(false) {
+pub async fn form_from_id(_id: Option<String>, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<Form, String> {
+	if _id.is_none() {
 		return Err(Error::new(ErrorKind::InvalidData.into(), "Form Identifier is Mandatory").to_string());
 	}
 	let mut _document = Form::from_id(_id);

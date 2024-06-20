@@ -34,7 +34,8 @@ impl Default for WindowResponse {
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Window {
     pub uuid: Option<String>,
-    pub id: Option<i32>,
+    pub internal_id: Option<i32>,
+    pub id: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
@@ -44,9 +45,9 @@ pub struct Window {
 	//	Index
     pub index_value: Option<String>,
     pub language: Option<String>,
-    pub client_id: Option<i32>,
-    pub role_id: Option<i32>,
-    pub user_id: Option<i32>,
+    pub client_id: Option<String>,
+    pub role_id: Option<String>,
+    pub user_id: Option<String>,
 	//	Tabs
     pub tabs: Option<Vec<WindowTab>>,
 }
@@ -54,7 +55,8 @@ pub struct Window {
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct WindowTab {
     pub uuid: Option<String>,
-    pub id: Option<i32>,
+    pub internal_id: Option<i32>,
+    pub id: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
@@ -98,7 +100,8 @@ pub struct WindowTab {
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct DependendField {
     pub uuid: Option<String>,
-    pub id: Option<i32>,
+    pub internal_id: Option<i32>,
+    pub id: Option<String>,
     pub column_name: Option<String>,
     pub parent_id: Option<i32>,
     pub parent_uuid: Option<String>,
@@ -113,7 +116,8 @@ pub struct Reference {
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct WindowField {
     pub uuid: Option<String>,
-    pub id: Option<i32>,
+    pub internal_id: Option<i32>,
+    pub id: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
@@ -170,6 +174,7 @@ impl Default for Window {
         Self { 
             uuid: None, 
             id: None, 
+            internal_id: None,
             name: None, 
             description: None, 
             help: None, 
@@ -187,7 +192,7 @@ impl Default for Window {
 }
 
 impl Window {
-    pub fn from_id(_id: Option<i32>) -> Self {
+    pub fn from_id(_id: Option<String>) -> Self {
         let mut window = Window::default();
         window.id = _id;
         window
@@ -200,7 +205,7 @@ impl IndexDocument for Window {
             "mappings" : {
                 "properties" : {
                     "uuid" : { "type" : "text" },
-                    "id" : { "type" : "integer" },
+                    "id" : { "type" : "text" },
                     "name" : { "type" : "text" },
                     "description" : { "type" : "text" },
                     "help" : { "type" : "text" }
@@ -214,7 +219,7 @@ impl IndexDocument for Window {
     }
 
     fn id(self: &Self) -> String {
-        self.id.unwrap().to_string()
+        self.id.to_owned().unwrap()
     }
 
     fn index_name(self: &Self) -> String {
@@ -242,7 +247,8 @@ impl IndexDocument for Window {
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct DictionaryEntity {
 	pub uuid: Option<String>,
-	pub id: Option<i32>,
+	pub internal_id: Option<i32>,
+    pub id: Option<String>,
 	pub name: Option<String>,
 	pub description: Option<String>,
 	pub help: Option<String>,
@@ -251,7 +257,8 @@ pub struct DictionaryEntity {
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Process {
     pub uuid: Option<String>,
-    pub id: Option<i32>,
+    pub internal_id: Option<i32>,
+    pub id: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
@@ -278,11 +285,11 @@ pub struct Table {
     pub selection_colums: Option<Vec<String>>,
 }
 
-pub async fn window_from_id(_id: Option<i32>, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<Window, String> {
-	if _id.is_none() || _id.map(|id| id <= 0).unwrap_or(false) {
+pub async fn window_from_id(_id: Option<String>, _language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _user_id: Option<&String>) -> Result<Window, String> {
+	if _id.is_none() {
 		return Err(Error::new(ErrorKind::InvalidData.into(), "Window Identifier is Mandatory").to_string());
 	}
-    let mut _document = Window::from_id(_id);
+    let mut _document = Window::from_id(_id.to_owned());
 
 	let _index_name = match get_index_name(_language, _client_id, _role_id, _user_id).await {
 		Ok(index_name) => index_name,
