@@ -188,22 +188,33 @@ pub async fn allowed_menu(_language: Option<&String>, _client_id: Option<&String
     //  Merge tree with menu
     //  Main Menu
     let _tree_children = _tree.children;
-    let menus = get_valid_children(_tree_children, _menu_items);
+    let menus = load_valid_children(_tree_children, _menu_items);
+    // println!("Epale: {:?}", menus);
     Ok(MenuListResponse {
         menus: Some(menus)
     })
 }
 
-fn get_valid_children(_tree: Option<Vec<MenuTree>>, _allowed_menu_items: Vec<MenuItem>) -> Vec<Menu> {
-    let mut menus = Vec::new();
+fn load_valid_children(_tree: Option<Vec<MenuTree>>, _allowed_menu_items: Vec<MenuItem>) -> Vec<Menu> {
     if _tree.is_none() {
-        return menus
+        return Vec::new()
     }
+    let mut menus = Vec::new();
     let _tree = _tree.unwrap();
     for _tree_value in _tree {
-        let _allowed_item = _allowed_menu_items.clone().into_iter().find(|_item| _item.internal_id.is_some() && _item.internal_id == _tree_value.node_id);
+        let _allowed_item = _allowed_menu_items.to_owned().into_iter().find(|_item| _item.internal_id.is_some() && _item.internal_id == _tree_value.node_id);
+        let mut _loaded_menu: Option<Menu> = None;
         if _allowed_item.is_some() {
-            menus.push(Menu::from_menu_item(_allowed_item.unwrap()));
+            _loaded_menu = Some(Menu::from_menu_item(_allowed_item.unwrap()));
+        }
+        if _loaded_menu.is_some() && _tree_value.children.is_some() {
+            let children_loaded_menu = load_valid_children(_tree_value.children, _allowed_menu_items.to_owned());
+            let mut _current_menu = _loaded_menu.unwrap();
+            _current_menu.children = Some(children_loaded_menu);
+            _loaded_menu = Some(_current_menu);
+        }
+        if _loaded_menu.is_some() {
+            menus.push(_loaded_menu.unwrap());
         }
     }
     menus
