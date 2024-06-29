@@ -27,7 +27,7 @@ ENV \
     RUST_LOG="info" \
 	PORT="7878" \
     KAFKA_ENABLED="Y" \
-	KAFKA_QUEUES="menu form browser process window" \
+	KAFKA_QUEUES="menu browser form process window menu_item menu_tree role" \
     ALLOWED_ORIGIN="*" \
     KAFKA_HOST="0.0.0.0:9092" \
     KAFKA_GROUP="default" \
