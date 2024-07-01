@@ -242,13 +242,13 @@ pub struct Workflow {
     pub help: Option<String>,
 }
 
-pub async fn process_from_id(_id: Option<String>, _language: Option<&String>) -> Result<Process, String> {
+pub async fn process_from_id(_id: Option<String>, _language: Option<&String>, _dictionary_code: Option<&String>) -> Result<Process, String> {
 	if _id.is_none() {
 		return Err(Error::new(ErrorKind::InvalidData.into(), "Process/Report Identifier is Mandatory").to_string());
 	}
     let mut _document = Process::from_id(_id);
 
-	let _index_name = match get_index_name("process".to_string(), _language).await {
+	let _index_name = match get_index_name("process".to_string(), _language, _dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			log::error!("Index name error: {:?}", error.to_string());
@@ -280,14 +280,14 @@ pub async fn process_from_id(_id: Option<String>, _language: Option<&String>) ->
     }
 }
 
-pub async fn processes(_language: Option<&String>, _search_value: Option<&String>) -> Result<ProcessListResponse, std::io::Error> {
+pub async fn processes(_language: Option<&String>, _search_value: Option<&String>, _dictionary_code: Option<&String>) -> Result<ProcessListResponse, std::io::Error> {
     let _search_value = match _search_value {
         Some(value) => value.clone(),
         None => "".to_owned()
     };
 
 	//  Find index
-	let _index_name = match get_index_name("process".to_string(), _language).await {
+	let _index_name = match get_index_name("process".to_string(), _language, _dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			log::error!("Index name error: {:?}", error.to_string());

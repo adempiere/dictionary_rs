@@ -274,13 +274,13 @@ pub struct DependendField {
     pub parent_name: Option<String>
 }
 
-pub async fn browser_from_id(_id: Option<String>, _language: Option<&String>) -> Result<Browser, String> {
+pub async fn browser_from_id(_id: Option<String>, _language: Option<&String>, _dictionary_code: Option<&String>) -> Result<Browser, String> {
 	if _id.is_none() {
 		return Err(Error::new(ErrorKind::InvalidData.into(), "Browser Identifier is Mandatory").to_string());
 	}
     let mut _document = Browser::from_id(_id);
 
-	let _index_name = match get_index_name("browser".to_string(),_language).await {
+	let _index_name = match get_index_name("browser".to_string(),_language, _dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			log::error!("Index name error: {:?}", error.to_string());
@@ -312,14 +312,14 @@ pub async fn browser_from_id(_id: Option<String>, _language: Option<&String>) ->
     }
 }
 
-pub async fn browsers(_language: Option<&String>, _search_value: Option<&String>) -> Result<BrowserListResponse, std::io::Error> {
+pub async fn browsers(_language: Option<&String>, _search_value: Option<&String>, _dictionary_code: Option<&String>) -> Result<BrowserListResponse, std::io::Error> {
     let _search_value = match _search_value {
         Some(value) => value.clone(),
         None => "".to_owned()
     };
 
 	//  Find index
-	let _index_name = match get_index_name("browser".to_string(), _language).await {
+	let _index_name = match get_index_name("browser".to_string(), _language, _dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			log::error!("Index name error: {:?}", error.to_string());

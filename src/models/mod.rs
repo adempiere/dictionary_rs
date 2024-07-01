@@ -45,13 +45,17 @@ fn client_index_only(_index_name: String, _client_id: Option<&String>) -> String
 	_index_to_find.to_lowercase()
 }
 
-async fn get_index_name(_index_name: String, _language: Option<&String>) -> Result<String, std::io::Error> {
+async fn get_index_name(_index_name: String, _language: Option<&String>, _dictionary_code: Option<&String>) -> Result<String, std::io::Error> {
     //  Validate
     if _language.is_none() {
         return Err(Error::new(ErrorKind::InvalidData.into(), "Language is Mandatory"));
     }
     
-    let _language_index = language_index(_index_name, _language);
+    let mut _language_index = language_index(_index_name, _language);
+	if _dictionary_code.is_some() {
+		_language_index.push_str("_");
+		_language_index.push_str(_dictionary_code.unwrap());
+	}
 	//  Find index
 	match exists_index(_language_index.to_owned()).await {
 		Ok(_) => {

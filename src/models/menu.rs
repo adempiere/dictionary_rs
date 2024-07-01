@@ -163,14 +163,14 @@ pub struct Workflow {
     pub help: Option<String>,
 }
 
-pub async fn allowed_menu(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>) -> Result<MenuListResponse, std::io::Error> {
-    let _expected_role = role_from_id(_role_id, _client_id).await;
+pub async fn allowed_menu(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _dictionary_code: Option<&String>) -> Result<MenuListResponse, std::io::Error> {
+    let _expected_role = role_from_id(_role_id, _client_id, _dictionary_code).await;
     let _role = match _expected_role {
         Ok(role) => role,
         Err(error) => return Err(Error::new(ErrorKind::InvalidData.into(), error))
     };
 
-    let _menu_items = menu_items_from_role(_role.to_owned(), _language, None, None).await;
+    let _menu_items = menu_items_from_role(_role.to_owned(), _language, _dictionary_code, None, None).await;
     let _menu_items = match _menu_items {
         Ok(menu) => menu,
         Err(error) => return Err(Error::new(ErrorKind::InvalidData.into(), error))
@@ -180,7 +180,7 @@ pub async fn allowed_menu(_language: Option<&String>, _client_id: Option<&String
         return Err(Error::new(ErrorKind::InvalidData.into(), "Tree ID not found"))
     }
 
-    let _tree_result = menu_tree_from_id(_role.tree_uuid).await;
+    let _tree_result = menu_tree_from_id(_role.tree_uuid, _dictionary_code).await;
     let _tree = match _tree_result {
         Ok(tree) => tree,
         Err(error) => return Err(Error::new(ErrorKind::InvalidData.into(), error))
