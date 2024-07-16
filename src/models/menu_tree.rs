@@ -126,9 +126,11 @@ pub async fn menu_tree_from_id(_id: Option<String>, _dictionary_code: Option<&St
     let mut _document = MenuTree::from_id(_id);
 
 	let mut _index_name = "menu_tree".to_string();
-    if _dictionary_code.is_some() {
-		_index_name.push_str("_");
-		_index_name.push_str(_dictionary_code.unwrap());
+	if let Some(code) = _dictionary_code {
+		if !code.trim().is_empty() {
+			_index_name.push_str("_");
+			_index_name.push_str(code);
+		}
 	}
 	log::info!("Index to search {:}", _index_name);
 

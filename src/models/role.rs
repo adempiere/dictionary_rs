@@ -168,8 +168,10 @@ pub async fn role_from_id(_id: Option<&String>, _client_id: Option<&String>, _di
 }
 
 async fn get_index_name(_client_id: Option<&String>) -> Result<String, std::io::Error> {
-	if _client_id.is_none() {
-		return Err(Error::new(ErrorKind::InvalidData.into(), "Client is Mandatory"));
+	if _client_id.is_none() || _client_id.as_deref().map_or(false, |s| s.trim().is_empty()) {
+		return Err(
+			Error::new(ErrorKind::InvalidData.into(), "Client is Mandatory")
+		);
 	}
 
     let _base_index: String = "role".to_string();
