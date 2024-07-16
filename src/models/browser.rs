@@ -275,8 +275,10 @@ pub struct DependendField {
 }
 
 pub async fn browser_from_id(_id: Option<String>, _language: Option<&String>, _dictionary_code: Option<&String>) -> Result<Browser, String> {
-	if _id.is_none() {
-		return Err(Error::new(ErrorKind::InvalidData.into(), "Browser Identifier is Mandatory").to_string());
+	if _id.is_none() || _id.as_deref().map_or(false, |s| s.trim().is_empty()) {
+		return Err(
+			Error::new(ErrorKind::InvalidData.into(), "Browser Identifier is Mandatory").to_string()
+		);
 	}
     let mut _document = Browser::from_id(_id);
 

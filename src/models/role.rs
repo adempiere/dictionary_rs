@@ -136,8 +136,10 @@ impl IndexDocument for Role {
 }
 
 pub async fn role_from_id(_id: Option<&String>, _client_id: Option<&String>, _dictionary_code: Option<&String>) -> Result<Role, String> {
-	if _id.is_none() {
-		return Err(Error::new(ErrorKind::InvalidData.into(), "Role Identifier is Mandatory").to_string());
+	if _id.is_none() || _id.as_deref().map_or(false, |s| s.trim().is_empty()) {
+		return Err(
+			Error::new(ErrorKind::InvalidData.into(), "Role Identifier is Mandatory").to_string()
+		);
 	}
     let mut _document = Role::from_id(_id);
 

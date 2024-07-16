@@ -118,8 +118,10 @@ impl IndexDocument for MenuTree {
 }
 
 pub async fn menu_tree_from_id(_id: Option<String>, _dictionary_code: Option<&String>) -> Result<MenuTree, std::io::Error> {
-	if _id.is_none() {
-        return Err(Error::new(ErrorKind::InvalidData.into(), "MenuTree Identifier is Mandatory"))
+	if _id.is_none() || _id.as_deref().map_or(false, |s| s.trim().is_empty()) {
+		return Err(
+			Error::new(ErrorKind::InvalidData.into(), "MenuTree Identifier is Mandatory")
+		);
 	}
     let mut _document = MenuTree::from_id(_id);
 
