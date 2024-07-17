@@ -189,7 +189,6 @@ pub async fn allowed_menu(_language: Option<&String>, _client_id: Option<&String
     //  Main Menu
     let _tree_children = _tree.children;
     let menus = load_valid_children(_tree_children, _menu_items);
-    // println!("Epale: {:?}", menus);
     Ok(MenuListResponse {
         menus: Some(menus)
     })

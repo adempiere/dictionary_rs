@@ -198,8 +198,24 @@ impl MenuItem {
                           }
                         },
                         {
+                          "match": {
+                            "action": "P"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "bool": {
+                      "must": [
+                        {
                           "terms": {
-                            "action": ["R", "P"]
+                            "action_id": _process_access
+                          }
+                        },
+                        {
+                          "match": {
+                            "action": "R"
                           }
                         }
                       ]
