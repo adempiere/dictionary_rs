@@ -56,7 +56,7 @@ pub struct MenuItem {
     pub window: Option<Window>,
     pub process: Option<Process>,
     pub form: Option<Form>,
-	  pub browser: Option<Browser>,
+	pub browser: Option<Browser>,
     pub workflow: Option<Workflow>
 }
 
@@ -80,7 +80,7 @@ impl Default for MenuItem {
             role_id: None,
             user_id: None,
             // Supported References
-                  action: None,
+			action: None,
             action_id: None,
             action_uuid: None,
             window: None, 
@@ -292,12 +292,13 @@ impl IndexDocument for MenuItem {
 
 pub async fn menu_items_from_role(_role: Role, _language: Option<&String>, _dictionary_code: Option<&String>, _page_number: Option<i64>, _page_size: Option<i64>) -> Result<Vec<MenuItem>, std::io::Error> {
 	let mut _search_body = MenuItem::get_find_body_from_role(_role);
-  let _index_name = match get_index_name("menu_item".to_string(), _language,_dictionary_code).await {
+	let _index_name: String = match get_index_name("menu_item".to_string(), _language,_dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			return Err(Error::new(ErrorKind::InvalidData.into(), error))
 		}
 	};
+
   // pagination
   let page_number: i64 = match _page_number {
     Some(value) => value,
@@ -305,11 +306,13 @@ pub async fn menu_items_from_role(_role: Role, _language: Option<&String>, _dict
   };
   let page_size: i64 = match _page_size {
     Some(value) => value,
-    None => 5000
+    None => 10000
   };
 
   match find_from_dsl_body(_index_name, _search_body, page_number, page_size).await {
-    Ok(values) => Ok(values.iter().map(|_value| serde_json::from_value(_value.clone()).unwrap()).collect::<Vec<MenuItem>>()),
+	Ok(values) => {
+		Ok(values.iter().map(|_value| serde_json::from_value(_value.clone()).unwrap()).collect::<Vec<MenuItem>>())
+	},
     Err(error) => {
       Err(Error::new(ErrorKind::InvalidData.into(), error))
     }
