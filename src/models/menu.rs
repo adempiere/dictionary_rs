@@ -56,42 +56,43 @@ pub struct Menu {
 }
 
 impl Default for Menu {
-    fn default() -> Self {
-        Self { 
-            uuid: None, 
-            internal_id: None,
-            id: None, 
-            parent_id: None, 
-            sequence: None, 
-            name: None, 
-            description: None, 
-            is_summary: None, 
-            is_sales_transaction: None, 
-            is_read_only: None, 
+	fn default() -> Self {
+		Self {
+			uuid: None,
+			internal_id: None,
+			id: None,
+			parent_id: Some(0),
+			sequence: Some(0),
+			name: None,
+			description: None,
+			is_summary: Some(false),
+			is_sales_transaction: Some(false),
+			is_read_only: None,
 			// Supported References
-            action: None,
-			action_id: None,
+			action: None,
+			action_id: Some(0),
 			action_uuid: None,
-            window: None, 
-            process: None, 
-            form: None, 
+			window: None,
+			process: None,
+			form: None,
 			browser: None,
 			workflow: None,
 			// Tree menu childs
-			children: None
-        }
-    }
+			children: Some(Vec::new())
+		}
+	}
 }
 
 impl Menu {
-    pub fn from_id(_id: Option<String>) -> Self {
-        let mut menu = Menu::default();
-        menu.id = _id;
-        menu
-    }
+	pub fn from_id(_id: Option<String>) -> Self {
+		let mut menu = Menu::default();
+		menu.id = _id;
+		menu
+	}
 
-    pub fn from_menu_item(_menu_item: MenuItem) -> Self {
-        let mut menu = Menu::default();
+	pub fn from_menu_item(_menu_item: MenuItem) -> Self {
+		let mut menu = Menu::default();
+
 		menu.uuid = _menu_item.uuid;
 		menu.internal_id = _menu_item.internal_id;
 		menu.id = _menu_item.id;
@@ -103,16 +104,17 @@ impl Menu {
 		menu.is_sales_transaction = _menu_item.is_sales_transaction;
 		menu.is_read_only = _menu_item.is_read_only;
 		// Supported References
-        menu.action = _menu_item.action;
-        menu.action_id = _menu_item.action_id;
-        menu.action_uuid = _menu_item.action_uuid;
-        menu.window = _menu_item.window;
-        menu.process = _menu_item.process;
-        menu.form = _menu_item.form;
+		menu.action = _menu_item.action;
+		menu.action_id = _menu_item.action_id;
+		menu.action_uuid = _menu_item.action_uuid;
+		menu.window = _menu_item.window;
+		menu.process = _menu_item.process;
+		menu.form = _menu_item.form;
 		menu.browser = _menu_item.browser;
 		menu.workflow = _menu_item.workflow;
-        menu
-    }
+
+		menu
+	}
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
@@ -189,8 +191,8 @@ pub async fn allowed_menu(_language: Option<&String>, _client_id: Option<&String
     };
     //  Merge tree with menu
     //  Main Menu
-    let _tree_children = _tree.children;
-    let menus = load_valid_children(_tree_children, _menu_items);
+	let _tree_children: Option<Vec<MenuTree>> = _tree.children;
+	let menus: Vec<Menu> = load_valid_children(_tree_children, _menu_items);
     Ok(MenuListResponse {
         menus: Some(menus)
     })
@@ -202,10 +204,14 @@ fn load_valid_children(_tree: Option<Vec<MenuTree>>, _allowed_menu_items: Vec<Me
     }
     let mut menus: Vec<Menu> = Vec::new();
     let _tree: Vec<MenuTree> = _tree.unwrap();
-    for _tree_value in _tree {
-        let _allowed_item: Option<MenuItem> = _allowed_menu_items.to_owned().into_iter().find(|_item| _item.internal_id.is_some() && _item.internal_id == _tree_value.node_id);
-        if _allowed_item.is_some() {
-			let mut _loaded_menu: Option<Menu> = Some(Menu::from_menu_item(_allowed_item.unwrap()));
+	for _tree_value in _tree {
+		let _allowed_item: Option<MenuItem> = _allowed_menu_items.to_owned().into_iter().find(|_item: &MenuItem| _item.internal_id.is_some() && _item.internal_id == _tree_value.node_id);
+		if _allowed_item.is_some() {
+			let mut allowed_item: MenuItem = _allowed_item.unwrap();
+			// overwrite sequence null by that of the node
+			allowed_item.sequence = _tree_value.sequence;
+
+			let mut _loaded_menu: Option<Menu> = Some(Menu::from_menu_item(allowed_item));
 			if _loaded_menu.is_some() {
 				let mut _current_menu: Menu = _loaded_menu.unwrap();
 
@@ -216,7 +222,11 @@ fn load_valid_children(_tree: Option<Vec<MenuTree>>, _allowed_menu_items: Vec<Me
 				_current_menu.parent_id = Some(_parent_id);
 
 				if _tree_value.children.is_some() {
-					let children_loaded_menu: Vec<Menu> = load_valid_children(_tree_value.children, _allowed_menu_items.to_owned());
+					let mut children_loaded_menu: Vec<Menu> = load_valid_children(_tree_value.children, _allowed_menu_items.to_owned());
+
+					// sort child nodes by sequence
+					children_loaded_menu.sort_by(|a: &Menu, b: &Menu| a.sequence.cmp(&b.sequence));
+
 					_current_menu.children = Some(children_loaded_menu);
 				}
 
@@ -224,6 +234,9 @@ fn load_valid_children(_tree: Option<Vec<MenuTree>>, _allowed_menu_items: Vec<Me
 				menus.push(_loaded_menu.unwrap());
 			}
 		}
-    }
-    menus
+	}
+
+	// sort root nodes by sequence
+	menus.sort_by(|a: &Menu, b: &Menu| a.sequence.cmp(&b.sequence));
+	menus
 }
