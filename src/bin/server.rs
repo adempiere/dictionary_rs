@@ -10,12 +10,12 @@ use futures::future::join_all;
 
 #[tokio::main]
 async fn main() {
-    dotenv().ok();
-    SimpleLogger::new().env().init().unwrap();
+	dotenv().ok();
+	SimpleLogger::new().env().init().unwrap();
 
 	let port: String = match env::var("PORT") {
-        Ok(value) => value,
-        Err(_) => {
+		Ok(value) => value,
+		Err(_) => {
 			log::info!("Variable `PORT` Not found from enviroment, as default 7878");
 			"7878".to_owned()
 		}.to_owned()
@@ -25,36 +25,68 @@ async fn main() {
 	log::info!("Server Address: {:?}", host.clone());
 	let acceptor: TcpAcceptor = TcpListener::new(&host).bind().await;
 
+	let mut futures: Vec<tokio::task::JoinHandle<()>> = Vec::new();
+	futures.push(
+		tokio::spawn(
+			async move { Server::new(acceptor).serve(routes()).await; }
+		)
+	);
+
+	// Kafka Queue
+	let kafka_enabled: String = match env::var("KAFKA_ENABLED") {
+		Ok(value) => value,
+		Err(_) => {
+			log::info!("Variable `KAFKA_ENABLED` Not found from enviroment, as default Y");
+			"Y".to_owned()
+		}.to_owned()
+	};
+	if kafka_enabled.trim().eq("Y") {
+		log::info!("Kafka Consumer is enabled");
+		futures.push(
+			tokio::spawn(
+				async move { consume_queue().await; }
+			)
+		);
+	} else {
+		log::info!("Kafka Consumer is disabled");
+	}
+
+	join_all(futures).await;
+}
+
+fn routes() -> Router {
 	// TODO: Add support to allow requests from multiple origin
 	let allowed_origin: String = match env::var("ALLOWED_ORIGIN") {
-        Ok(value) => value,
-        Err(_) => {
+		Ok(value) => value,
+		Err(_) => {
 			log::info!("Variable `ALLOWED_ORIGIN` Not found from enviroment");
 			"*".to_owned()
 		}.to_owned()
-    };
+	};
 
-    //  Send Device Info
-    let cors_handler = Cors::new()
-        .allow_origin(&allowed_origin.to_owned())
-        .allow_methods(vec![Method::OPTIONS, Method::GET])
-        .allow_headers(vec![header::ACCESS_CONTROL_REQUEST_METHOD, header::ACCESS_CONTROL_REQUEST_HEADERS, header::AUTHORIZATION])
-        .into_handler()
-    ;
+	let allow_methods: Vec<Method> = vec![Method::OPTIONS, Method::GET];
+	let allow_headers: Vec<header::HeaderName> = vec![header::ACCESS_CONTROL_REQUEST_METHOD, header::ACCESS_CONTROL_REQUEST_HEADERS, header::AUTHORIZATION];
+	// Send Device Info
+	let cors_handler = Cors::new()
+		.allow_origin(&allowed_origin.to_owned())
+		.allow_methods(allow_methods)
+		.allow_headers(allow_headers)
+		.into_handler()
+	;
 
-	let router = Router::new()
-        .hoop(cors_handler)
-        .push(
-            // /api
-            Router::with_path("api")
+	let router: Router = Router::new()
+		.hoop(cors_handler)
+		.push(
+			// /api
+			Router::with_path("api")
 				.options(options_response)
 				.get(get_system_info)
 				.push(
-                    // /api/security/get-allowed-menu
-                    Router::with_path("security/get-allowed-menu")
-                    .options(options_response)
+					// /api/security/get-allowed-menu
+					Router::with_path("security/get-allowed-menu")
+					.options(options_response)
 					.get(get_allowed_menu)
-                )
+				)
 				.push(
 					// /api/dictionary
 			Router::with_path("dictionary")
@@ -93,12 +125,12 @@ async fn main() {
 										.options(options_response)
 										.get(get_processes)
 								)
-                        )
-                        .push(
-                            // /api/dictionary/windows/
-                            Router::with_path("windows")
+						)
+						.push(
+							// /api/dictionary/windows/
+							Router::with_path("windows")
 								.options(options_response)
-                                .get(get_windows)
+								.get(get_windows)
 								.push(
 									// /api/dictionary/windows/:id
 									Router::with_path("<id>")
@@ -107,27 +139,12 @@ async fn main() {
 								)
 						)
 				)
-        )
-    ;
-    log::info!("{:#?}", router);
+		)
+	;
 
-    let mut futures = vec![tokio::spawn(async move { Server::new(acceptor).serve(router).await; })];
+	log::info!("{:#?}", router);
 
-	// Kafka Queue
-	let kafka_enabled: String = match env::var("KAFKA_ENABLED") {
-		Ok(value) => value,
-		Err(_) => {
-			log::info!("Variable `KAFKA_ENABLED` Not found from enviroment, as default Y");
-			"Y".to_owned()
-		}.to_owned()
-	};
-	if kafka_enabled.trim().eq("Y") {
-        log::info!("Kafka Consumer is enabled");
-        futures.push(tokio::spawn(async move { consume_queue().await; }));
-    } else {
-        log::info!("Kafka Consumer is disabled");
-    }
-    join_all(futures).await;
+	router
 }
 
 #[handler]
