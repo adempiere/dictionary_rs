@@ -123,8 +123,10 @@ impl IndexDocument for Form {
 }
 
 pub async fn form_from_id(_id: Option<String>, _language: Option<&String>, _dictionary_code: Option<&String>) -> Result<Form, String> {
-	if _id.is_none() {
-		return Err(Error::new(ErrorKind::InvalidData.into(), "Form Identifier is Mandatory").to_string());
+	if _id.is_none() || _id.as_deref().map_or(false, |s| s.trim().is_empty()) {
+		return Err(
+			Error::new(ErrorKind::InvalidData.into(), "Form Identifier is Mandatory").to_string()
+		);
 	}
 	let mut _document = Form::from_id(_id);
 

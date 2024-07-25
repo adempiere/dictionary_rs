@@ -243,8 +243,10 @@ pub struct Workflow {
 }
 
 pub async fn process_from_id(_id: Option<String>, _language: Option<&String>, _dictionary_code: Option<&String>) -> Result<Process, String> {
-	if _id.is_none() {
-		return Err(Error::new(ErrorKind::InvalidData.into(), "Process/Report Identifier is Mandatory").to_string());
+	if _id.is_none() || _id.as_deref().map_or(false, |s| s.trim().is_empty()) {
+		return Err(
+			Error::new(ErrorKind::InvalidData.into(), "Process/Report Identifier is Mandatory").to_string()
+		);
 	}
     let mut _document = Process::from_id(_id);
 
