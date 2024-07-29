@@ -199,11 +199,11 @@ pub async fn allowed_menu(_language: Option<&String>, _client_id: Option<&String
 }
 
 fn load_valid_children(_tree: Option<Vec<MenuTree>>, _allowed_menu_items: Vec<MenuItem>) -> Vec<Menu> {
-    if _tree.is_none() {
-        return Vec::new()
-    }
-    let mut menus: Vec<Menu> = Vec::new();
-    let _tree: Vec<MenuTree> = _tree.unwrap();
+	if _tree.is_none() {
+		return Vec::new()
+	}
+	let mut menus: Vec<Menu> = Vec::new();
+	let _tree: Vec<MenuTree> = _tree.unwrap();
 	for _tree_value in _tree {
 		let _allowed_item: Option<MenuItem> = _allowed_menu_items.to_owned().into_iter().find(|_item: &MenuItem| _item.internal_id.is_some() && _item.internal_id == _tree_value.node_id);
 		if _allowed_item.is_some() {
@@ -230,6 +230,15 @@ fn load_valid_children(_tree: Option<Vec<MenuTree>>, _allowed_menu_items: Vec<Me
 					_current_menu.children = Some(children_loaded_menu);
 				}
 
+				// Verify if the node is summary and has children with action and not just more summaries
+				if _current_menu.is_summary.unwrap_or(false) {
+					let has_action_id: bool = has_action_in_childrens(&_current_menu);
+					if !has_action_id {
+						// If no action was found in the children, do not add the menu to the list
+						continue;
+					}
+				}
+
 				_loaded_menu = Some(_current_menu);
 				menus.push(_loaded_menu.unwrap());
 			}
@@ -239,4 +248,18 @@ fn load_valid_children(_tree: Option<Vec<MenuTree>>, _allowed_menu_items: Vec<Me
 	// sort root nodes by sequence
 	menus.sort_by(|a: &Menu, b: &Menu| a.sequence.cmp(&b.sequence));
 	menus
+}
+
+fn has_action_in_childrens(menu: &Menu) -> bool {
+	if let Some(children) = &menu.children {
+		for child in children {
+			if child.action_id.is_some() && child.action_id.unwrap() > 0 {
+				return true;
+			}
+			if has_action_in_childrens(child) {
+				return true;
+			}
+		}
+	}
+	false
 }
