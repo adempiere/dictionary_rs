@@ -5,7 +5,7 @@ use std::{io::ErrorKind, io::Error};
 
 use crate::controller::opensearch::{find_from_dsl_body, IndexDocument};
 
-use super::{get_index_name, menu::{Browser, Form, Process, Window, Workflow}, role::Role};
+use super::{get_index_name, menu::MenuAction, role::Role};
 
 #[derive(Deserialize, Extractible, Debug, Clone)]
 #[salvo(extract(default_source(from = "body")))]
@@ -53,11 +53,11 @@ pub struct MenuItem {
     pub action: Option<String>,
     pub action_id: Option<i32>,
     pub action_uuid: Option<String>,
-    pub window: Option<Window>,
-    pub process: Option<Process>,
-    pub form: Option<Form>,
-	pub browser: Option<Browser>,
-    pub workflow: Option<Workflow>
+	pub window: Option<MenuAction>,
+	pub process: Option<MenuAction>,
+	pub form: Option<MenuAction>,
+	pub browser: Option<MenuAction>,
+	pub workflow: Option<MenuAction>
 }
 
 impl Default for MenuItem {
@@ -83,11 +83,11 @@ impl Default for MenuItem {
 			action: None,
             action_id: None,
             action_uuid: None,
-            window: None, 
-            process: None, 
-            form: None, 
-            browser: None,
-            workflow: None
+			window: None,
+			process: None,
+			form: None,
+			browser: None,
+			workflow: None
         }
     }
 }

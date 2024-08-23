@@ -31,6 +31,16 @@ impl Default for MenuResponse {
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
+pub struct MenuAction {
+	pub internal_id: Option<i32>,
+	pub id: Option<String>,
+	pub uuid: Option<String>,
+	pub name: Option<String>,
+	pub description: Option<String>,
+	pub help: Option<String>
+}
+
+#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Menu {
     pub uuid: Option<String>,
     pub internal_id: Option<i32>,
@@ -46,11 +56,11 @@ pub struct Menu {
     pub action: Option<String>,
     pub action_id: Option<i32>,
     pub action_uuid: Option<String>,
-    pub window: Option<Window>,
-    pub process: Option<Process>,
-    pub form: Option<Form>,
-	pub browser: Option<Browser>,
-    pub workflow: Option<Workflow>,
+	pub window: Option<MenuAction>,
+	pub process: Option<MenuAction>,
+	pub form: Option<MenuAction>,
+	pub browser: Option<MenuAction>,
+	pub workflow: Option<MenuAction>,
     // Tree menu childs
     pub children: Option<Vec<Menu>>
 }
@@ -115,56 +125,6 @@ impl Menu {
 
 		menu
 	}
-}
-
-#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct Window {
-    pub uuid: Option<String>,
-    pub internal_id: Option<i32>,
-    pub id: Option<String>,
-    pub name: Option<String>,
-    pub description: Option<String>,
-    pub help: Option<String>,
-}
-
-#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct Process {
-    pub uuid: Option<String>,
-    pub internal_id: Option<i32>,
-    pub id: Option<String>,
-    pub name: Option<String>,
-    pub description: Option<String>,
-    pub help: Option<String>,
-}
-
-#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct Form {
-    pub uuid: Option<String>,
-    pub internal_id: Option<i32>,
-    pub id: Option<String>,
-    pub name: Option<String>,
-    pub description: Option<String>,
-    pub help: Option<String>,
-}
-
-#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct Browser {
-    pub uuid: Option<String>,
-    pub internal_id: Option<i32>,
-    pub id: Option<String>,
-    pub name: Option<String>,
-    pub description: Option<String>,
-    pub help: Option<String>,
-}
-
-#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct Workflow {
-    pub uuid: Option<String>,
-    pub internal_id: Option<i32>,
-    pub id: Option<String>,
-    pub name: Option<String>,
-    pub description: Option<String>,
-    pub help: Option<String>,
 }
 
 pub async fn allowed_menu(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _dictionary_code: Option<&String>) -> Result<MenuListResponse, std::io::Error> {
