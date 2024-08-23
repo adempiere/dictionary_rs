@@ -63,6 +63,7 @@ pub struct Process {
     pub show_help: Option<String>,
 	//	Report
     pub is_report: Option<bool>,
+	pub is_process_before_launch: Option<bool>,
     pub report_view_id: Option<i32>,
     pub print_format_id: Option<i32>,
 	//	Linked
@@ -124,7 +125,7 @@ pub struct ProcessParameters {
 
 impl Default for Process {
     fn default() -> Self {
-        Self { 
+		Self {
             uuid: None, 
             internal_id: None,
             id: None, 
@@ -136,6 +137,7 @@ impl Default for Process {
 			show_help: None,
 			//	Report
 			is_report: None,
+			is_process_before_launch: None,
 			print_format_id: None,
 			report_view_id: None,
 			//	Linked
