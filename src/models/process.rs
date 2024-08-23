@@ -41,6 +41,12 @@ pub struct DependendField {
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
+pub struct ReportExportType {
+	pub name: Option<String>,
+	pub r#type: Option<String>
+}
+
+#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct DictionaryEntity {
 	pub internal_id: Option<i32>,
     pub id: Option<String>,
@@ -65,6 +71,7 @@ pub struct Process {
     pub is_report: Option<bool>,
     pub report_view_id: Option<i32>,
     pub print_format_id: Option<i32>,
+	pub report_export_types: Option<Vec<ReportExportType>>,
 	//	Linked
 	pub browser_id: Option<i32>,
 	pub browser: Option<DictionaryEntity>,
@@ -138,6 +145,7 @@ impl Default for Process {
 			is_report: None,
 			print_format_id: None,
 			report_view_id: None,
+			report_export_types: None,
 			//	Linked
 			browser_id: None,
 			browser: None,
@@ -176,7 +184,8 @@ impl IndexDocument for Process {
                     "code" : { "type" : "text" },
                     "name" : { "type" : "text" },
                     "description" : { "type" : "text" },
-                    "help" : { "type" : "text" }
+					"help" : { "type" : "text" },
+					"is_report" : { "type" : "boolean" }
                 }
             }
         })
