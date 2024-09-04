@@ -46,13 +46,13 @@ pub struct Role {
     pub client_id: Option<String>,
     pub role_id: Option<String>,
     pub user_id: Option<String>,
-    // Access
-    pub window_access: Option<Vec<i32>>,
-    pub process_access: Option<Vec<i32>>,
-    pub form_access: Option<Vec<i32>>,
-    pub browser_access: Option<Vec<i32>>,
-    pub workflow_access: Option<Vec<i32>>,
-    pub dashboard_access: Option<Vec<i32>>
+	// Access
+	pub window_access: Option<Vec<String>>,
+	pub process_access: Option<Vec<String>>,
+	pub form_access: Option<Vec<String>>,
+	pub browser_access: Option<Vec<String>>,
+	pub workflow_access: Option<Vec<String>>,
+	pub dashboard_access: Option<Vec<String>>
 }
 
 impl Default for Role {
@@ -73,13 +73,13 @@ impl Default for Role {
 			user_id: None,
 			// Access
 			window_access: None,
-            process_access: None,
-            form_access: None,
-            browser_access: None,
-            workflow_access: None,
-            dashboard_access: None
-        }
-    }
+			process_access: None,
+			form_access: None,
+			browser_access: None,
+			workflow_access: None,
+			dashboard_access: None
+		}
+	}
 }
 
 impl Role {
@@ -135,15 +135,15 @@ impl IndexDocument for Role {
     }
 }
 
-pub async fn role_from_id(_id: Option<&String>, _client_id: Option<&String>, _dictionary_code: Option<&String>) -> Result<Role, String> {
-	if _id.is_none() || _id.as_deref().map_or(false, |s| s.trim().is_empty()) {
+pub async fn role_from_id(_uuid: Option<&String>, _client_uuid: Option<&String>, _dictionary_code: Option<&String>) -> Result<Role, String> {
+	if _uuid.is_none() || _uuid.as_deref().map_or(false, |s| s.trim().is_empty()) {
 		return Err(
 			Error::new(ErrorKind::InvalidData.into(), "Role Identifier is Mandatory").to_string()
 		);
 	}
-    let mut _document = Role::from_id(_id);
+	let mut _document: Role = Role::from_id(_uuid);
 
-	let _index_name = match get_index_name(_client_id).await {
+	let _index_name: String = match get_index_name(_client_uuid).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			log::error!("Index name error: {:?}", error.to_string());
@@ -167,15 +167,15 @@ pub async fn role_from_id(_id: Option<&String>, _client_id: Option<&String>, _di
     }
 }
 
-async fn get_index_name(_client_id: Option<&String>) -> Result<String, std::io::Error> {
-	if _client_id.is_none() || _client_id.as_deref().map_or(false, |s| s.trim().is_empty()) {
+async fn get_index_name(_client_uuid: Option<&String>) -> Result<String, std::io::Error> {
+	if _client_uuid.is_none() || _client_uuid.as_deref().map_or(false, |s| s.trim().is_empty()) {
 		return Err(
 			Error::new(ErrorKind::InvalidData.into(), "Client is Mandatory")
 		);
 	}
 
     let _base_index: String = "role".to_string();
-	let _index = client_index_only(_base_index.to_owned(), _client_id);
+	let _index: String = client_index_only(_base_index.to_owned(), _client_uuid);
 
 	//  Find index
 	match exists_index(_index.to_owned()).await {

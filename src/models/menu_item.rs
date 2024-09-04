@@ -50,9 +50,9 @@ pub struct MenuItem {
     pub role_id: Option<String>,
     pub user_id: Option<String>,
     // Supported References
-    pub action: Option<String>,
-    pub action_id: Option<i32>,
-    pub action_uuid: Option<String>,
+	pub action: Option<String>,
+	pub action_id: Option<i32>,
+	pub action_uuid: Option<String>,
 	pub window: Option<MenuAction>,
 	pub process: Option<MenuAction>,
 	pub form: Option<MenuAction>,
@@ -81,8 +81,8 @@ impl Default for MenuItem {
             user_id: None,
             // Supported References
 			action: None,
-            action_id: None,
-            action_uuid: None,
+			action_id: None,
+			action_uuid: None,
 			window: None,
 			process: None,
 			form: None,
@@ -146,7 +146,7 @@ impl MenuItem {
                       "must": [
                         {
                           "terms": {
-                            "action_id": _window_access
+                            "action_uuid": _window_access
                           }
                         },
                         {
@@ -162,7 +162,7 @@ impl MenuItem {
                       "must": [
                         {
                           "terms": {
-                            "action_id": _form_access
+                            "action_uuid": _form_access
                           }
                         },
                         {
@@ -178,7 +178,7 @@ impl MenuItem {
                       "must": [
                         {
                           "terms": {
-                            "action_id": _browser_access
+                            "action_uuid": _browser_access
                           }
                         },
                         {
@@ -194,7 +194,7 @@ impl MenuItem {
                       "must": [
                         {
                           "terms": {
-                            "action_id": _process_access
+                            "action_uuid": _process_access
                           }
                         },
                         {
@@ -210,7 +210,7 @@ impl MenuItem {
                       "must": [
                         {
                           "terms": {
-                            "action_id": _process_access
+                            "action_uuid": _process_access
                           }
                         },
                         {
@@ -226,7 +226,7 @@ impl MenuItem {
                       "must": [
                         {
                           "terms": {
-                            "action_id": _workflow_access
+                            "action_uuid": _workflow_access
                           }
                         },
                         {
