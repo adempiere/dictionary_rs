@@ -32,12 +32,13 @@ impl Default for Generic {
 }
 
 impl IndexDocument for Generic {
-    fn mapping(self: &Self) -> serde_json::Value {
-        json!({
-            "mappings" : {
-                "properties" : {
-                    "uuid" : { "type" : "text" },
-                    "id" : { "type" : "text" },
+	fn mapping(self: &Self) -> serde_json::Value {
+		json!({
+			"mappings" : {
+				"properties" : {
+					"uuid" : { "type" : "keyword" },
+					"id" : { "type" : "keyword" },
+					"internal_id" : { "type" : "integer" },
                     "parent_id" : { "type" : "integer" },
                     "sequence" : { "type" : "integer" },
                     "name" : { "type" : "text" },

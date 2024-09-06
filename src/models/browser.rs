@@ -41,9 +41,9 @@ pub struct DictionaryEntity {
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Browser {
-    pub uuid: Option<String>,
-    pub internal_id: Option<i32>,
-    pub id: Option<String>,
+	pub uuid: Option<String>,
+	pub internal_id: Option<i32>,
+	pub id: Option<String>,
 	pub code: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
@@ -88,9 +88,9 @@ pub struct Reference {
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct BrowserField {
-    pub uuid: Option<String>,
-    pub internal_id: Option<i32>,
-    pub id: Option<String>,
+	pub uuid: Option<String>,
+	pub id: Option<String>,
+	pub internal_id: Option<i32>,
 	pub column_name: Option<String>,
     pub name: Option<String>,
     pub description: Option<String>,
@@ -131,11 +131,11 @@ pub struct BrowserField {
 }
 
 impl Default for Browser {
-    fn default() -> Self {
-        Self { 
-            uuid: None, 
-            internal_id: None,
-            id: None, 
+	fn default() -> Self {
+		Self {
+			uuid: None,
+			id: None,
+			internal_id: None,
 			code: None,
             name: None, 
             description: None, 
@@ -184,13 +184,14 @@ impl Browser {
 }
 
 impl IndexDocument for Browser {
-    fn mapping(self: &Self) -> serde_json::Value {
-        json!({
-            "mappings" : {
-                "properties" : {
-                    "uuid" : { "type" : "text" },
-                    "id" : { "type" : "text" },
-                    "code" : { "type" : "text" },
+	fn mapping(self: &Self) -> serde_json::Value {
+		json!({
+			"mappings" : {
+				"properties" : {
+					"uuid" : { "type" : "keyword" },
+					"id" : { "type" : "keyword" },
+					"internal_id" : { "type" : "integer" },
+					"code" : { "type" : "keyword" },
                     "name" : { "type" : "text" },
                     "description" : { "type" : "text" },
                     "help" : { "type" : "text" }

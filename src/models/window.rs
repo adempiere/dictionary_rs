@@ -114,9 +114,9 @@ pub struct Reference {
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct WindowField {
-    pub uuid: Option<String>,
-    pub internal_id: Option<i32>,
-    pub id: Option<String>,
+	pub uuid: Option<String>,
+	pub id: Option<String>,
+	pub internal_id: Option<i32>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub help: Option<String>,
@@ -169,11 +169,11 @@ pub struct WindowField {
 }
 
 impl Default for Window {
-    fn default() -> Self {
-        Self { 
-            uuid: None, 
-            id: None, 
-            internal_id: None,
+	fn default() -> Self {
+		Self {
+			uuid: None,
+			id: None,
+			internal_id: None,
             name: None, 
             description: None, 
             help: None, 
@@ -199,12 +199,13 @@ impl Window {
 }
 
 impl IndexDocument for Window {
-    fn mapping(self: &Self) -> serde_json::Value {
-        json!({
-            "mappings" : {
-                "properties" : {
-                    "uuid" : { "type" : "text" },
-                    "id" : { "type" : "text" },
+	fn mapping(self: &Self) -> serde_json::Value {
+		json!({
+			"mappings" : {
+				"properties" : {
+					"uuid" : { "type" : "keyword" },
+					"id" : { "type" : "keyword" },
+					"internal_id" : { "type" : "integer" },
                     "name" : { "type" : "text" },
                     "description" : { "type" : "text" },
                     "help" : { "type" : "text" }

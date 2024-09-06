@@ -32,8 +32,8 @@ impl Default for FormResponse {
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Form {
 	pub uuid: Option<String>,
+	pub id: Option<String>,
 	pub internal_id: Option<i32>,
-    pub id: Option<String>,
 	pub file_name: Option<String>,
 	pub name: Option<String>,
 	pub description: Option<String>,
@@ -51,8 +51,8 @@ impl Default for Form {
 	fn default() -> Self {
 		Self {
 			uuid: None,
-            internal_id: None,
 			id: None,
+			internal_id: None,
 			file_name: None,
 			name: None,
 			description: None,
@@ -81,9 +81,10 @@ impl IndexDocument for Form {
 		json!({
 			"mappings" : {
 				"properties" : {
-					"uuid" : { "type" : "text" },
-					"id" : { "type" : "text" },
-					"file_name" : { "type" : "text" },
+					"uuid" : { "type" : "keyword" },
+					"id" : { "type" : "keyword" },
+					"internal_id" : { "type" : "integer" },
+					"file_name" : { "type" : "keyword" },
 					"name" : { "type" : "text" },
 					"description" : { "type" : "text" },
 					"help" : { "type" : "text" }
