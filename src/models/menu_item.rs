@@ -106,141 +106,141 @@ impl MenuItem {
         // "R" Report
         // "P" Process
         // "F" Workflow
-        let _window_access = match _role.to_owned().window_access {
+		let _window_access: Vec<String> = match _role.to_owned().window_access {
             Some(value) => value,
             None => Vec::new()
         };
-        let _form_access = match _role.to_owned().form_access {
+		let _form_access: Vec<String> = match _role.to_owned().form_access {
             Some(value) => value,
             None => Vec::new()
         };
-        let _browser_access = match _role.to_owned().browser_access {
+		let _browser_access: Vec<String> = match _role.to_owned().browser_access {
             Some(value) => value,
             None => Vec::new()
         };
-        let _process_access = match _role.to_owned().process_access {
+		let _process_access: Vec<String> = match _role.to_owned().process_access {
             Some(value) => value,
             None => Vec::new()
         };
-        let _workflow_access = match _role.to_owned().workflow_access {
+		let _workflow_access: Vec<String> = match _role.to_owned().workflow_access {
             Some(value) => value,
             None => Vec::new()
         };
-        json!({
-            "query": {
-              "bool": {
-                "should": [
-                  {
-                    "bool": {
-                      "must": [
-                        {
-                          "match": {
-                            "is_summary": true
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "bool": {
-                      "must": [
-                        {
-                          "terms": {
-                            "action_uuid": _window_access
-                          }
-                        },
-                        {
-                          "match": {
-                            "action": "W"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "bool": {
-                      "must": [
-                        {
-                          "terms": {
-                            "action_uuid": _form_access
-                          }
-                        },
-                        {
-                          "match": {
-                            "action": "X"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "bool": {
-                      "must": [
-                        {
-                          "terms": {
-                            "action_uuid": _browser_access
-                          }
-                        },
-                        {
-                          "match": {
-                            "action": "S"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "bool": {
-                      "must": [
-                        {
-                          "terms": {
-                            "action_uuid": _process_access
-                          }
-                        },
-                        {
-                          "match": {
-                            "action": "P"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "bool": {
-                      "must": [
-                        {
-                          "terms": {
-                            "action_uuid": _process_access
-                          }
-                        },
-                        {
-                          "match": {
-                            "action": "R"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "bool": {
-                      "must": [
-                        {
-                          "terms": {
-                            "action_uuid": _workflow_access
-                          }
-                        },
-                        {
-                          "match": {
-                            "action": "F"
-                          }
-                        }
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          })
+		json!({
+			"query": {
+				"bool": {
+					"should": [
+						{
+							"bool": {
+								"must": [
+									{
+										"match": {
+										"is_summary": true
+										}
+									}
+								]
+							}
+						},
+						{
+							"bool": {
+								"must": [
+									{
+										"terms": {
+											"action_uuid.keyword": _window_access
+										}
+									},
+									{
+										"match": {
+											"action": "W"
+										}
+									}
+								]
+							}
+						},
+						{
+							"bool": {
+								"must": [
+									{
+										"terms": {
+											"action_uuid.keyword": _form_access
+										}
+									},
+									{
+										"match": {
+											"action": "X"
+										}
+									}
+								]
+							}
+						},
+						{
+							"bool": {
+								"must": [
+									{
+										"terms": {
+											"action_uuid.keyword": _browser_access
+										}
+									},
+									{
+										"match": {
+											"action": "S"
+										}
+									}
+								]
+							}
+						},
+						{
+							"bool": {
+								"must": [
+									{
+										"terms": {
+											"action_uuid.keyword": _process_access
+										}
+									},
+									{
+										"match": {
+											"action": "P"
+										}
+									}
+								]
+							}
+						},
+						{
+							"bool": {
+								"must": [
+									{
+										"terms": {
+											"action_uuid.keyword": _process_access
+										}
+									},
+									{
+										"match": {
+											"action": "R"
+										}
+									}
+								]
+							}
+						},
+						{
+							"bool": {
+								"must": [
+									{
+										"terms": {
+											"action_uuid.keyword": _workflow_access
+										}
+									},
+									{
+										"match": {
+											"action": "F"
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		})
     }
 }
 
@@ -254,7 +254,9 @@ impl IndexDocument for MenuItem {
                     "parent_id" : { "type" : "integer" },
                     "sequence" : { "type" : "integer" },
                     "name" : { "type" : "text" },
-                    "description" : { "type" : "text" }
+					"description" : { "type" : "text" },
+					"action_id" : { "type" : "integer" },
+					"action_uuid" : { "type" : "keyword" }
                 }
             }
         })
