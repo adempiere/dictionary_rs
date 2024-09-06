@@ -106,7 +106,7 @@ INFO  [server] └──!NULL!
     └──api
         ├──[OPTIONS] -> server::options_response
         ├──[GET] -> server::get_system_info
-        ├──security/get-allowed-menu
+        ├──security/menus
         │   ├──[OPTIONS] -> server::options_response
         │   └──[GET] -> server::get_allowed_menu
         └──dictionary
