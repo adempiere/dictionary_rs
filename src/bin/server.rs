@@ -82,8 +82,8 @@ fn routes() -> Router {
 				.options(options_response)
 				.get(get_system_info)
 				.push(
-					// /api/security/get-allowed-menu
-					Router::with_path("security/get-allowed-menu")
+					// /api/security/menus
+					Router::with_path("security/menus")
 					.options(options_response)
 					.get(get_allowed_menu)
 				)
