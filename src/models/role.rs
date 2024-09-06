@@ -33,9 +33,9 @@ impl Default for RoleResponse {
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Role {
-    pub internal_id: Option<i32>,
-    pub id: Option<String>,
-    pub uuid: Option<String>,
+	pub uuid: Option<String>,
+	pub id: Option<String>,
+	pub internal_id: Option<i32>,
     pub name: Option<String>,
     pub description: Option<String>,
     pub tree_id: Option<i32>,
@@ -56,11 +56,11 @@ pub struct Role {
 }
 
 impl Default for Role {
-    fn default() -> Self {
-        Self { 
-            id: None,
-            internal_id: None,
-            uuid: None, 
+	fn default() -> Self {
+		Self {
+			uuid: None,
+			id: None,
+			internal_id: None,
             name: None, 
             description: None, 
             tree_id: None, 
@@ -91,12 +91,13 @@ impl Role {
 }
 
 impl IndexDocument for Role {
-    fn mapping(self: &Self) -> serde_json::Value {
-        json!({
-            "mappings" : {
-                "properties" : {
-                    "uuid" : { "type" : "text" },
-                    "id" : { "type" : "text" },
+	fn mapping(self: &Self) -> serde_json::Value {
+		json!({
+			"mappings" : {
+				"properties" : {
+					"uuid" : { "type" : "keyword" },
+					"id" : { "type" : "keyword" },
+					"internal_id" : { "type" : "integer" },
                     "tree_id" : { "type" : "integer" },
                     "name" : { "type" : "text" },
                     "description" : { "type" : "text" }

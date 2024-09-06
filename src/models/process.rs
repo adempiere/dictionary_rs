@@ -131,11 +131,11 @@ pub struct ProcessParameters {
 }
 
 impl Default for Process {
-    fn default() -> Self {
+	fn default() -> Self {
 		Self {
-            uuid: None, 
-            internal_id: None,
-            id: None, 
+			uuid: None,
+			id: None,
+			internal_id: None,
 			code: None,
             name: None, 
             description: None, 
@@ -177,13 +177,14 @@ impl Process {
 }
 
 impl IndexDocument for Process {
-    fn mapping(self: &Self) -> serde_json::Value {
-        json!({
-            "mappings" : {
-                "properties" : {
-                    "uuid" : { "type" : "text" },
-                    "id" : { "type" : "text" },
-                    "code" : { "type" : "text" },
+	fn mapping(self: &Self) -> serde_json::Value {
+		json!({
+			"mappings" : {
+				"properties" : {
+					"uuid" : { "type" : "keyword" },
+					"id" : { "type" : "keyword" },
+					"internal_id" : { "type" : "integer" },
+					"code" : { "type" : "keyword" },
                     "name" : { "type" : "text" },
                     "description" : { "type" : "text" },
 					"help" : { "type" : "text" },

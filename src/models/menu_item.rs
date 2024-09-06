@@ -33,9 +33,9 @@ impl Default for MenuItemResponse {
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct MenuItem {
-    pub uuid: Option<String>,
-    pub internal_id: Option<i32>,
-    pub id: Option<String>,
+	pub uuid: Option<String>,
+	pub id: Option<String>,
+	pub internal_id: Option<i32>,
     pub parent_id: Option<i32>,
     pub sequence: Option<i32>,
     pub name: Option<String>,
@@ -61,11 +61,11 @@ pub struct MenuItem {
 }
 
 impl Default for MenuItem {
-    fn default() -> Self {
-        Self { 
-            uuid: None, 
-            internal_id: None,
-            id: None, 
+	fn default() -> Self {
+		Self {
+			uuid: None,
+			id: None,
+			internal_id: None,
             parent_id: None, 
             sequence: None, 
             name: None, 
@@ -245,12 +245,13 @@ impl MenuItem {
 }
 
 impl IndexDocument for MenuItem {
-    fn mapping(self: &Self) -> serde_json::Value {
-        json!({
-            "mappings" : {
-                "properties" : {
-                    "uuid" : { "type" : "text" },
-                    "id" : { "type" : "text" },
+	fn mapping(self: &Self) -> serde_json::Value {
+		json!({
+			"mappings" : {
+				"properties" : {
+					"uuid" : { "type" : "keyword" },
+					"id" : { "type" : "keyword" },
+					"internal_id" : { "type" : "integer" },
                     "parent_id" : { "type" : "integer" },
                     "sequence" : { "type" : "integer" },
                     "name" : { "type" : "text" },
