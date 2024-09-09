@@ -146,7 +146,7 @@ impl MenuItem {
 								"must": [
 									{
 										"terms": {
-											"action_uuid.keyword": _window_access
+											"action_uuid": _window_access
 										}
 									},
 									{
@@ -162,7 +162,7 @@ impl MenuItem {
 								"must": [
 									{
 										"terms": {
-											"action_uuid.keyword": _form_access
+											"action_uuid": _form_access
 										}
 									},
 									{
@@ -178,7 +178,7 @@ impl MenuItem {
 								"must": [
 									{
 										"terms": {
-											"action_uuid.keyword": _browser_access
+											"action_uuid": _browser_access
 										}
 									},
 									{
@@ -194,7 +194,7 @@ impl MenuItem {
 								"must": [
 									{
 										"terms": {
-											"action_uuid.keyword": _process_access
+											"action_uuid": _process_access
 										}
 									},
 									{
@@ -210,7 +210,7 @@ impl MenuItem {
 								"must": [
 									{
 										"terms": {
-											"action_uuid.keyword": _process_access
+											"action_uuid": _process_access
 										}
 									},
 									{
@@ -226,7 +226,7 @@ impl MenuItem {
 								"must": [
 									{
 										"terms": {
-											"action_uuid.keyword": _workflow_access
+											"action_uuid": _workflow_access
 										}
 									},
 									{
