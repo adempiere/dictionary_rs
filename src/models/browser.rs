@@ -288,9 +288,9 @@ pub async fn browser_from_id(_id: Option<String>, _language: Option<&String>, _d
 			Error::new(ErrorKind::InvalidData.into(), "Browser Identifier is Mandatory").to_string()
 		);
 	}
-    let mut _document = Browser::from_id(_id);
+	let mut _document: Browser = Browser::from_id(_id);
 
-	let _index_name = match get_index_name("browser".to_string(),_language, _dictionary_code).await {
+	let _index_name: String = match get_index_name("browser".to_string(),_language, _dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			log::error!("Index name error: {:?}", error.to_string());
@@ -329,7 +329,7 @@ pub async fn browsers(_language: Option<&String>, _search_value: Option<&String>
     };
 
 	//  Find index
-	let _index_name = match get_index_name("browser".to_string(), _language, _dictionary_code).await {
+	let _index_name: String = match get_index_name("browser".to_string(), _language, _dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			log::error!("Index name error: {:?}", error.to_string());
@@ -338,7 +338,7 @@ pub async fn browsers(_language: Option<&String>, _search_value: Option<&String>
 	};
 	log::info!("Index to search {:}", _index_name);
 
-    let mut _document = Browser::default();
+	let mut _document: Browser = Browser::default();
     _document.index_value = Some(_index_name);
     let _browser_document: &dyn IndexDocument = &_document;
     match find(_browser_document, _search_value, 0, 10).await {

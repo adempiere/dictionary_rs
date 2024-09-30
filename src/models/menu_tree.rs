@@ -134,9 +134,9 @@ pub async fn menu_tree_from_id(_id: Option<String>, _dictionary_code: Option<&St
 			Error::new(ErrorKind::InvalidData.into(), "MenuTree Identifier is Mandatory")
 		);
 	}
-    let mut _document = MenuTree::from_id(_id);
+	let mut _document: MenuTree = MenuTree::from_id(_id);
 
-	let mut _index_name = "menu_tree".to_string();
+	let mut _index_name: String = "menu_tree".to_string();
 	if let Some(code) = _dictionary_code {
 		if !code.trim().is_empty() {
 			_index_name.push_str("_");
@@ -150,7 +150,7 @@ pub async fn menu_tree_from_id(_id: Option<String>, _dictionary_code: Option<&St
     match get_by_id(_menu_document).await {
         Ok(value) => {
 			let mut menu: MenuTree = serde_json::from_value(value).unwrap();
-            log::info!("Finded Value: {:?}", menu.id);
+			log::info!("Finded Menu Tree Value: {:?}", menu.id);
 			// sort menu children nodes by sequence
 			if let Some(ref mut children) = menu.children {
 				children.sort_by_key(|child| child.sequence.clone().unwrap_or(0));

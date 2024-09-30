@@ -164,10 +164,17 @@ pub async fn role_from_id(_uuid: Option<&String>, _client_uuid: Option<&String>,
     let _role_document: &dyn IndexDocument = &_document;
     match get_by_id(_role_document).await {
         Ok(value) => {
-			let role: Role = serde_json::from_value(value).unwrap();
-            log::info!("Finded Value: {:?}", role.id);
-            Ok(role)
-        },
+			match serde_json::from_value::<Role>(value) {
+				Ok(role) => {
+					log::info!("Finded Role Value: {:?}", role.id);
+					Ok(role)
+				},
+				Err(error) => {
+					log::error!("{}", error);
+					Err(error.to_string())
+				},
+			}
+		},
         Err(error) => {
 			log::error!("{}", error);
             Err(error)
