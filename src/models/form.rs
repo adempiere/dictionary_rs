@@ -74,6 +74,10 @@ impl Form {
 		form.id = _id;
 		form
 	}
+
+	pub fn to_string(&self) -> String {
+		format!("Form: UUID {:?}, ID {:?}, Name {:?}, Index: {:?}", self.uuid, self.internal_id, self.name, self.index_value)
+	}
 }
 
 impl IndexDocument for Form {
@@ -98,7 +102,10 @@ impl IndexDocument for Form {
 	}
 
 	fn id(self: &Self) -> String {
-		self.id.to_owned().unwrap()
+		self.id.to_owned().unwrap_or_else(|| {
+			log::error!("{}", self.to_string());
+			"".to_string()
+		})
 	}
 
 	fn index_name(self: &Self) -> String {
@@ -129,9 +136,9 @@ pub async fn form_from_id(_id: Option<String>, _language: Option<&String>, _dict
 			Error::new(ErrorKind::InvalidData.into(), "Form Identifier is Mandatory").to_string()
 		);
 	}
-	let mut _document = Form::from_id(_id);
+	let mut _document: Form = Form::from_id(_id);
 
-	let _index_name = match get_index_name("form".to_string(), _language, _dictionary_code).await {
+	let _index_name: String = match get_index_name("form".to_string(), _language, _dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			log::error!("Index name error: {:?}", error.to_string());
@@ -145,7 +152,7 @@ pub async fn form_from_id(_id: Option<String>, _language: Option<&String>, _dict
 	match get_by_id(_form_document).await {
 		Ok(value) => {
 			let form: Form = serde_json::from_value(value).unwrap();
-			log::info!("Finded Value: {:?}", form.id);
+			log::info!("Finded Form Value: {:?}", form.id);
 			// Ok(FormResponse {
 			// 	form: Some(form)
 			// })
@@ -167,7 +174,7 @@ pub async fn forms(_language: Option<&String>, _search_value: Option<&String>, _
 	};
 
 	//  Find index
-	let _index_name = match get_index_name("form".to_string(),_language, _dictionary_code).await {
+	let _index_name: String = match get_index_name("form".to_string(),_language, _dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			log::error!("Index name error: {:?}", error.to_string());
@@ -176,7 +183,7 @@ pub async fn forms(_language: Option<&String>, _search_value: Option<&String>, _
 	};
 	log::info!("Index to search {:}", _index_name);
 
-	let mut _document = Form::default();
+	let mut _document: Form = Form::default();
 	_document.index_value = Some(_index_name);
 	let _forms_document: &dyn IndexDocument = &_document;
 	match find(_forms_document, _search_value, 0, 10).await {

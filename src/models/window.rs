@@ -196,6 +196,10 @@ impl Window {
         window.id = _id;
         window
     }
+
+	pub fn to_string(&self) -> String {
+		format!("Window: UUID {:?}, ID {:?}, Name {:?}, Index: {:?}", self.uuid, self.internal_id, self.name, self.index_value)
+	}
 }
 
 impl IndexDocument for Window {
@@ -218,9 +222,12 @@ impl IndexDocument for Window {
         json!(self)
     }
 
-    fn id(self: &Self) -> String {
-        self.id.to_owned().unwrap()
-    }
+	fn id(self: &Self) -> String {
+		self.id.to_owned().unwrap_or_else(|| {
+			log::error!("{}", self.to_string());
+			"".to_string()
+		})
+	}
 
     fn index_name(self: &Self) -> String {
         match &self.index_value {
@@ -291,9 +298,9 @@ pub async fn window_from_id(_id: Option<String>, _language: Option<&String>, _di
 			Error::new(ErrorKind::InvalidData.into(), "Window Identifier is Mandatory").to_string()
 		);
 	}
-    let mut _document = Window::from_id(_id.to_owned());
+	let mut _document: Window = Window::from_id(_id.to_owned());
 
-	let _index_name = match get_index_name("window".to_string(), _language,_dictionary_code).await {
+	let _index_name: String = match get_index_name("window".to_string(), _language,_dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			log::error!("Index name error to {:?}: {:?}", _id.to_owned(), error.to_string());
@@ -307,7 +314,7 @@ pub async fn window_from_id(_id: Option<String>, _language: Option<&String>, _di
     match get_by_id(_window_document).await {
         Ok(value) => {
 			let mut window: Window = serde_json::from_value(value).unwrap();
-            log::info!("Finded Value: {:?}", window.id);
+			log::info!("Finded Window Value: {:?}", window.id);
 
 			// sort tabs by sequence
 			if let Some(ref mut tabs) = window.tabs {
@@ -336,7 +343,7 @@ pub async fn windows(_language: Option<&String>, _search_value: Option<&String>,
     };
 
 	//  Find index
-	let _index_name = match get_index_name("window".to_string(), _language, _dictionary_code).await {
+	let _index_name: String = match get_index_name("window".to_string(), _language, _dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			log::error!("Index name error: {:?}", error.to_string());
@@ -345,7 +352,7 @@ pub async fn windows(_language: Option<&String>, _search_value: Option<&String>,
 	};
 	log::info!("Index to search {:}", _index_name);
 
-    let mut _document = Window::default();
+	let mut _document: Window = Window::default();
     _document.index_value = Some(_index_name);
     let _window_document: &dyn IndexDocument = &_document;
     match find(_window_document, _search_value, 0, 10).await {

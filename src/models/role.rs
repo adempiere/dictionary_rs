@@ -88,6 +88,10 @@ impl Role {
         menu.uuid = _id.cloned();
         menu
     }
+
+	pub fn to_string(&self) -> String {
+		format!("Form: UUID {:?}, ID {:?}, Name {:?}, Index: {:?}", self.uuid, self.internal_id, self.name, self.index_value)
+	}
 }
 
 impl IndexDocument for Role {
@@ -110,9 +114,12 @@ impl IndexDocument for Role {
         json!(self)
     }
 
-    fn id(self: &Self) -> String {
-        self.uuid.to_owned().unwrap()
-    }
+	fn id(self: &Self) -> String {
+		self.id.to_owned().unwrap_or_else(|| {
+			log::error!("{}", self.to_string());
+			"".to_string()
+		})
+	}
 
     fn index_name(self: &Self) -> String {
         match &self.index_value {
@@ -157,10 +164,17 @@ pub async fn role_from_id(_uuid: Option<&String>, _client_uuid: Option<&String>,
     let _role_document: &dyn IndexDocument = &_document;
     match get_by_id(_role_document).await {
         Ok(value) => {
-			let role: Role = serde_json::from_value(value).unwrap();
-            log::info!("Finded Value: {:?}", role.id);
-            Ok(role)
-        },
+			match serde_json::from_value::<Role>(value) {
+				Ok(role) => {
+					log::info!("Finded Role Value: {:?}", role.id);
+					Ok(role)
+				},
+				Err(error) => {
+					log::error!("{}", error);
+					Err(error.to_string())
+				},
+			}
+		},
         Err(error) => {
 			log::error!("{}", error);
             Err(error)

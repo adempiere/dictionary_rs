@@ -242,6 +242,10 @@ impl MenuItem {
 			}
 		})
     }
+
+	pub fn to_string(&self) -> String {
+		format!("Menu Item: UUID {:?}, ID {:?}, Name {:?}, Index: {:?}", self.uuid, self.internal_id, self.name, self.index_value)
+	}
 }
 
 impl IndexDocument for MenuItem {
@@ -267,9 +271,12 @@ impl IndexDocument for MenuItem {
         json!(self)
     }
 
-    fn id(self: &Self) -> String {
-        self.id.to_owned().unwrap()
-    }
+	fn id(self: &Self) -> String {
+		self.id.to_owned().unwrap_or_else(|| {
+			log::error!("{}", self.to_string());
+			"".to_string()
+		})
+	}
 
     fn index_name(self: &Self) -> String {
         match &self.index_value {

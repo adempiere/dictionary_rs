@@ -176,6 +176,10 @@ impl Process {
         process.id = _id;
         process
     }
+
+	pub fn to_string(&self) -> String {
+		format!("Process/Report: UUID {:?}, ID {:?}, Name {:?}, Index: {:?}", self.uuid, self.internal_id, self.name, self.index_value)
+	}
 }
 
 impl IndexDocument for Process {
@@ -200,9 +204,12 @@ impl IndexDocument for Process {
         json!(self)
     }
 
-    fn id(self: &Self) -> String {
-        self.id.to_owned().unwrap()
-    }
+	fn id(self: &Self) -> String {
+		self.id.to_owned().unwrap_or_else(|| {
+			log::error!("{}", self.to_string());
+			"".to_string()
+		})
+	}
 
     fn index_name(self: &Self) -> String {
         match &self.index_value {
@@ -262,9 +269,9 @@ pub async fn process_from_id(_id: Option<String>, _language: Option<&String>, _d
 			Error::new(ErrorKind::InvalidData.into(), "Process/Report Identifier is Mandatory").to_string()
 		);
 	}
-    let mut _document = Process::from_id(_id);
+	let mut _document: Process = Process::from_id(_id);
 
-	let _index_name = match get_index_name("process".to_string(), _language, _dictionary_code).await {
+	let _index_name: String = match get_index_name("process".to_string(), _language, _dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			log::error!("Index name error: {:?}", error.to_string());
@@ -278,7 +285,7 @@ pub async fn process_from_id(_id: Option<String>, _language: Option<&String>, _d
     match get_by_id(_process_document).await {
         Ok(value) => {
 			let mut process: Process = serde_json::from_value(value).unwrap();
-            log::info!("Finded Value: {:?}", process.id);
+			log::info!("Finded Process Value: {:?}", process.id);
 
 			// sort process parameter by sequence
 			if let Some(ref mut parameters) = process.parameters {
@@ -303,7 +310,7 @@ pub async fn processes(_language: Option<&String>, _search_value: Option<&String
     };
 
 	//  Find index
-	let _index_name = match get_index_name("process".to_string(), _language, _dictionary_code).await {
+	let _index_name: String = match get_index_name("process".to_string(), _language, _dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
 			log::error!("Index name error: {:?}", error.to_string());
@@ -312,7 +319,7 @@ pub async fn processes(_language: Option<&String>, _search_value: Option<&String
 	};
 	log::info!("Index to search {:}", _index_name);
 
-    let mut _document = Process::default();
+	let mut _document: Process = Process::default();
     _document.index_value = Some(_index_name);
     let _process_document: &dyn IndexDocument = &_document;
     match find(_process_document, _search_value, 0, 10).await {
