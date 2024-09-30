@@ -384,32 +384,32 @@ async fn get_windows<'a>(_req: &mut Request, _res: &mut Response) {
 }
 
 async fn consume_queue() {
-	let kafka_host = match env::var("KAFKA_HOST") {
-        Ok(value) => value,
-        Err(_) => {
-            log::info!("Variable `KAFKA_HOST` Not found from enviroment, loaded from local IP");
-            "127.0.0.1:9092".to_owned()
-        }.to_owned(),
-    };
-	log::info!("Kafka queue: {:?}", kafka_host.to_owned());
+	let kafka_host: String = match env::var("KAFKA_HOST") {
+		Ok(value) => value,
+		Err(_) => {
+			log::info!("Variable `KAFKA_HOST` Not found from enviroment, loaded from local IP");
+			"127.0.0.1:9092".to_owned()
+		}.to_owned(),
+	};
+	log::info!("Kafka queue to Subscribe: {:?}", kafka_host.to_owned());
 
-    let kafka_group =  match env::var("KAFKA_GROUP") {
-        Ok(value) => value,
-        Err(_) => {
-            log::info!("Variable `KAFKA_GROUP` Not found from enviroment, loaded with `default` value");
-            "default".to_owned()
-        }.to_owned(),
-    };
+	let kafka_group: String = match env::var("KAFKA_GROUP") {
+		Ok(value) => value,
+		Err(_) => {
+			log::info!("Variable `KAFKA_GROUP` Not found from enviroment, loaded with `default` value");
+			"default".to_owned()
+		}.to_owned(),
+	};
 	let kafka_queues: String = match env::var("KAFKA_QUEUES") {
-        Ok(value) => value.clone(),
-        Err(_) => {
-            log::info!("Variable `KAFKA_QUEUES` Not found from enviroment, loaded with `default` value");
+		Ok(value) => value.clone(),
+		Err(_) => {
+			log::info!("Variable `KAFKA_QUEUES` Not found from enviroment, loaded with `default` value");
 			"menu process browser window".to_owned()
 		}.to_owned()
-    };
+	};
 
     let topics: Vec<&str> = kafka_queues.split_whitespace().collect();
-	log::info!("Topics to Subscribed: {:?}", topics.to_owned());
+	log::info!("Kafka Topics to Subscribe: {:?}", topics.to_owned());
 
     let consumer_result = create_consumer(&kafka_host, &kafka_group, &topics);
     match consumer_result {
