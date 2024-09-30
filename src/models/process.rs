@@ -176,6 +176,10 @@ impl Process {
         process.id = _id;
         process
     }
+
+	pub fn to_string(&self) -> String {
+		format!("Process/Report: UUID {:?}, ID {:?}, Name {:?}, Index: {:?}", self.uuid, self.internal_id, self.name, self.index_value)
+	}
 }
 
 impl IndexDocument for Process {
@@ -200,9 +204,12 @@ impl IndexDocument for Process {
         json!(self)
     }
 
-    fn id(self: &Self) -> String {
-        self.id.to_owned().unwrap()
-    }
+	fn id(self: &Self) -> String {
+		self.id.to_owned().unwrap_or_else(|| {
+			log::error!("{}", self.to_string());
+			"".to_string()
+		})
+	}
 
     fn index_name(self: &Self) -> String {
         match &self.index_value {

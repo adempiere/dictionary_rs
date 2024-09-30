@@ -74,6 +74,10 @@ impl Form {
 		form.id = _id;
 		form
 	}
+
+	pub fn to_string(&self) -> String {
+		format!("Form: UUID {:?}, ID {:?}, Name {:?}, Index: {:?}", self.uuid, self.internal_id, self.name, self.index_value)
+	}
 }
 
 impl IndexDocument for Form {
@@ -98,7 +102,10 @@ impl IndexDocument for Form {
 	}
 
 	fn id(self: &Self) -> String {
-		self.id.to_owned().unwrap()
+		self.id.to_owned().unwrap_or_else(|| {
+			log::error!("{}", self.to_string());
+			"".to_string()
+		})
 	}
 
 	fn index_name(self: &Self) -> String {
