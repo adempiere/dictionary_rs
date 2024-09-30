@@ -70,6 +70,7 @@ pub struct Process {
 	//	Report
     pub is_report: Option<bool>,
 	pub is_process_before_launch: Option<bool>,
+	pub is_jasper_report: Option<bool>,
     pub report_view_id: Option<i32>,
     pub print_format_id: Option<i32>,
 	pub report_export_types: Option<Vec<ReportExportType>>,
@@ -145,6 +146,7 @@ impl Default for Process {
 			//	Report
 			is_report: None,
 			is_process_before_launch: None,
+			is_jasper_report: None,
 			print_format_id: None,
 			report_view_id: None,
 			report_export_types: None,
