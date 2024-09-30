@@ -54,18 +54,22 @@ pub fn create_consumer(brokers: &str, group_id: &str, topics: &[&str]) -> Result
 	if consumer_value.is_err() {
 		return Err(Error::new(ErrorKind::InvalidData.into(), consumer_value.err().unwrap()))
 	}
-	let consumer = consumer_value.unwrap();
+
+	let consumer: StreamConsumer<CustomContext> = consumer_value.unwrap();
+	log::info!("Subscribed to kafka brokers successfully: {:?}", &brokers);
+
 	loop {
 		match consumer.subscribe(&topics) {
 			Ok(()) => {
-				log::info!("Subscribed to topics successfully: {:?}", topics.join(" "));
+				log::info!("Subscribed to kafka topics successfully: {:?}", topics.join(" "));
 				break
 			},
 			Err(e) => {
-				log::warn!("Can't subscribe to specified topics '{:?}': {}", topics, e);
+				log::warn!("Can't subscribe to kafka specified topics '{:?}': {}", topics, e);
 			},
 		}
-		let waiting_time = Duration::from_secs(5);
+
+		let waiting_time: Duration = Duration::from_secs(5);
 		thread::sleep(waiting_time);
 	}
 	Ok(consumer)
