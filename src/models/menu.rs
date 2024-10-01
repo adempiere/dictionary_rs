@@ -4,7 +4,7 @@ use std::{io::ErrorKind, io::Error};
 
 use crate::models::{menu_item::menu_items_from_role, menu_tree::menu_tree_from_id, role::role_from_id};
 
-use super::{menu_item::MenuItem, menu_tree::MenuTree};
+use super::{menu_item::MenuItem, menu_tree::MenuTree, role::Role};
 
 #[derive(Deserialize, Extractible, Debug, Clone)]
 #[salvo(extract(default_source(from = "body")))]
@@ -128,14 +128,14 @@ impl Menu {
 }
 
 pub async fn allowed_menu(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _dictionary_code: Option<&String>) -> Result<MenuListResponse, std::io::Error> {
-    let _expected_role = role_from_id(_role_id, _client_id, _dictionary_code).await;
-    let _role = match _expected_role {
+	let _expected_role: Result<Role, String> = role_from_id(_role_id, _client_id, _dictionary_code).await;
+	let _role: Role = match _expected_role {
         Ok(role) => role,
         Err(error) => return Err(Error::new(ErrorKind::InvalidData.into(), error))
     };
 
-    let _menu_items = menu_items_from_role(_role.to_owned(), _language, _dictionary_code, None, None).await;
-    let _menu_items = match _menu_items {
+	let _menu_items: Result<Vec<MenuItem>, Error> = menu_items_from_role(_role.to_owned(), _language, _dictionary_code, None, None).await;
+	let _menu_items: Vec<MenuItem> = match _menu_items {
         Ok(menu) => menu,
         Err(error) => return Err(Error::new(ErrorKind::InvalidData.into(), error))
     };
@@ -144,8 +144,8 @@ pub async fn allowed_menu(_language: Option<&String>, _client_id: Option<&String
         return Err(Error::new(ErrorKind::InvalidData.into(), "Tree ID not found"))
     }
 
-    let _tree_result = menu_tree_from_id(_role.tree_uuid, _dictionary_code).await;
-    let _tree = match _tree_result {
+	let _tree_result: Result<MenuTree, Error> = menu_tree_from_id(_role.tree_uuid, _dictionary_code).await;
+	let _tree: MenuTree = match _tree_result {
         Ok(tree) => tree,
         Err(error) => return Err(Error::new(ErrorKind::InvalidData.into(), error))
     };

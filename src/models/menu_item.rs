@@ -100,32 +100,47 @@ impl MenuItem {
     }
 
     fn get_find_body_from_role(_role: Role) -> serde_json::Value {
-        // "W" Window
-        // "X" Form
-        // "S" Smart Browser
-        // "R" Report
-        // "P" Process
-        // "F" Workflow
+		// "W" Window
 		let _window_access: Vec<String> = match _role.to_owned().window_access {
-            Some(value) => value,
-            None => Vec::new()
-        };
+			Some(value) => {
+				value.into_iter().filter_map(|x| x).collect()
+			},
+			None => Vec::new()
+		};
+
+		// "X" Form
 		let _form_access: Vec<String> = match _role.to_owned().form_access {
-            Some(value) => value,
-            None => Vec::new()
-        };
+			Some(value) => {
+				value.into_iter().filter_map(|x| x).collect()
+			},
+			None => Vec::new()
+		};
+
+		// "S" Smart Browser
 		let _browser_access: Vec<String> = match _role.to_owned().browser_access {
-            Some(value) => value,
-            None => Vec::new()
-        };
+			Some(value) => {
+				value.into_iter().filter_map(|x| x).collect()
+			},
+			None => Vec::new()
+		};
+
+		// "R" Report
+		// "P" Process
 		let _process_access: Vec<String> = match _role.to_owned().process_access {
-            Some(value) => value,
-            None => Vec::new()
-        };
+			Some(value) => {
+				value.into_iter().filter_map(|x| x).collect()
+			},
+			None => Vec::new()
+		};
+
+		// "F" Workflow
 		let _workflow_access: Vec<String> = match _role.to_owned().workflow_access {
-            Some(value) => value,
-            None => Vec::new()
-        };
+			Some(value) => {
+				value.into_iter().filter_map(|x| x).collect()
+			},
+			None => Vec::new()
+		};
+
 		json!({
 			"query": {
 				"bool": {
@@ -135,7 +150,7 @@ impl MenuItem {
 								"must": [
 									{
 										"match": {
-										"is_summary": true
+											"is_summary": true
 										}
 									}
 								]
@@ -144,15 +159,15 @@ impl MenuItem {
 						{
 							"bool": {
 								"must": [
-									{
-										"terms": {
-											"action_uuid": _window_access
-										}
-									},
 									{
 										"match": {
 											"action": "W"
 										}
+									},
+									{
+										"terms": {
+											"action_uuid": _window_access
+										}
 									}
 								]
 							}
@@ -160,15 +175,15 @@ impl MenuItem {
 						{
 							"bool": {
 								"must": [
-									{
-										"terms": {
-											"action_uuid": _form_access
-										}
-									},
 									{
 										"match": {
 											"action": "X"
 										}
+									},
+									{
+										"terms": {
+											"action_uuid": _form_access
+										}
 									}
 								]
 							}
@@ -176,15 +191,15 @@ impl MenuItem {
 						{
 							"bool": {
 								"must": [
-									{
-										"terms": {
-											"action_uuid": _browser_access
-										}
-									},
 									{
 										"match": {
 											"action": "S"
 										}
+									},
+									{
+										"terms": {
+											"action_uuid": _browser_access
+										}
 									}
 								]
 							}
@@ -192,30 +207,30 @@ impl MenuItem {
 						{
 							"bool": {
 								"must": [
-									{
-										"terms": {
-											"action_uuid": _process_access
-										}
-									},
 									{
 										"match": {
 											"action": "P"
 										}
-									}
-								]
-							}
-						},
-						{
-							"bool": {
-								"must": [
+									},
 									{
 										"terms": {
 											"action_uuid": _process_access
 										}
-									},
+									}
+								]
+							}
+						},
+						{
+							"bool": {
+								"must": [
 									{
 										"match": {
 											"action": "R"
+										}
+									},
+									{
+										"terms": {
+											"action_uuid": _process_access
 										}
 									}
 								]
@@ -225,13 +240,13 @@ impl MenuItem {
 							"bool": {
 								"must": [
 									{
-										"terms": {
-											"action_uuid": _workflow_access
+										"match": {
+											"action": "F"
 										}
 									},
 									{
-										"match": {
-											"action": "F"
+										"terms": {
+											"action_uuid": _workflow_access
 										}
 									}
 								]
@@ -241,7 +256,7 @@ impl MenuItem {
 				}
 			}
 		})
-    }
+	}
 
 	pub fn to_string(&self) -> String {
 		format!("Menu Item: UUID {:?}, ID {:?}, Name {:?}, Index: {:?}", self.uuid, self.internal_id, self.name, self.index_value)
