@@ -47,12 +47,12 @@ pub struct Role {
     pub role_id: Option<String>,
     pub user_id: Option<String>,
 	// Access
-	pub window_access: Option<Vec<String>>,
-	pub process_access: Option<Vec<String>>,
-	pub form_access: Option<Vec<String>>,
-	pub browser_access: Option<Vec<String>>,
-	pub workflow_access: Option<Vec<String>>,
-	pub dashboard_access: Option<Vec<String>>
+	pub window_access: Option<Vec<Option<String>>>,
+	pub process_access: Option<Vec<Option<String>>>,
+	pub form_access: Option<Vec<Option<String>>>,
+	pub browser_access: Option<Vec<Option<String>>>,
+	pub workflow_access: Option<Vec<Option<String>>>,
+	pub dashboard_access: Option<Vec<Option<String>>>
 }
 
 impl Default for Role {
@@ -83,14 +83,14 @@ impl Default for Role {
 }
 
 impl Role {
-    pub fn from_id(_id: Option<&String>) -> Self {
-        let mut menu = Role::default();
-        menu.uuid = _id.cloned();
-        menu
-    }
+	pub fn from_id(_id: Option<&String>) -> Self {
+		let mut role: Role = Role::default();
+		role.uuid = _id.cloned();
+		role
+	}
 
 	pub fn to_string(&self) -> String {
-		format!("Form: UUID {:?}, ID {:?}, Name {:?}, Index: {:?}", self.uuid, self.internal_id, self.name, self.index_value)
+		format!("Role: UUID {:?}, ID {:?}, Name {:?}, Index: {:?}", self.uuid, self.internal_id, self.name, self.index_value)
 	}
 }
 
@@ -115,7 +115,7 @@ impl IndexDocument for Role {
     }
 
 	fn id(self: &Self) -> String {
-		self.id.to_owned().unwrap_or_else(|| {
+		self.uuid.to_owned().unwrap_or_else(|| {
 			log::error!("{}", self.to_string());
 			"".to_string()
 		})
@@ -166,7 +166,7 @@ pub async fn role_from_id(_uuid: Option<&String>, _client_uuid: Option<&String>,
         Ok(value) => {
 			match serde_json::from_value::<Role>(value) {
 				Ok(role) => {
-					log::info!("Finded Role Value: {:?}", role.id);
+					log::info!("Finded Role {:?} Value: {:?}", role.name, role.id);
 					Ok(role)
 				},
 				Err(error) => {
