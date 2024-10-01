@@ -93,8 +93,8 @@ impl Default for MenuItem {
 }
 
 impl MenuItem {
-    pub fn from_id(_id: Option<String>) -> Self {
-        let mut menu = MenuItem::default();
+	pub fn from_id(_id: Option<String>) -> Self {
+		let mut menu: MenuItem = MenuItem::default();
         menu.id = _id;
         menu
     }
@@ -103,7 +103,8 @@ impl MenuItem {
 		// "W" Window
 		let _window_access: Vec<String> = match _role.to_owned().window_access {
 			Some(value) => {
-				value.into_iter().filter_map(|x| x).collect()
+				// remove none values into vector
+				value.into_iter().flatten().collect()
 			},
 			None => Vec::new()
 		};
@@ -111,7 +112,8 @@ impl MenuItem {
 		// "X" Form
 		let _form_access: Vec<String> = match _role.to_owned().form_access {
 			Some(value) => {
-				value.into_iter().filter_map(|x| x).collect()
+				// remove none values into vector
+				value.into_iter().flatten().collect()
 			},
 			None => Vec::new()
 		};
@@ -119,7 +121,8 @@ impl MenuItem {
 		// "S" Smart Browser
 		let _browser_access: Vec<String> = match _role.to_owned().browser_access {
 			Some(value) => {
-				value.into_iter().filter_map(|x| x).collect()
+				// remove none values into vector
+				value.into_iter().flatten().collect()
 			},
 			None => Vec::new()
 		};
@@ -128,7 +131,8 @@ impl MenuItem {
 		// "P" Process
 		let _process_access: Vec<String> = match _role.to_owned().process_access {
 			Some(value) => {
-				value.into_iter().filter_map(|x| x).collect()
+				// remove none values into vector
+				value.into_iter().flatten().collect()
 			},
 			None => Vec::new()
 		};
@@ -136,7 +140,8 @@ impl MenuItem {
 		// "F" Workflow
 		let _workflow_access: Vec<String> = match _role.to_owned().workflow_access {
 			Some(value) => {
-				value.into_iter().filter_map(|x| x).collect()
+				// remove none values into vector
+				value.into_iter().flatten().collect()
 			},
 			None => Vec::new()
 		};
