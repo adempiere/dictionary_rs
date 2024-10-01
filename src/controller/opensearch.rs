@@ -1,8 +1,9 @@
 use std::env;
 
+use opensearch::http::response::Response;
 use opensearch::{OpenSearch, IndexParts, DeleteParts, SearchParts, GetParts};
 use opensearch::http::Url;
-use opensearch::http::transport::{SingleNodeConnectionPool, TransportBuilder};
+use opensearch::http::transport::{SingleNodeConnectionPool, Transport, TransportBuilder};
 use opensearch::indices::{IndicesGetParts, IndicesCreateParts, IndicesDeleteParts};
 use serde_json::Value;
 
@@ -20,21 +21,21 @@ pub trait IndexDocument: Sync {
 }
 
 pub fn create_opensearch_client() -> Result<OpenSearch, String> {
-    let opensearch_url =  match env::var("OPENSEARCH_URL") {
+	let opensearch_url: String =  match env::var("OPENSEARCH_URL") {
         Ok(value) => value.clone(),
         Err(_) => {
             log::info!("Variable `OPENSEARCH_URL` Not found from enviroment, loaded with `default` value");
             "http://localhost:9200".to_owned()
         }.to_owned(),
     };
-    let url = match Url::parse(&opensearch_url) {
+	let url: Url = match Url::parse(&opensearch_url) {
         Ok(value) => value,
         Err(error) => {
             return Err(error.to_string());
         },
     };
-    let conn_pool = SingleNodeConnectionPool::new(url);
-    let transport = match TransportBuilder::new(conn_pool)
+	let conn_pool: SingleNodeConnectionPool = SingleNodeConnectionPool::new(url);
+	let transport: Transport = match TransportBuilder::new(conn_pool)
         .disable_proxy()
         // .auth(Credentials::Basic("admin".to_owned(), "admin".to_owned()))
         .build() {
@@ -47,7 +48,7 @@ pub fn create_opensearch_client() -> Result<OpenSearch, String> {
 }
 
 pub async fn exists_index(_index_name: String) -> Result<bool, String> {
-    let client = match create_opensearch_client() {
+	let client: OpenSearch = match create_opensearch_client() {
         Ok(client_value) => client_value,
         Err(error) => {
             log::error!("{:?}", error);
@@ -55,10 +56,10 @@ pub async fn exists_index(_index_name: String) -> Result<bool, String> {
         }
     };
     //  Get data
-    let _response = client.indices()
+	let _response: Result<opensearch::http::response::Response, opensearch::Error> = client.indices()
         .get(IndicesGetParts::Index(&[&_index_name]))
         .send().await;
-    let response = match _response {
+	let response: Response = match _response {
         Ok(value) => value,
         Err(error) => {
             log::error!("{:?}", error);
@@ -73,7 +74,7 @@ pub async fn exists_index(_index_name: String) -> Result<bool, String> {
 }
 
 pub async fn create_index_definition(_index: &dyn IndexDocument) -> Result<bool, String> {
-    let client = match create_opensearch_client() {
+	let client: OpenSearch = match create_opensearch_client() {
         Ok(client_value) => client_value,
         Err(error) => {
             log::error!("{:?}", error);
@@ -81,11 +82,11 @@ pub async fn create_index_definition(_index: &dyn IndexDocument) -> Result<bool,
         }
     };
     //  Get data
-    let _response = client.indices()
+	let _response: Result<opensearch::http::response::Response, opensearch::Error> = client.indices()
         .get(IndicesGetParts::Index(&[&_index.index_name()]))
         .send().await;
-    let response = match _response {
-        Ok(value) => value,
+	let response: Response = match _response {
+		Ok(value) => value,
         Err(error) => {
             log::error!("{:?}", error);
             return Err(error.to_string());
@@ -93,7 +94,7 @@ pub async fn create_index_definition(_index: &dyn IndexDocument) -> Result<bool,
     };
     if !response.status_code().is_success() {
         // Create an index
-        let _response = client
+		let _response: Result<opensearch::http::response::Response, opensearch::Error> = client
         .indices()
         .create(IndicesCreateParts::Index(&_index.index_name()))
         .body(_index.mapping())
@@ -118,7 +119,7 @@ pub async fn create_index_definition(_index: &dyn IndexDocument) -> Result<bool,
 }
 
 pub async fn delete_index_definition(_index: &dyn IndexDocument) -> Result<bool, String> {
-    let client = match create_opensearch_client() {
+	let client: OpenSearch = match create_opensearch_client() {
         Ok(client_value) => client_value,
         Err(error) => {
             log::error!("{:?}", error);
@@ -126,10 +127,10 @@ pub async fn delete_index_definition(_index: &dyn IndexDocument) -> Result<bool,
         }
     };
     //  Get data
-    let _response = client.indices()
+	let _response: Result<opensearch::http::response::Response, opensearch::Error> = client.indices()
         .get(IndicesGetParts::Index(&[&_index.index_name()]))
         .send().await;
-    let response = match _response {
+	let response: Response = match _response {
         Ok(value) => value,
         Err(error) => {
             log::error!("{:?}", error);
@@ -138,7 +139,7 @@ pub async fn delete_index_definition(_index: &dyn IndexDocument) -> Result<bool,
     };
     if response.status_code().is_success() {
         // Create an index
-        let _response = client
+		let _response: Result<Response, opensearch::Error> = client
         .indices()
         .delete(IndicesDeleteParts::Index(&[&_index.index_name()]))
         .send()
@@ -162,15 +163,15 @@ pub async fn delete_index_definition(_index: &dyn IndexDocument) -> Result<bool,
 }
 
 pub async fn create(_document: &dyn IndexDocument) -> Result<bool, std::string::String> {
-    let client: OpenSearch = match create_opensearch_client() {
+	let client: OpenSearch = match create_opensearch_client() {
         Ok(client_value) => client_value,
         Err(error) => {
             log::error!("{:?}", error);
             return Err(error.to_string());
         }
     };
-    let _response = create_index_definition(_document).await;
-    let _response = match _response {
+	let _response: Result<bool, String> = create_index_definition(_document).await;
+	let _response: bool = match _response {
         Ok(_) => true,
         Err(error) => {
             log::error!("{:?}", error);
@@ -187,11 +188,11 @@ pub async fn create(_document: &dyn IndexDocument) -> Result<bool, std::string::
         Err(_) => {},
     };
     //  Create
-    let _response = client
+	let _response: Result<Response, opensearch::Error> = client
         .index(IndexParts::IndexId(&_document.index_name(), &_document.id()))
         .body(_document.data())
         .send().await;
-    let _response = match _response {
+	let _response: Response = match _response {
         Ok(value) => value,
         Err(error) => {
             log::error!("{:?}", error);
@@ -205,7 +206,7 @@ pub async fn create(_document: &dyn IndexDocument) -> Result<bool, std::string::
 }
 
 pub async fn delete(_document: &dyn IndexDocument) -> Result<bool, std::string::String> {
-    let client = match create_opensearch_client() {
+	let client: OpenSearch = match create_opensearch_client() {
         Ok(client_value) => client_value,
         Err(error) => {
             log::error!("{:?}", error);
@@ -213,7 +214,7 @@ pub async fn delete(_document: &dyn IndexDocument) -> Result<bool, std::string::
         }
     };
     //  Create
-    let _response = client
+	let _response: Result<Response, opensearch::Error> = client
         .delete(DeleteParts::IndexId(&_document.index_name(), &_document.id()))
         .send().await;
     match _response {
@@ -243,7 +244,7 @@ pub async fn find(_document: &dyn IndexDocument, _search_value: String, _from: i
         .send()
 		.await
 	;
-    let response = match _response {
+	let response: Response = match _response {
         Ok(value) => value,
         Err(error) => {
             log::error!("{:?}", error);
@@ -253,16 +254,16 @@ pub async fn find(_document: &dyn IndexDocument, _search_value: String, _from: i
     if !response.status_code().is_success() {
         return Err(format!("Error finding record {:?}", response.text().await));
     }
-    let response_body = match response.json::<Value>().await {
+	let response_body: Value = match response.json::<Value>().await {
         Ok(response) => response,
         Err(error) => {
             log::error!("{:?}", error);
             return Err(error.to_string());
         },
     };
-    let mut list: Vec::<Value> = Vec::new();
+	let mut list: Vec::<Value> = Vec::new();
     for hit in response_body["hits"]["hits"].as_array().unwrap() {
-        let value = hit["_source"].to_owned();
+		let value: Value = hit["_source"].to_owned();
         list.push(value)
     }
     Ok(list)
@@ -285,7 +286,7 @@ pub async fn find_from_dsl_body(_index_name: String, _body: serde_json::Value, _
         .send()
 		.await
 	;
-    let response = match _response {
+	let response: Response = match _response {
         Ok(value) => value,
         Err(error) => {
             log::error!("{:?}", error);
@@ -295,23 +296,23 @@ pub async fn find_from_dsl_body(_index_name: String, _body: serde_json::Value, _
     if !response.status_code().is_success() {
         return Err(format!("Error finding record {:?}", response.text().await));
     }
-    let response_body = match response.json::<Value>().await {
+	let response_body: Value = match response.json::<Value>().await {
         Ok(response) => response,
         Err(error) => {
             log::error!("{:?}", error);
             return Err(error.to_string());
         },
     };
-    let mut list: Vec::<Value> = Vec::new();
+	let mut list: Vec::<Value> = Vec::new();
     for hit in response_body["hits"]["hits"].as_array().unwrap() {
-        let value = hit["_source"].to_owned();
+		let value: Value = hit["_source"].to_owned();
         list.push(value)
     }
     Ok(list)
 }
 
 pub async fn get_by_id(_document: &dyn IndexDocument) -> Result<Value, std::string::String> {
-    let client = match create_opensearch_client() {
+	let client: OpenSearch = match create_opensearch_client() {
         Ok(client_value) => client_value,
         Err(error) => {
             log::error!("{:?}", error);
@@ -319,10 +320,10 @@ pub async fn get_by_id(_document: &dyn IndexDocument) -> Result<Value, std::stri
         }
     };
     //  Create
-    let _response = client
+	let _response: Result<Response, opensearch::Error> = client
         .get(GetParts::IndexId(&_document.index_name(), &_document.id()))
         .send().await;
-    let _response = match _response {
+	let _response: Response = match _response {
         Ok(value) => value,
         Err(error) => {
             log::error!("{:?}", error);
@@ -332,7 +333,7 @@ pub async fn get_by_id(_document: &dyn IndexDocument) -> Result<Value, std::stri
     if !_response.status_code().is_success() {
         return Err(format!("Error finding record by ID {:?}", _response.text().await));
     }
-    let response_body = match _response.json::<Value>().await {
+	let response_body: Value = match _response.json::<Value>().await {
         Ok(response) => {
             response["_source"].to_owned()
         },

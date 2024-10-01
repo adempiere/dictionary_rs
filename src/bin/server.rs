@@ -185,7 +185,7 @@ async fn get_system_info<'a>(_req: &mut Request, _res: &mut Response) {
 		}.to_owned()
 	};
 
-	let system_info_response = SystemInfoResponse {
+	let system_info_response: SystemInfoResponse = SystemInfoResponse {
 		version: version.to_string(),
 		is_kafka_enabled: kafka_enabled.trim().eq("Y"),
 		kafka_queues: kafka_queues
@@ -209,13 +209,13 @@ struct ErrorResponse {
 async fn get_forms<'a>(_req: &mut Request, _res: &mut Response) {
 	let _id: Option<String> = _req.param::<String>("id");
 	let _language: Option<&String> = _req.queries().get("language");
-    let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
-    let _search_value = _req.queries().get("search_value");
+	let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
+	let _search_value: Option<&String> = _req.queries().get("search_value");
 	if _id.is_some() {
 		match form_from_id(_id, _language, _dictionary_code).await {
 			Ok(form) => _res.render(Json(form)),
 			Err(error) => {
-				let error_response = ErrorResponse {
+				let error_response: ErrorResponse = ErrorResponse {
 					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
 					message: error.to_string()
 				};
@@ -232,7 +232,7 @@ async fn get_forms<'a>(_req: &mut Request, _res: &mut Response) {
 				_res.render(Json(forms_list));
 			},
 			Err(error) => {
-				let error_response = ErrorResponse {
+				let error_response: ErrorResponse = ErrorResponse {
 					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
 					message: error.to_string()
 				};
@@ -247,14 +247,14 @@ async fn get_forms<'a>(_req: &mut Request, _res: &mut Response) {
 
 #[handler]
 async fn get_allowed_menu<'a>(_req: &mut Request, _res: &mut Response) {
-    let _language = _req.queries().get("language");
-	let _client_id = _req.queries().get("client_id");
-	let _role_id = _req.queries().get("role_id");
-    let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
+	let _language: Option<&String> = _req.queries().get("language");
+	let _client_id: Option<&String> = _req.queries().get("client_id");
+	let _role_id: Option<&String> = _req.queries().get("role_id");
+	let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
 	match allowed_menu(_language, _client_id, _role_id, _dictionary_code).await {
         Ok(menu) => _res.render(Json(menu)),
         Err(error) => {
-            let error_response = ErrorResponse {
+			let error_response: ErrorResponse = ErrorResponse {
                 status: StatusCode::INTERNAL_SERVER_ERROR.into(),
                 message: error.to_string()
             };
@@ -268,15 +268,15 @@ async fn get_allowed_menu<'a>(_req: &mut Request, _res: &mut Response) {
 
 #[handler]
 async fn get_processes<'a>(_req: &mut Request, _res: &mut Response) {
-    let _id = _req.param::<String>("id");
-    let _language = _req.queries().get("language");
-    let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
-    let _search_value = _req.queries().get("search_value");
-    if _id.is_some() {
+	let _id: Option<String> = _req.param::<String>("id");
+	let _language: Option<&String> = _req.queries().get("language");
+	let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
+	let _search_value: Option<&String> = _req.queries().get("search_value");
+	if _id.is_some() {
 		match process_from_id(_id, _language, _dictionary_code).await {
             Ok(process) => _res.render(Json(process)),
 			Err(error) => {
-				let error_response = ErrorResponse {
+				let error_response: ErrorResponse = ErrorResponse {
 					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
 					message: error.to_string()
 				};
@@ -307,15 +307,15 @@ async fn get_processes<'a>(_req: &mut Request, _res: &mut Response) {
 
 #[handler]
 async fn get_browsers<'a>(_req: &mut Request, _res: &mut Response) {
-    let _id = _req.param::<String>("id");
-    let _language = _req.queries().get("language");
-    let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
-    let _search_value = _req.queries().get("search_value");
-    if _id.is_some() {
+	let _id: Option<String> = _req.param::<String>("id");
+	let _language: Option<&String> = _req.queries().get("language");
+	let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
+	let _search_value: Option<&String> = _req.queries().get("search_value");
+	if _id.is_some() {
 		match browser_from_id(_id, _language, _dictionary_code).await {
             Ok(browser) => _res.render(Json(browser)),
 			Err(error) => {
-				let error_response = ErrorResponse {
+				let error_response: ErrorResponse = ErrorResponse {
 					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
 					message: error.to_string()
 				};
@@ -331,7 +331,7 @@ async fn get_browsers<'a>(_req: &mut Request, _res: &mut Response) {
                 _res.render(Json(browsers_list));
             },
 			Err(error) => {
-				let error_response = ErrorResponse {
+				let error_response: ErrorResponse = ErrorResponse {
 					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
 					message: error.to_string()
 				};
@@ -346,15 +346,15 @@ async fn get_browsers<'a>(_req: &mut Request, _res: &mut Response) {
 
 #[handler]
 async fn get_windows<'a>(_req: &mut Request, _res: &mut Response) {
-    let _id: Option<String> = _req.param::<String>("id");
-    let _language = _req.queries().get("language");
-    let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
-    let _search_value = _req.queries().get("search_value");
-    if _id.is_some() {
+	let _id: Option<String> = _req.param::<String>("id");
+	let _language: Option<&String> = _req.queries().get("language");
+	let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
+	let _search_value: Option<&String> = _req.queries().get("search_value");
+	if _id.is_some() {
 		match window_from_id(_id, _language, _dictionary_code).await {
             Ok(window) => _res.render(Json(window)),
 			Err(error) => {
-				let error_response = ErrorResponse {
+				let error_response: ErrorResponse = ErrorResponse {
 					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
 					message: error.to_string()
 				};
@@ -370,7 +370,7 @@ async fn get_windows<'a>(_req: &mut Request, _res: &mut Response) {
                 _res.render(Json(windows_list));
             },
 			Err(error) => {
-				let error_response = ErrorResponse {
+				let error_response: ErrorResponse = ErrorResponse {
 					status: StatusCode::INTERNAL_SERVER_ERROR.into(),
 					message: error.to_string()
 				};
@@ -418,7 +418,7 @@ async fn consume_queue() {
                 match consumer.recv().await {
                     Err(e) => log::error!("Kafka error: {}", e),
                     Ok(message) => {
-                        let payload = match message.payload_view::<str>() {
+						let payload: &str = match message.payload_view::<str>() {
                             None => "",
                             Some(Ok(s)) => s,
                             Some(Err(e)) => {
@@ -426,7 +426,7 @@ async fn consume_queue() {
                                 ""
                             }
                         };
-                        let key = match message.key_view::<str>() {
+						let key: &str = match message.key_view::<str>() {
                             None => "",
                             Some(Ok(s)) => s,
                             Some(Err(e)) => {
@@ -434,10 +434,10 @@ async fn consume_queue() {
                                 ""
                             }
                         };
-                        let event_type = key.replace("\"", "");
-                        let topic = message.topic();
+						let event_type: String = key.replace("\"", "");
+						let topic: &str = message.topic();
                         if topic == "menu_item" {
-                            let _document = match serde_json::from_str(payload) {
+							let _document: MenuItemDocument = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {
                                     log::warn!("Topic: {:?}, {}", topic, error);
@@ -454,7 +454,7 @@ async fn consume_queue() {
                                 }
                             }
                         } else if topic == "menu_tree" {
-                            let _document = match serde_json::from_str(payload) {
+							let _document: MenuTreeDocument = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {
                                     log::warn!("Topic: {:?}, {}", topic, error);
@@ -471,7 +471,7 @@ async fn consume_queue() {
                                 }
                             }
                         } else if topic == "role" {
-                            let _document = match serde_json::from_str(payload) {
+							let _document: RoleDocument = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {
                                     log::warn!("Topic: {:?}, {}", topic, error);
@@ -488,7 +488,7 @@ async fn consume_queue() {
                                 }
                             }
                         } else if topic == "process" {
-                            let _document = match serde_json::from_str(payload) {
+							let _document: ProcessDocument = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {
                                     log::warn!("Topic: {:?}, {}", topic, error);
@@ -505,7 +505,7 @@ async fn consume_queue() {
                                 }
                             }
                         } else if topic == "browser" {
-                            let _document = match serde_json::from_str(payload) {
+							let _document: BrowserDocument = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {
                                     log::warn!("Topic: {:?}, {}", topic, error);
@@ -522,7 +522,7 @@ async fn consume_queue() {
                                 }
                             }
                         } else if topic == "window" {
-                            let _document = match serde_json::from_str(payload) {
+							let _document: WindowDocument = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {
                                     log::warn!("Topic: {:?}, {}", topic, error);
@@ -539,7 +539,7 @@ async fn consume_queue() {
                                 }
                             }
 						} else if topic == "form" {
-							let _document = match serde_json::from_str(payload) {
+							let _document: FormDocument = match serde_json::from_str(payload) {
 								Ok(value) => value,
 								Err(error) => {
 									log::warn!("Topic: {:?}, {}", topic, error);

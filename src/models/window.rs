@@ -192,7 +192,7 @@ impl Default for Window {
 
 impl Window {
     pub fn from_id(_id: Option<String>) -> Self {
-        let mut window = Window::default();
+		let mut window: Window = Window::default();
         window.id = _id;
         window
     }
@@ -237,7 +237,7 @@ impl IndexDocument for Window {
     }
 
     fn find(self: &Self, _search_value: String) -> serde_json::Value {
-        let mut query = "*".to_owned();
+		let mut query: String = "*".to_owned();
         query.push_str(&_search_value.to_owned());
         query.push_str(&"*".to_owned());
 
@@ -337,7 +337,7 @@ pub async fn window_from_id(_id: Option<String>, _language: Option<&String>, _di
 }
 
 pub async fn windows(_language: Option<&String>, _search_value: Option<&String>, _dictionary_code: Option<&String>) -> Result<WindowListResponse, std::io::Error> {
-    let _search_value = match _search_value {
+	let _search_value: String = match _search_value {
         Some(value) => value.clone(),
         None => "".to_owned()
     };
