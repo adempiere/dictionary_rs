@@ -70,7 +70,7 @@ impl Default for MenuTree {
 
 impl MenuTree {
     pub fn from_id(_id: Option<String>) -> Self {
-        let mut menu = MenuTree::default();
+		let mut menu: MenuTree = MenuTree::default();
         menu.id = _id;
         menu
     }
@@ -114,7 +114,7 @@ impl IndexDocument for MenuTree {
     }
 
     fn find(self: &Self, _search_value: String) -> serde_json::Value {
-        let mut query = "*".to_owned();
+		let mut query: String = "*".to_owned();
         query.push_str(&_search_value.to_owned());
         query.push_str(&"*".to_owned());
 

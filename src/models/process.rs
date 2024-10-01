@@ -172,7 +172,7 @@ impl Default for Process {
 
 impl Process {
     pub fn from_id(_id: Option<String>) -> Self {
-        let mut process = Process::default();
+		let mut process: Process = Process::default();
         process.id = _id;
         process
     }
@@ -219,7 +219,7 @@ impl IndexDocument for Process {
     }
 
     fn find(self: &Self, _search_value: String) -> serde_json::Value {
-        let mut query = "*".to_owned();
+		let mut query: String = "*".to_owned();
         query.push_str(&_search_value.to_owned());
         query.push_str(&"*".to_owned());
 
@@ -304,7 +304,7 @@ pub async fn process_from_id(_id: Option<String>, _language: Option<&String>, _d
 }
 
 pub async fn processes(_language: Option<&String>, _search_value: Option<&String>, _dictionary_code: Option<&String>) -> Result<ProcessListResponse, std::io::Error> {
-    let _search_value = match _search_value {
+	let _search_value: String = match _search_value {
         Some(value) => value.clone(),
         None => "".to_owned()
     };
