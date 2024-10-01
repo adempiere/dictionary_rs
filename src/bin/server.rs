@@ -437,7 +437,7 @@ async fn consume_queue() {
                         let event_type = key.replace("\"", "");
                         let topic = message.topic();
                         if topic == "menu_item" {
-							let _document: MenuItemDocument = match serde_json::from_str(payload) {
+                            let _document = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {
                                     log::warn!("Topic: {:?}, {}", topic, error);
@@ -454,7 +454,7 @@ async fn consume_queue() {
                                 }
                             }
                         } else if topic == "menu_tree" {
-							let _document: MenuTreeDocument = match serde_json::from_str(payload) {
+                            let _document = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {
                                     log::warn!("Topic: {:?}, {}", topic, error);
@@ -471,7 +471,7 @@ async fn consume_queue() {
                                 }
                             }
                         } else if topic == "role" {
-							let _document: RoleDocument = match serde_json::from_str(payload) {
+                            let _document = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {
                                     log::warn!("Topic: {:?}, {}", topic, error);
@@ -488,7 +488,7 @@ async fn consume_queue() {
                                 }
                             }
                         } else if topic == "process" {
-							let _document: ProcessDocument = match serde_json::from_str(payload) {
+                            let _document = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {
                                     log::warn!("Topic: {:?}, {}", topic, error);
@@ -505,7 +505,7 @@ async fn consume_queue() {
                                 }
                             }
                         } else if topic == "browser" {
-							let _document: BrowserDocument = match serde_json::from_str(payload) {
+                            let _document = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {
                                     log::warn!("Topic: {:?}, {}", topic, error);
@@ -522,7 +522,7 @@ async fn consume_queue() {
                                 }
                             }
                         } else if topic == "window" {
-							let _document: WindowDocument = match serde_json::from_str(payload) {
+                            let _document = match serde_json::from_str(payload) {
                                 Ok(value) => value,
                                 Err(error) => {
                                     log::warn!("Topic: {:?}, {}", topic, error);
@@ -539,7 +539,7 @@ async fn consume_queue() {
                                 }
                             }
 						} else if topic == "form" {
-							let _document: FormDocument = match serde_json::from_str(payload) {
+							let _document = match serde_json::from_str(payload) {
 								Ok(value) => value,
 								Err(error) => {
 									log::warn!("Topic: {:?}, {}", topic, error);
