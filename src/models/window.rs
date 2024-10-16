@@ -270,6 +270,7 @@ pub struct Process {
     pub description: Option<String>,
     pub help: Option<String>,
 	pub is_report: Option<bool>,
+	pub is_multi_selection: Option<bool>,
 	//	Linked
 	pub browser_id: Option<i32>,
 	pub browser: Option<DictionaryEntity>,
