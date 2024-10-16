@@ -70,7 +70,7 @@ impl Default for Form {
 
 impl Form {
 	pub fn from_id(_id: Option<String>) -> Self {
-		let mut form = Form::default();
+		let mut form: Form = Form::default();
 		form.id = _id;
 		form
 	}
@@ -116,7 +116,7 @@ impl IndexDocument for Form {
 	}
 
 	fn find(self: &Self, _search_value: String) -> serde_json::Value {
-		let mut query = "*".to_owned();
+		let mut query: String = "*".to_owned();
 		query.push_str(&_search_value.to_owned());
 		query.push_str(&"*".to_owned());
 
@@ -168,7 +168,7 @@ pub async fn form_from_id(_id: Option<String>, _language: Option<&String>, _dict
 }
 
 pub async fn forms(_language: Option<&String>, _search_value: Option<&String>, _dictionary_code: Option<&String>) -> Result<FormsListResponse, std::io::Error> {
-	let _search_value = match _search_value {
+	let _search_value: String = match _search_value {
 		Some(value) => value.clone(),
 		None => "".to_owned()
 	};

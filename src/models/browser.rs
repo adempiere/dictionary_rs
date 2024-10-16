@@ -177,7 +177,7 @@ impl Default for Browser {
 
 impl Browser {
     pub fn from_id(_id: Option<String>) -> Self {
-        let mut browser = Browser::default();
+		let mut browser: Browser = Browser::default();
         browser.id = _id;
         browser
     }
@@ -223,7 +223,7 @@ impl IndexDocument for Browser {
     }
 
     fn find(self: &Self, _search_value: String) -> serde_json::Value {
-        let mut query = "*".to_owned();
+		let mut query: String = "*".to_owned();
         query.push_str(&_search_value.to_owned());
         query.push_str(&"*".to_owned());
 
@@ -323,7 +323,7 @@ pub async fn browser_from_id(_id: Option<String>, _language: Option<&String>, _d
 }
 
 pub async fn browsers(_language: Option<&String>, _search_value: Option<&String>, _dictionary_code: Option<&String>) -> Result<BrowserListResponse, std::io::Error> {
-    let _search_value = match _search_value {
+	let _search_value: String = match _search_value {
         Some(value) => value.clone(),
         None => "".to_owned()
     };
@@ -343,7 +343,7 @@ pub async fn browsers(_language: Option<&String>, _search_value: Option<&String>
     let _browser_document: &dyn IndexDocument = &_document;
     match find(_browser_document, _search_value, 0, 10).await {
         Ok(values) => {
-            let mut browsers_list: Vec<Browser> = vec![];
+			let mut browsers_list: Vec<Browser> = vec![];
             for value in values {
 				let mut browser: Browser = serde_json::from_value(value).unwrap();
 				// sort fields by sequence

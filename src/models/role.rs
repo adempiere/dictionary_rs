@@ -129,7 +129,7 @@ impl IndexDocument for Role {
     }
 
     fn find(self: &Self, _search_value: String) -> serde_json::Value {
-        let mut query = "*".to_owned();
+		let mut query: String = "*".to_owned();
         query.push_str(&_search_value.to_owned());
         query.push_str(&"*".to_owned());
 

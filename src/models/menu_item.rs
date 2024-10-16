@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use salvo::prelude::*;
-use serde_json::json;
+use serde_json::{json, Value};
 use std::{io::ErrorKind, io::Error};
 
 use crate::controller::opensearch::{find_from_dsl_body, IndexDocument};
@@ -306,7 +306,7 @@ impl IndexDocument for MenuItem {
     }
 
     fn find(self: &Self, _search_value: String) -> serde_json::Value {
-        let mut query = "*".to_owned();
+		let mut query: String = "*".to_owned();
         query.push_str(&_search_value.to_owned());
         query.push_str(&"*".to_owned());
 
@@ -321,7 +321,7 @@ impl IndexDocument for MenuItem {
 }
 
 pub async fn menu_items_from_role(_role: Role, _language: Option<&String>, _dictionary_code: Option<&String>, _page_number: Option<i64>, _page_size: Option<i64>) -> Result<Vec<MenuItem>, std::io::Error> {
-	let mut _search_body = MenuItem::get_find_body_from_role(_role);
+	let mut _search_body: Value = MenuItem::get_find_body_from_role(_role);
 	let _index_name: String = match get_index_name("menu_item".to_string(), _language,_dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {

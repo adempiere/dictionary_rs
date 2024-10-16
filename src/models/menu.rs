@@ -95,13 +95,13 @@ impl Default for Menu {
 
 impl Menu {
 	pub fn from_id(_id: Option<String>) -> Self {
-		let mut menu = Menu::default();
+		let mut menu: Menu = Menu::default();
 		menu.id = _id;
 		menu
 	}
 
 	pub fn from_menu_item(_menu_item: MenuItem) -> Self {
-		let mut menu = Menu::default();
+		let mut menu: Menu = Menu::default();
 
 		menu.uuid = _menu_item.uuid;
 		menu.internal_id = _menu_item.internal_id;
