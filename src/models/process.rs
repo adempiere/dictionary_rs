@@ -67,6 +67,7 @@ pub struct Process {
     pub help: Option<String>,
 	pub is_active: Option<bool>,
     pub show_help: Option<String>,
+	pub is_multi_selection: Option<bool>,
 	//	Report
     pub is_report: Option<bool>,
 	pub is_process_before_launch: Option<bool>,
@@ -143,6 +144,7 @@ impl Default for Process {
             help: None, 
 			is_active: None,
 			show_help: None,
+			is_multi_selection: None,
 			//	Report
 			is_report: None,
 			is_process_before_launch: None,
