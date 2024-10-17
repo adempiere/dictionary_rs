@@ -109,6 +109,9 @@ pub struct DependendField {
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Reference {
+	pub table_name: Option<String>,
+	pub reference_id: Option<i32>,
+	pub reference_value_id: Option<i32>,
 	pub context_column_names: Option<Vec<String>>
 }
 
