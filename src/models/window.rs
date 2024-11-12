@@ -285,15 +285,18 @@ pub struct Process {
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Table {
-    pub table_name: Option<String>,
-    pub access_level: Option<String>,
-    pub key_columns: Option<Vec<String>>,
-    pub is_view: Option<bool>,
-    pub is_document: Option<bool>,
-    pub is_deleteable: Option<bool>,
-    pub is_change_log: Option<bool>,
-    pub identifier_columns: Option<Vec<String>>,
-    pub selection_colums: Option<Vec<String>>,
+	pub uuid: Option<String>,
+	pub internal_id: Option<i32>,
+	pub id: Option<String>,
+	pub table_name: Option<String>,
+	pub access_level: Option<String>,
+	pub key_columns: Option<Vec<String>>,
+	pub is_view: Option<bool>,
+	pub is_document: Option<bool>,
+	pub is_deleteable: Option<bool>,
+	pub is_change_log: Option<bool>,
+	pub identifier_columns: Option<Vec<String>>,
+	pub selection_colums: Option<Vec<String>>,
 }
 
 pub async fn window_from_id(_id: Option<String>, _language: Option<&String>, _dictionary_code: Option<&String>) -> Result<Window, String> {
