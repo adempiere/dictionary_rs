@@ -39,6 +39,7 @@ pub struct Form {
 	pub description: Option<String>,
 	pub help: Option<String>,
 	pub is_active: Option<bool>,
+	pub is_beta_functionality: Option<bool>,
 	//	Index
 	pub index_value: Option<String>,
 	pub language: Option<String>,
@@ -58,6 +59,7 @@ impl Default for Form {
 			description: None,
 			help: None,
 			is_active: None,
+			is_beta_functionality: None,
 			//	Index
 			index_value: None,
 			language: None,
