@@ -262,16 +262,18 @@ pub struct Window {
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Table {
-    pub uuid: Option<String>,
-    pub internal_id: Option<i32>,
-    pub id: Option<String>,
-    pub name: Option<String>,
-    pub table_name: Option<String>,
-    pub description: Option<String>,
-    pub help: Option<String>,
-    pub is_document: Option<bool>,
-    pub is_deleteable: Option<bool>,
-    pub is_view: Option<bool>,
+	pub uuid: Option<String>,
+	pub internal_id: Option<i32>,
+	pub id: Option<String>,
+	pub table_name: Option<String>,
+	pub access_level: Option<String>,
+	pub key_columns: Option<Vec<String>>,
+	pub is_view: Option<bool>,
+	pub is_document: Option<bool>,
+	pub is_deleteable: Option<bool>,
+	pub is_change_log: Option<bool>,
+	pub identifier_columns: Option<Vec<String>>,
+	pub selection_colums: Option<Vec<String>>,
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
