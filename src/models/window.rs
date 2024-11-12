@@ -38,6 +38,7 @@ pub struct Window {
     pub description: Option<String>,
     pub help: Option<String>,
 	pub is_active: Option<bool>,
+	pub is_beta_functionality: Option<bool>,
     pub window_type: Option<String>,
 	pub is_sales_transaction: Option<bool>,
 	//	Index
@@ -181,6 +182,7 @@ impl Default for Window {
             description: None, 
             help: None, 
 			is_active: None,
+			is_beta_functionality: None,
             client_id: None,
             index_value: None,
             language: None,
