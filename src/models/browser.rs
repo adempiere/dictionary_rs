@@ -69,6 +69,7 @@ pub struct Browser {
 	// External Reference
 	pub context_column_names: Option<Vec<String>>,
 	pub process_id: Option<i32>,
+	pub process_uuid: Option<String>,
 	pub process: Option<DictionaryEntity>,
 	pub window_id: Option<i32>,
 	pub window: Option<DictionaryEntity>,
@@ -164,6 +165,7 @@ impl Default for Browser {
 			// External Reference
 			context_column_names: None,
 			process_id: None,
+			process_uuid: None,
 			process: None,
 			window_id: None,
 			window: None,
