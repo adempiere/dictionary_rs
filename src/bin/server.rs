@@ -349,9 +349,11 @@ async fn get_windows<'a>(_req: &mut Request, _res: &mut Response) {
 	let _id: Option<String> = _req.param::<String>("id");
 	let _language: Option<&String> = _req.queries().get("language");
 	let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
+	let _client_id: Option<&String> = _req.queries().get("client_id");
+	let _role_id: Option<&String> = _req.queries().get("role_id");
 	let _search_value: Option<&String> = _req.queries().get("search_value");
 	if _id.is_some() {
-		match window_from_id(_id, _language, _dictionary_code).await {
+		match window_from_id(_id, _language, _dictionary_code, _client_id, _role_id).await {
             Ok(window) => _res.render(Json(window)),
 			Err(error) => {
 				let error_response: ErrorResponse = ErrorResponse {
