@@ -89,7 +89,9 @@ pub struct WindowTab {
 	pub context_column_names: Option<Vec<String>>,
 	pub window_id: Option<i32>,
 	pub process_id: Option<i32>,
+	pub process_uuid: Option<String>,
 	pub process: Option<Process>,
+	pub processes_uuid: Option<Vec<String>>,
 	pub processes: Option<Vec<Process>>,
 	//	Fields
     pub fields: Option<Vec<WindowField>>
