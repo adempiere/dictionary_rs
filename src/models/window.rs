@@ -327,13 +327,18 @@ pub async fn window_from_id(_id: Option<String>, _language: Option<&String>, _di
 			let mut window: Window = serde_json::from_value(value).unwrap();
 			log::info!("Finded Window Value: {:?}", window.id);
 
-			// sort tabs by sequence
+			// sort tabs list by sequence
 			if let Some(ref mut tabs) = window.tabs {
-				tabs.sort_by_key(|tab| tab.sequence.clone().unwrap_or(0));
+				// sort tabs list by sequence
+				tabs.sort_by_key(|tab: &WindowTab| tab.sequence.clone().unwrap_or(0));
 				for tab in tabs.iter_mut() {
-					// sort fields by sequence
+					// sort processes list by name
+					if let Some(ref mut processes) = tab.processes {
+						processes.sort_by_key(|process: &Process| process.name.clone().unwrap_or("".to_owned()));
+					}
+					// sort fields list by sequence
 					if let Some(ref mut fields) = tab.fields {
-						fields.sort_by_key(|field| field.sequence.clone().unwrap_or(0));
+						fields.sort_by_key(|field: &WindowField| field.sequence.clone().unwrap_or(0));
 					}
 				}
 			}
@@ -373,11 +378,16 @@ pub async fn windows(_language: Option<&String>, _search_value: Option<&String>,
 				let mut window: Window = serde_json::from_value(value).unwrap();
 				// sort tabs by sequence
 				if let Some(ref mut tabs) = window.tabs {
-					tabs.sort_by_key(|tab| tab.sequence.clone().unwrap_or(0));
+					// sort tabs list by sequence
+					tabs.sort_by_key(|tab: &WindowTab| tab.sequence.clone().unwrap_or(0));
 					for tab in tabs.iter_mut() {
-						// sort fields by sequence
+						// sort processes list by name
+						if let Some(ref mut processes) = tab.processes {
+							processes.sort_by_key(|process: &Process| process.name.clone().unwrap_or("".to_owned()));
+						}
+						// sort fields list by sequence
 						if let Some(ref mut fields) = tab.fields {
-							fields.sort_by_key(|field| field.sequence.clone().unwrap_or(0));
+							fields.sort_by_key(|field: &WindowField| field.sequence.clone().unwrap_or(0));
 						}
 					}
 				}
@@ -388,6 +398,9 @@ pub async fn windows(_language: Option<&String>, _search_value: Option<&String>,
                 windows: Some(windows_list)
             })
         },
-        Err(error) => Err(Error::new(ErrorKind::InvalidData.into(), error))
+		Err(error) => {
+			log::error!("{}", error);
+			Err(Error::new(ErrorKind::InvalidData.into(), error))
+		}
     }
 }
