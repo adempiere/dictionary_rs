@@ -132,6 +132,7 @@ pub struct WindowField {
 	pub is_allow_copy: Option<bool>,
 	pub is_heading: Option<bool>,
 	pub is_field_only: Option<bool>,
+	pub is_quick_entry: Option<bool>,
 	//	Column Properties
     pub column_name: Option<String>,
 	pub column_sql: Option<String>,
