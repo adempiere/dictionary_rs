@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use salvo::prelude::*;
-use serde_json::json;
+use serde_json::{json, Value};
 use std::{io::ErrorKind, io::Error};
 
 use crate::{controller::opensearch::{find, get_by_id, IndexDocument}, models::get_index_name};
@@ -304,6 +304,29 @@ pub struct Table {
 	pub selection_colums: Option<Vec<String>>,
 }
 
+
+pub fn parse_window(value: Value) -> Window {
+	let mut window: Window = serde_json::from_value(value).unwrap();
+
+	// sort tabs list by sequence
+	if let Some(ref mut tabs) = window.tabs {
+		// sort tabs list by sequence
+		tabs.sort_by_key(|tab: &WindowTab| tab.sequence.clone().unwrap_or(0));
+		for tab in tabs.iter_mut() {
+			// sort processes list by name
+			if let Some(ref mut processes) = tab.processes {
+				processes.sort_by_key(|process: &Process| process.name.clone().unwrap_or("".to_owned()));
+			}
+			// sort fields list by sequence
+			if let Some(ref mut fields) = tab.fields {
+				fields.sort_by_key(|field: &WindowField| field.sequence.clone().unwrap_or(0));
+			}
+		}
+	}
+	window.to_owned()
+}
+
+
 pub async fn window_from_id(_id: Option<String>, _language: Option<&String>, _dictionary_code: Option<&String>) -> Result<Window, String> {
 	if _id.is_none() || _id.as_deref().map_or(false, |s| s.trim().is_empty()) {
 		return Err(
@@ -325,24 +348,8 @@ pub async fn window_from_id(_id: Option<String>, _language: Option<&String>, _di
     let _window_document: &dyn IndexDocument = &_document;
     match get_by_id(_window_document).await {
         Ok(value) => {
-			let mut window: Window = serde_json::from_value(value).unwrap();
-			log::info!("Finded Window Value: {:?}", window.id);
-
-			// sort tabs list by sequence
-			if let Some(ref mut tabs) = window.tabs {
-				// sort tabs list by sequence
-				tabs.sort_by_key(|tab: &WindowTab| tab.sequence.clone().unwrap_or(0));
-				for tab in tabs.iter_mut() {
-					// sort processes list by name
-					if let Some(ref mut processes) = tab.processes {
-						processes.sort_by_key(|process: &Process| process.name.clone().unwrap_or("".to_owned()));
-					}
-					// sort fields list by sequence
-					if let Some(ref mut fields) = tab.fields {
-						fields.sort_by_key(|field: &WindowField| field.sequence.clone().unwrap_or(0));
-					}
-				}
-			}
+			let window: Window = parse_window(value);
+			log::info!("Finded Window {:?} Value: {:?}", window.name, window.id);
 
             Ok(window)
         },
@@ -376,22 +383,7 @@ pub async fn windows(_language: Option<&String>, _search_value: Option<&String>,
         Ok(values) => {
             let mut windows_list: Vec<Window> = vec![];
             for value in values {
-				let mut window: Window = serde_json::from_value(value).unwrap();
-				// sort tabs by sequence
-				if let Some(ref mut tabs) = window.tabs {
-					// sort tabs list by sequence
-					tabs.sort_by_key(|tab: &WindowTab| tab.sequence.clone().unwrap_or(0));
-					for tab in tabs.iter_mut() {
-						// sort processes list by name
-						if let Some(ref mut processes) = tab.processes {
-							processes.sort_by_key(|process: &Process| process.name.clone().unwrap_or("".to_owned()));
-						}
-						// sort fields list by sequence
-						if let Some(ref mut fields) = tab.fields {
-							fields.sort_by_key(|field: &WindowField| field.sequence.clone().unwrap_or(0));
-						}
-					}
-				}
+				let window: Window = parse_window(value);
                 windows_list.push(window.to_owned());
             }
 

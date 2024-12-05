@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use salvo::prelude::*;
-use serde_json::json;
+use serde_json::{json, Value};
 use std::{io::ErrorKind, io::Error};
 
 use crate::{controller::opensearch::{find, get_by_id, IndexDocument}, models::get_index_name};
@@ -132,6 +132,12 @@ impl IndexDocument for Form {
 	}
 }
 
+
+pub fn parse_form(value: Value) -> Form {
+	let form: Form = serde_json::from_value(value).unwrap();
+	form.to_owned()
+}
+
 pub async fn form_from_id(_id: Option<String>, _language: Option<&String>, _dictionary_code: Option<&String>) -> Result<Form, String> {
 	if _id.is_none() || _id.as_deref().map_or(false, |s| s.trim().is_empty()) {
 		return Err(
@@ -153,8 +159,8 @@ pub async fn form_from_id(_id: Option<String>, _language: Option<&String>, _dict
 	let _form_document: &dyn IndexDocument = &_document;
 	match get_by_id(_form_document).await {
 		Ok(value) => {
-			let form: Form = serde_json::from_value(value).unwrap();
-			log::info!("Finded Form Value: {:?}", form.id);
+			let form: Form = parse_form(value);
+			log::info!("Finded Form {:?} Value: {:?}", form.name, form.id);
 			// Ok(FormResponse {
 			// 	form: Some(form)
 			// })
@@ -192,7 +198,7 @@ pub async fn forms(_language: Option<&String>, _search_value: Option<&String>, _
 		Ok(values) => {
 			let mut forms_list: Vec<Form> = vec![];
 			for value in values {
-				let form: Form = serde_json::from_value(value).unwrap();
+				let form: Form = parse_form(value);
 				forms_list.push(form.to_owned());
 			}
 			Ok(FormsListResponse {

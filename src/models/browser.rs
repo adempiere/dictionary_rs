@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use salvo::prelude::*;
-use serde_json::json;
+use serde_json::{json, Value};
 use std::{io::ErrorKind, io::Error};
 
 use crate::{controller::opensearch::{find, get_by_id, IndexDocument}, models::get_index_name};
@@ -291,6 +291,18 @@ pub struct DependendField {
     pub parent_name: Option<String>
 }
 
+
+pub fn parse_browser(value: Value) -> Browser {
+	let mut browser: Browser = serde_json::from_value(value).unwrap();
+
+	// sort fields by sequence
+	if let Some(ref mut fields) = browser.fields {
+		fields.sort_by_key(|field| field.sequence.clone().unwrap_or(0));
+	}
+	browser.to_owned()
+}
+
+
 pub async fn browser_from_id(_id: Option<String>, _language: Option<&String>, _dictionary_code: Option<&String>) -> Result<Browser, String> {
 	if _id.is_none() || _id.as_deref().map_or(false, |s| s.trim().is_empty()) {
 		return Err(
@@ -312,17 +324,12 @@ pub async fn browser_from_id(_id: Option<String>, _language: Option<&String>, _d
     let _browser_document: &dyn IndexDocument = &_document;
     match get_by_id(_browser_document).await {
         Ok(value) => {
-			let mut browser: Browser = serde_json::from_value(value).unwrap();
-            log::info!("Finded Value: {:?}", browser.id);
+			let browser: Browser = parse_browser(value);
+			log::info!("Finded Browser {:?}: {:?}", browser.name, browser.id);
 
-			// sort fields by sequence
-			if let Some(ref mut fields) = browser.fields {
-				fields.sort_by_key(|field| field.sequence.clone().unwrap_or(0));
-			}
-
-            Ok(
-                browser
-            )
+			Ok(
+				browser
+			)
         },
         Err(error) => {
 			log::error!("{}", error);
@@ -354,11 +361,8 @@ pub async fn browsers(_language: Option<&String>, _search_value: Option<&String>
         Ok(values) => {
 			let mut browsers_list: Vec<Browser> = vec![];
             for value in values {
-				let mut browser: Browser = serde_json::from_value(value).unwrap();
-				// sort fields by sequence
-				if let Some(ref mut fields) = browser.fields {
-					fields.sort_by_key(|field| field.sequence.clone().unwrap_or(0));
-				}
+				let browser: Browser = parse_browser(value);
+
                 browsers_list.push(browser.to_owned());
             }
             Ok(BrowserListResponse {

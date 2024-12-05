@@ -89,7 +89,7 @@ fn routes() -> Router {
 				)
 				.push(
 					// /api/dictionary
-			Router::with_path("dictionary")
+					Router::with_path("dictionary")
 						.push(
 							// /api/dictionary/browsers/
 							Router::with_path("browsers")
@@ -115,8 +115,8 @@ fn routes() -> Router {
 								)
 						)
 						.push(
-						// /api/dictionary/processes
-					Router::with_path("processes")
+							// /api/dictionary/processes
+							Router::with_path("processes")
 								.options(options_response)
 								.get(get_processes)
 								.push(
