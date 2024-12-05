@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use salvo::prelude::*;
-use serde_json::json;
+use serde_json::{json, Value};
 use std::{io::ErrorKind, io::Error};
 
 use crate::{controller::opensearch::{find, get_by_id, IndexDocument}, models::get_index_name};
@@ -270,6 +270,18 @@ pub struct Workflow {
     pub help: Option<String>,
 }
 
+
+pub fn parse_process(value: Value) -> Process {
+	let mut process: Process = serde_json::from_value(value).unwrap();
+
+	// sort process parameter list by sequence
+	if let Some(ref mut parameters) = process.parameters {
+		parameters.sort_by_key(|parameter: &ProcessParameters| parameter.sequence.clone().unwrap_or(0));
+	}
+	process.to_owned()
+}
+
+
 pub async fn process_from_id(_id: Option<String>, _language: Option<&String>, _dictionary_code: Option<&String>) -> Result<Process, String> {
 	if _id.is_none() || _id.as_deref().map_or(false, |s| s.trim().is_empty()) {
 		return Err(
@@ -291,13 +303,8 @@ pub async fn process_from_id(_id: Option<String>, _language: Option<&String>, _d
     let _process_document: &dyn IndexDocument = &_document;
     match get_by_id(_process_document).await {
         Ok(value) => {
-			let mut process: Process = serde_json::from_value(value).unwrap();
-			log::info!("Finded Process Value: {:?}", process.id);
-
-			// sort process parameter by sequence
-			if let Some(ref mut parameters) = process.parameters {
-				parameters.sort_by_key(|parameter| parameter.sequence.clone().unwrap_or(0));
-			}
+			let process: Process = parse_process(value);
+			log::info!("Finded Process {:?} Value: {:?}", process.name, process.id);
 
             Ok(
                 process
@@ -333,11 +340,8 @@ pub async fn processes(_language: Option<&String>, _search_value: Option<&String
         Ok(values) => {
             let mut processes_list: Vec<Process> = vec![];
             for value in values {
-				let mut process: Process = serde_json::from_value(value).unwrap();
-				// sort process parameter by sequence
-				if let Some(ref mut parameters) = process.parameters {
-					parameters.sort_by_key(|parameter| parameter.sequence.clone().unwrap_or(0));
-				}
+				let process: Process = parse_process(value);
+
                 processes_list.push(process.to_owned());
             }
 
