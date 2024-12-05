@@ -38,6 +38,7 @@ pub struct Window {
     pub description: Option<String>,
     pub help: Option<String>,
 	pub is_active: Option<bool>,
+	pub is_beta_functionality: Option<bool>,
     pub window_type: Option<String>,
 	pub is_sales_transaction: Option<bool>,
 	//	Index
@@ -88,7 +89,9 @@ pub struct WindowTab {
 	pub context_column_names: Option<Vec<String>>,
 	pub window_id: Option<i32>,
 	pub process_id: Option<i32>,
+	pub process_uuid: Option<String>,
 	pub process: Option<Process>,
+	pub processes_uuid: Option<Vec<String>>,
 	pub processes: Option<Vec<Process>>,
 	//	Fields
     pub fields: Option<Vec<WindowField>>
@@ -129,6 +132,7 @@ pub struct WindowField {
 	pub is_allow_copy: Option<bool>,
 	pub is_heading: Option<bool>,
 	pub is_field_only: Option<bool>,
+	pub is_quick_entry: Option<bool>,
 	//	Column Properties
     pub column_name: Option<String>,
 	pub column_sql: Option<String>,
@@ -181,6 +185,7 @@ impl Default for Window {
             description: None, 
             help: None, 
 			is_active: None,
+			is_beta_functionality: None,
             client_id: None,
             index_value: None,
             language: None,
@@ -285,15 +290,18 @@ pub struct Process {
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Table {
-    pub table_name: Option<String>,
-    pub access_level: Option<String>,
-    pub key_columns: Option<Vec<String>>,
-    pub is_view: Option<bool>,
-    pub is_document: Option<bool>,
-    pub is_deleteable: Option<bool>,
-    pub is_change_log: Option<bool>,
-    pub identifier_columns: Option<Vec<String>>,
-    pub selection_colums: Option<Vec<String>>,
+	pub uuid: Option<String>,
+	pub internal_id: Option<i32>,
+	pub id: Option<String>,
+	pub table_name: Option<String>,
+	pub access_level: Option<String>,
+	pub key_columns: Option<Vec<String>>,
+	pub is_view: Option<bool>,
+	pub is_document: Option<bool>,
+	pub is_deleteable: Option<bool>,
+	pub is_change_log: Option<bool>,
+	pub identifier_columns: Option<Vec<String>>,
+	pub selection_colums: Option<Vec<String>>,
 }
 
 pub async fn window_from_id(_id: Option<String>, _language: Option<&String>, _dictionary_code: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>) -> Result<Window, String> {
@@ -338,9 +346,10 @@ pub async fn window_from_id(_id: Option<String>, _language: Option<&String>, _di
 			let mut window: Window = serde_json::from_value(value).unwrap();
 			log::info!("Finded Window Value: {:?}", window.id);
 
-			// sort tabs by sequence
+			// sort tabs list by sequence
 			if let Some(ref mut tabs) = window.tabs {
-				tabs.sort_by_key(|tab| tab.sequence.clone().unwrap_or(0));
+				// sort tabs list by sequence
+				tabs.sort_by_key(|tab: &WindowTab| tab.sequence.clone().unwrap_or(0));
 				for tab in tabs.iter_mut() {
 					// verify direct process access
 					if let Some(ref mut process) = tab.process {
@@ -373,9 +382,13 @@ pub async fn window_from_id(_id: Option<String>, _language: Option<&String>, _di
 						*processes = filtered_processes;
 					}
 
-					// sort fields by sequence
+					// sort processes list by name
+					if let Some(ref mut processes) = tab.processes {
+						processes.sort_by_key(|process: &Process| process.name.clone().unwrap_or("".to_owned()));
+					}
+					// sort fields list by sequence
 					if let Some(ref mut fields) = tab.fields {
-						fields.sort_by_key(|field| field.sequence.clone().unwrap_or(0));
+						fields.sort_by_key(|field: &WindowField| field.sequence.clone().unwrap_or(0));
 					}
 				}
 			}
@@ -415,11 +428,16 @@ pub async fn windows(_language: Option<&String>, _search_value: Option<&String>,
 				let mut window: Window = serde_json::from_value(value).unwrap();
 				// sort tabs by sequence
 				if let Some(ref mut tabs) = window.tabs {
-					tabs.sort_by_key(|tab| tab.sequence.clone().unwrap_or(0));
+					// sort tabs list by sequence
+					tabs.sort_by_key(|tab: &WindowTab| tab.sequence.clone().unwrap_or(0));
 					for tab in tabs.iter_mut() {
-						// sort fields by sequence
+						// sort processes list by name
+						if let Some(ref mut processes) = tab.processes {
+							processes.sort_by_key(|process: &Process| process.name.clone().unwrap_or("".to_owned()));
+						}
+						// sort fields list by sequence
 						if let Some(ref mut fields) = tab.fields {
-							fields.sort_by_key(|field| field.sequence.clone().unwrap_or(0));
+							fields.sort_by_key(|field: &WindowField| field.sequence.clone().unwrap_or(0));
 						}
 					}
 				}
@@ -430,6 +448,9 @@ pub async fn windows(_language: Option<&String>, _search_value: Option<&String>,
                 windows: Some(windows_list)
             })
         },
-        Err(error) => Err(Error::new(ErrorKind::InvalidData.into(), error))
+		Err(error) => {
+			log::error!("{}", error);
+			Err(Error::new(ErrorKind::InvalidData.into(), error))
+		}
     }
 }

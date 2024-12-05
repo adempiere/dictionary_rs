@@ -49,6 +49,7 @@ pub struct Browser {
     pub description: Option<String>,
     pub help: Option<String>,
 	pub is_active: Option<bool>,
+	pub is_beta_functionality: Option<bool>,
 	pub is_execute_query_by_default: Option<bool>,
 	pub is_collapsible_by_default: Option<bool>,
 	pub is_selected_by_default: Option<bool>,
@@ -69,6 +70,7 @@ pub struct Browser {
 	// External Reference
 	pub context_column_names: Option<Vec<String>>,
 	pub process_id: Option<i32>,
+	pub process_uuid: Option<String>,
 	pub process: Option<DictionaryEntity>,
 	pub window_id: Option<i32>,
 	pub window: Option<DictionaryEntity>,
@@ -144,6 +146,7 @@ impl Default for Browser {
             description: None, 
             help: None, 
 			is_active: None,
+			is_beta_functionality: None,
             is_execute_query_by_default: None,
 			is_collapsible_by_default: None,
             is_selected_by_default: None,
@@ -164,6 +167,7 @@ impl Default for Browser {
 			// External Reference
 			context_column_names: None,
 			process_id: None,
+			process_uuid: None,
 			process: None,
 			window_id: None,
 			window: None,
@@ -262,16 +266,18 @@ pub struct Window {
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
 pub struct Table {
-    pub uuid: Option<String>,
-    pub internal_id: Option<i32>,
-    pub id: Option<String>,
-    pub name: Option<String>,
-    pub table_name: Option<String>,
-    pub description: Option<String>,
-    pub help: Option<String>,
-    pub is_document: Option<bool>,
-    pub is_deleteable: Option<bool>,
-    pub is_view: Option<bool>,
+	pub uuid: Option<String>,
+	pub internal_id: Option<i32>,
+	pub id: Option<String>,
+	pub table_name: Option<String>,
+	pub access_level: Option<String>,
+	pub key_columns: Option<Vec<String>>,
+	pub is_view: Option<bool>,
+	pub is_document: Option<bool>,
+	pub is_deleteable: Option<bool>,
+	pub is_change_log: Option<bool>,
+	pub identifier_columns: Option<Vec<String>>,
+	pub selection_colums: Option<Vec<String>>,
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
