@@ -34,6 +34,7 @@ pub struct MenuTree {
 	pub uuid: Option<String>,
 	pub id: Option<String>,
 	pub internal_id: Option<i32>,
+	pub name: Option<String>,
     pub node_id: Option<i32>,
     pub parent_id: Option<i32>,
     pub sequence: Option<i32>,
@@ -53,6 +54,7 @@ impl Default for MenuTree {
 			uuid: None,
 			id: None,
 			internal_id: None,
+			name: None,
             node_id: None,
             parent_id: None, 
             sequence: None, 
@@ -153,7 +155,7 @@ pub async fn menu_tree_from_id(_id: Option<String>, _dictionary_code: Option<&St
 			log::info!("Finded Menu Tree Value: {:?}", menu.id);
 			// sort menu children nodes by sequence
 			if let Some(ref mut children) = menu.children {
-				children.sort_by_key(|child| child.sequence.clone().unwrap_or(0));
+				children.sort_by_key(|child: &MenuTree| child.sequence.clone().unwrap_or(0));
 			}
             Ok(menu)
         },
