@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use salvo::prelude::*;
-use serde_json::json;
+use serde_json::{json, Value};
 use std::{io::ErrorKind, io::Error};
 
 use crate::{controller::opensearch::{find, get_by_id, IndexDocument}, models::{get_index_name, role::{role_from_id, Role}}};
@@ -304,6 +304,61 @@ pub struct Table {
 	pub selection_colums: Option<Vec<String>>,
 }
 
+
+pub fn parse_window(value: Value, _process_access: Vec<String>) -> Window {
+	let mut window: Window = serde_json::from_value(value).unwrap();
+
+	// sort tabs list by sequence
+	if let Some(ref mut tabs) = window.tabs {
+		// sort tabs list by sequence
+		tabs.sort_by_key(|tab: &WindowTab| tab.sequence.clone().unwrap_or(0));
+		for tab in tabs.iter_mut() {
+			// verify direct process access
+			if let Some(ref mut process) = tab.process {
+				if let Some(ref uuid) = process.uuid {
+					if !_process_access.contains(uuid) {
+						// set None if is without access
+						tab.process = None;
+					}
+				} else {
+					// set None if uuid is empty
+					tab.process = None;
+				}
+			}
+
+			// filter tab processes access
+			if let Some(ref mut processes) = tab.processes {
+				let filtered_processes: Vec<Process> = processes
+					.iter()
+					.filter(|process| {
+						if let Some(ref uuid) = process.uuid {
+							_process_access.contains(uuid)
+						} else {
+							false
+						}
+					})
+					.cloned()
+					.collect() // Especificamos el tipo de retorno aquí
+				;
+				// assing filter new access process on tab.processes
+				*processes = filtered_processes;
+			}
+
+			// sort processes list by name
+			if let Some(ref mut processes) = tab.processes {
+				processes.sort_by_key(|process: &Process| process.name.clone().unwrap_or("".to_owned()));
+			}
+			// sort fields list by sequence
+			if let Some(ref mut fields) = tab.fields {
+				fields.sort_by_key(|field: &WindowField| field.sequence.clone().unwrap_or(0));
+			}
+		}
+	}
+
+	window.to_owned()
+}
+
+
 pub async fn window_from_id(_id: Option<String>, _language: Option<&String>, _dictionary_code: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>) -> Result<Window, String> {
 	if _id.is_none() || _id.as_deref().map_or(false, |s| s.trim().is_empty()) {
 		return Err(
@@ -343,55 +398,8 @@ pub async fn window_from_id(_id: Option<String>, _language: Option<&String>, _di
     let _window_document: &dyn IndexDocument = &_document;
     match get_by_id(_window_document).await {
         Ok(value) => {
-			let mut window: Window = serde_json::from_value(value).unwrap();
-			log::info!("Finded Window Value: {:?}", window.id);
-
-			// sort tabs list by sequence
-			if let Some(ref mut tabs) = window.tabs {
-				// sort tabs list by sequence
-				tabs.sort_by_key(|tab: &WindowTab| tab.sequence.clone().unwrap_or(0));
-				for tab in tabs.iter_mut() {
-					// verify direct process access
-					if let Some(ref mut process) = tab.process {
-						if let Some(ref uuid) = process.uuid {
-							if !_process_access.contains(uuid) {
-								// set None if is without access
-								tab.process = None;
-							}
-						} else {
-							// set None if uuid is empty
-							tab.process = None;
-						}
-					}
-
-					// filter tab processes access
-					if let Some(ref mut processes) = tab.processes {
-						let filtered_processes: Vec<Process> = processes
-							.iter()
-							.filter(|process| {
-								if let Some(ref uuid) = process.uuid {
-									_process_access.contains(uuid)
-								} else {
-									false
-								}
-							})
-							.cloned()
-							.collect() // Especificamos el tipo de retorno aquí
-						;
-						// assing filter new access process on tab.processes
-						*processes = filtered_processes;
-					}
-
-					// sort processes list by name
-					if let Some(ref mut processes) = tab.processes {
-						processes.sort_by_key(|process: &Process| process.name.clone().unwrap_or("".to_owned()));
-					}
-					// sort fields list by sequence
-					if let Some(ref mut fields) = tab.fields {
-						fields.sort_by_key(|field: &WindowField| field.sequence.clone().unwrap_or(0));
-					}
-				}
-			}
+			let window: Window = parse_window(value, _process_access);
+			log::info!("Finded Window {:?} Value: {:?}", window.name, window.id);
 
             Ok(window)
         },
@@ -402,7 +410,7 @@ pub async fn window_from_id(_id: Option<String>, _language: Option<&String>, _di
     }
 }
 
-pub async fn windows(_language: Option<&String>, _search_value: Option<&String>, _dictionary_code: Option<&String>) -> Result<WindowListResponse, std::io::Error> {
+pub async fn windows(_language: Option<&String>, _search_value: Option<&String>, _dictionary_code: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>) -> Result<WindowListResponse, std::io::Error> {
 	let _search_value: String = match _search_value {
         Some(value) => value.clone(),
         None => "".to_owned()
@@ -418,29 +426,33 @@ pub async fn windows(_language: Option<&String>, _search_value: Option<&String>,
 	};
 	log::info!("Index to search {:}", _index_name);
 
+	// load role
+	let _expected_role: Result<Role, String> = role_from_id(_role_id, _client_id, _dictionary_code).await;
+	let _role = match _expected_role {
+		Ok(role) => role,
+		Err(error) => {
+			log::error!("{:?}", error.to_string());
+			return Err(Error::new(ErrorKind::InvalidData.into(), error))
+		}
+	};
+
 	let mut _document: Window = Window::default();
     _document.index_value = Some(_index_name);
     let _window_document: &dyn IndexDocument = &_document;
     match find(_window_document, _search_value, 0, 10).await {
         Ok(values) => {
+		
+			let _process_access: Vec<String> = match _role.to_owned().process_access {
+				Some(value) => {
+					// remove none values into vector
+					value.into_iter().flatten().collect()
+				},
+				None => Vec::new()
+			};
+
             let mut windows_list: Vec<Window> = vec![];
             for value in values {
-				let mut window: Window = serde_json::from_value(value).unwrap();
-				// sort tabs by sequence
-				if let Some(ref mut tabs) = window.tabs {
-					// sort tabs list by sequence
-					tabs.sort_by_key(|tab: &WindowTab| tab.sequence.clone().unwrap_or(0));
-					for tab in tabs.iter_mut() {
-						// sort processes list by name
-						if let Some(ref mut processes) = tab.processes {
-							processes.sort_by_key(|process: &Process| process.name.clone().unwrap_or("".to_owned()));
-						}
-						// sort fields list by sequence
-						if let Some(ref mut fields) = tab.fields {
-							fields.sort_by_key(|field: &WindowField| field.sequence.clone().unwrap_or(0));
-						}
-					}
-				}
+				let window: Window = parse_window(value, _process_access.clone());
                 windows_list.push(window.to_owned());
             }
 

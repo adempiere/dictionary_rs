@@ -89,7 +89,7 @@ fn routes() -> Router {
 				)
 				.push(
 					// /api/dictionary
-			Router::with_path("dictionary")
+					Router::with_path("dictionary")
 						.push(
 							// /api/dictionary/browsers/
 							Router::with_path("browsers")
@@ -115,8 +115,8 @@ fn routes() -> Router {
 								)
 						)
 						.push(
-						// /api/dictionary/processes
-					Router::with_path("processes")
+							// /api/dictionary/processes
+							Router::with_path("processes")
 								.options(options_response)
 								.get(get_processes)
 								.push(
@@ -367,7 +367,7 @@ async fn get_windows<'a>(_req: &mut Request, _res: &mut Response) {
 			}
         }
     } else {
-        match windows(_language, _search_value, _dictionary_code).await {
+		match windows(_language, _search_value, _dictionary_code, _client_id, _role_id).await {
             Ok(windows_list) => {
                 _res.render(Json(windows_list));
             },
