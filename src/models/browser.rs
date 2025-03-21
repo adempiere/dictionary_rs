@@ -74,13 +74,14 @@ pub struct Browser {
 	pub process: Option<DictionaryEntity>,
 	pub window_id: Option<i32>,
 	pub window: Option<DictionaryEntity>,
+	pub is_search_process: Option<bool>,
 	//	Browse Fields
-    pub fields: Option<Vec<BrowserField>>
-    // pub display_fields: Option<Vec<BrowserField>>,
-    // pub criteria_fields: Option<Vec<BrowserField>>,
-    // pub identifier_fields: Option<Vec<BrowserField>>,
-    // pub order_fields: Option<Vec<BrowserField>>,
-    // pub editable_fields: Option<Vec<BrowserField>>
+	pub fields: Option<Vec<BrowserField>>
+	// pub display_fields: Option<Vec<BrowserField>>,
+	// pub criteria_fields: Option<Vec<BrowserField>>,
+	// pub identifier_fields: Option<Vec<BrowserField>>,
+	// pub order_fields: Option<Vec<BrowserField>>,
+	// pub editable_fields: Option<Vec<BrowserField>>
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
@@ -171,6 +172,7 @@ impl Default for Browser {
 			process: None,
 			window_id: None,
 			window: None,
+			is_search_process: None,
 			//	Browse Fields
 			fields: None
 			// display_fields: None,
@@ -178,8 +180,8 @@ impl Default for Browser {
 			// identifier_fields: None,
 			// order_fields: None,
 			// editable_fields: None
-        }
-    }
+		}
+	}
 }
 
 impl Browser {
