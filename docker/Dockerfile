@@ -1,4 +1,4 @@
-FROM rust:1.79.0-bullseye as builder
+FROM rust:1.85.1-bullseye as builder
 
 LABEL maintainer="ysenih@erpya.com; EdwinBetanc0urt@outlook.com;" \
 	description="Microservice with OpenSearch for ADempiere Dictionary using Rust"
