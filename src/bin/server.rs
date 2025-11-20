@@ -76,6 +76,8 @@ fn routes() -> Router {
 
 	let router: Router = Router::new()
 		.hoop(cors_handler)
+		.options(options_response)
+		.get(get_system_info)
 		.push(
 			// /api
 			Router::with_path("api")
