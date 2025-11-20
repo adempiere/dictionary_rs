@@ -152,7 +152,7 @@ pub async fn menu_tree_from_id(_id: Option<String>, _dictionary_code: Option<&St
     match get_by_id(_menu_document).await {
         Ok(value) => {
 			let mut menu: MenuTree = serde_json::from_value(value).unwrap();
-			log::info!("Finded Menu Tree Value: {:?}", menu.id);
+			log::info!("Finded Menu `{:?}` Tree Value: {:?}", menu.name, menu.id);
 			// sort menu children nodes by sequence
 			if let Some(ref mut children) = menu.children {
 				children.sort_by_key(|child: &MenuTree| child.sequence.clone().unwrap_or(0));
