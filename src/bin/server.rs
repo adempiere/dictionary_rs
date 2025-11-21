@@ -610,6 +610,10 @@ async fn consume_queue() {
 }
 
 async fn process_index(_event_type: String, _document: &dyn IndexDocument) -> Result<bool, std::string::String> {
+	let index_name: String = _document.index_name();
+	let id: String = _document.id();
+	log::info!("Event `{:}` into index {:} with id {:} ", _event_type, index_name, id);
+
     if _event_type.eq("new") {
         match create(_document).await {
             Ok(_) => return Ok(true),
