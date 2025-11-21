@@ -1,12 +1,24 @@
 name: Build Project
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the develop branch
   push:
-   branches: [ "main", "master", "develop", "bugfix/*", "feature/*" ]
+    branches:
+      - '*'         # matches every branch that doesn't contain a '/'
+      - '*/*'       # matches every branch containing a single '/'
+      - '**'        # matches every branch
   pull_request:
-    branches: [ "main", "master", "develop", "bugfix/*", "feature/*" ]
+    branches:
+      - main
+      - master
+      - develop
+      - experimental
+      - test/**
+      - bugfix/**
+      - feature/**
+      - hotfix/**
+      - test/**
 
 env:
   # Pretty cargo output!
@@ -18,20 +30,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
-    - name: Create Distribution Folder
-      run: mkdir distributions
-    - name: Copy files
-      run: |
+      - name: Check out the repo
+        uses: actions/checkout@v5
+
+      - name: Build
+        run: cargo build --verbose
+
+      - name: Run tests
+        run: cargo test --verbose
+
+      - name: Create Distribution Folder
+        run: mkdir distributions
+
+      - name: Copy files
+        run: |
           cp .env distributions/
           cp target/debug/server distributions/
 
-    - name: Upload Binary Files
-      uses: actions/upload-artifact@v4
-      with:
+      - name: Upload Binary Files
+        uses: actions/upload-artifact@v4
+        with:
           name: dictionary_rs
           path: distributions/
