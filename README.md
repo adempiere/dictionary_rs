@@ -115,32 +115,35 @@ INFO  [server] └──!NULL!
         │   ├──[OPTIONS] -> server::options_response
         │   └──[GET] -> server::get_allowed_menu
         └──dictionary
+            ├──system-info
+            │   ├──[OPTIONS] -> server::options_response
+            │   └──[GET] -> server::get_system_info
             ├──browsers
             │   ├──[OPTIONS] -> server::options_response
             │   ├──[GET] -> server::get_browsers
-            │   └──<id>
+            │   └──{id}
             │       ├──[OPTIONS] -> server::options_response
             │       └──[GET] -> server::get_browsers
             ├──forms
             │   ├──[OPTIONS] -> server::options_response
             │   ├──[GET] -> server::get_forms
-            │   └──<id>
+            │   └──{id}
             │       ├──[OPTIONS] -> server::options_response
             │       └──[GET] -> server::get_forms
             ├──processes
             │   ├──[OPTIONS] -> server::options_response
             │   ├──[GET] -> server::get_processes
-            │   └──<id>
+            │   └──{id}
             │       ├──[OPTIONS] -> server::options_response
             │       └──[GET] -> server::get_processes
             └──windows
                 ├──[OPTIONS] -> server::options_response
                 ├──[GET] -> server::get_windows
-                └──<id>
+                └──{id}
                     ├──[OPTIONS] -> server::options_response
                     └──[GET] -> server::get_windows
 
-2024-06-20T19:28:59.081Z INFO  [server] Subscribed to kafka brokers successfully:: "localhost:29092"
+2024-06-20T19:28:59.081Z INFO  [server] Successfully connected to Kafka brokers: "localhost:29092"
 2024-06-20T19:28:59.081Z INFO  [server] Subscribed to kafka topics successfully: "browser form process window menu_item menu_tree role"
 2024-06-20T19:28:59.081Z INFO  [dictionary_rs::controller::kafka] Pre rebalance Assign(TPL {menu_tree/0: offset=Invalid metadata="", error=Ok(()); window/0: offset=Invalid metadata="", error=Ok(()); role/0: offset=Invalid metadata="", error=Ok(()); browser/0: offset=Invalid metadata="", error=Ok(()); process/0: offset=Invalid metadata="", error=Ok(()); form/0: offset=Invalid metadata="", error=Ok(()); menu_item/0: offset=Invalid metadata="", error=Ok(())})
 2024-06-20T19:28:59.081Z INFO  [dictionary_rs::controller::kafka] Post rebalance Assign(TPL {menu_tree/0: offset=Invalid metadata="", error=Ok(()); window/0: offset=Invalid metadata="", error=Ok(()); role/0: offset=Invalid metadata="", error=Ok(()); browser/0: offset=Invalid metadata="", error=Ok(()); process/0: offset=Invalid metadata="", error=Ok(()); form/0: offset=Invalid metadata="", error=Ok(()); menu_item/0: offset=Invalid metadata="", error=Ok(())})
