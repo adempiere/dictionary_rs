@@ -23,7 +23,7 @@ async fn main() {
 
 	let host: String = "0.0.0.0:".to_owned() + &port;
 	log::info!("Server Address: {:?}", host.clone());
-	let acceptor: TcpAcceptor = TcpListener::new(&host).bind().await;
+	let acceptor: TcpAcceptor = TcpListener::new(host).bind().await;
 
 	let mut futures: Vec<tokio::task::JoinHandle<()>> = Vec::new();
 	futures.push(
@@ -64,8 +64,15 @@ fn routes() -> Router {
 		}.to_owned()
 	};
 
-	let allow_methods: Vec<Method> = vec![Method::OPTIONS, Method::GET];
-	let allow_headers: Vec<header::HeaderName> = vec![header::ACCESS_CONTROL_REQUEST_METHOD, header::ACCESS_CONTROL_REQUEST_HEADERS, header::AUTHORIZATION];
+	let allow_methods: Vec<Method> = vec![
+		Method::OPTIONS,
+		Method::GET
+	];
+	let allow_headers: Vec<header::HeaderName> = vec![
+		header::ACCESS_CONTROL_REQUEST_METHOD,
+		header::ACCESS_CONTROL_REQUEST_HEADERS,
+		header::AUTHORIZATION
+	];
 	// Send Device Info
 	let cors_handler = Cors::new()
 		.allow_origin(&allowed_origin.to_owned())
@@ -76,6 +83,7 @@ fn routes() -> Router {
 
 	let router: Router = Router::new()
 		.hoop(cors_handler)
+		// /	root path
 		.options(options_response)
 		.get(get_system_info)
 		.push(
@@ -86,12 +94,18 @@ fn routes() -> Router {
 				.push(
 					// /api/security/menus
 					Router::with_path("security/menus")
-					.options(options_response)
-					.get(get_allowed_menu)
+						.options(options_response)
+						.get(get_allowed_menu)
 				)
 				.push(
 					// /api/dictionary
 					Router::with_path("dictionary")
+						.push(
+							// /api/dictionary/system-info
+							Router::with_path("system-info")
+								.options(options_response)
+								.get(get_system_info)
+						)
 						.push(
 							// /api/dictionary/browsers/
 							Router::with_path("browsers")
@@ -99,7 +113,7 @@ fn routes() -> Router {
 								.get(get_browsers)
 								.push(
 									// /api/dictionary/browsers/:id
-									Router::with_path("<id>")
+									Router::with_path("{id}")
 										.options(options_response)
 										.get(get_browsers)
 								)
@@ -111,7 +125,7 @@ fn routes() -> Router {
 								.get(get_forms)
 								.push(
 									// /api/dictionary/forms/:id
-									Router::with_path("<id>")
+									Router::with_path("{id}")
 										.options(options_response)
 										.get(get_forms)
 								)
@@ -123,7 +137,7 @@ fn routes() -> Router {
 								.get(get_processes)
 								.push(
 									// /api/dictionary/processes/:id
-									Router::with_path("<id>")
+									Router::with_path("{id}")
 										.options(options_response)
 										.get(get_processes)
 								)
@@ -135,7 +149,7 @@ fn routes() -> Router {
 								.get(get_windows)
 								.push(
 									// /api/dictionary/windows/:id
-									Router::with_path("<id>")
+									Router::with_path("{id}")
 										.options(options_response)
 										.get(get_windows)
 								)
@@ -209,7 +223,13 @@ struct ErrorResponse {
 
 #[handler]
 async fn get_forms<'a>(_req: &mut Request, _res: &mut Response) {
-	let _id: Option<String> = _req.param::<String>("id");
+	let mut _id: Option<String> = _req.param::<String>("id");
+	if _id.is_none() {
+		// fill with query url
+		_id = _req.queries().get("id").map(|s| s.to_owned());
+	}
+	log::info!("Get by ID: {:?}", _id);
+
 	let _language: Option<&String> = _req.queries().get("language");
 	let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
 	let _search_value: Option<&String> = _req.queries().get("search_value");
@@ -270,7 +290,13 @@ async fn get_allowed_menu<'a>(_req: &mut Request, _res: &mut Response) {
 
 #[handler]
 async fn get_processes<'a>(_req: &mut Request, _res: &mut Response) {
-	let _id: Option<String> = _req.param::<String>("id");
+	let mut _id: Option<String> = _req.param::<String>("id");
+	if _id.is_none() {
+		// fill with query url
+		_id = _req.queries().get("id").map(|s| s.to_owned());
+	}
+	log::info!("Get by ID: {:?}", _id);
+
 	let _language: Option<&String> = _req.queries().get("language");
 	let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
 	let _search_value: Option<&String> = _req.queries().get("search_value");
@@ -309,7 +335,13 @@ async fn get_processes<'a>(_req: &mut Request, _res: &mut Response) {
 
 #[handler]
 async fn get_browsers<'a>(_req: &mut Request, _res: &mut Response) {
-	let _id: Option<String> = _req.param::<String>("id");
+	let mut _id: Option<String> = _req.param::<String>("id");
+	if _id.is_none() {
+		// fill with query url
+		_id = _req.queries().get("id").map(|s| s.to_owned());
+	}
+	log::info!("Get by ID: {:?}", _id);
+
 	let _language: Option<&String> = _req.queries().get("language");
 	let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
 	let _search_value: Option<&String> = _req.queries().get("search_value");
@@ -348,7 +380,12 @@ async fn get_browsers<'a>(_req: &mut Request, _res: &mut Response) {
 
 #[handler]
 async fn get_windows<'a>(_req: &mut Request, _res: &mut Response) {
-	let _id: Option<String> = _req.param::<String>("id");
+	let mut _id: Option<String> = _req.param::<String>("id");
+	if _id.is_none() {
+		_id = _req.queries().get("id").map(|s| s.to_owned());
+	}
+	log::info!("Get by ID: {:?}", _id);
+
 	let _language: Option<&String> = _req.queries().get("language");
 	let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
 	let _search_value: Option<&String> = _req.queries().get("search_value");
