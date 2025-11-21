@@ -140,9 +140,18 @@ pub async fn allowed_menu(_language: Option<&String>, _client_id: Option<&String
         Err(error) => return Err(Error::new(ErrorKind::InvalidData.into(), error))
     };
 
-    if _role.tree_id.is_none() {
-        return Err(Error::new(ErrorKind::InvalidData.into(), "Tree ID not found"))
-    }
+	if _role.tree_id.is_none() {
+		log::error!("Tree ID not found, on role {:?} = {:?}", _role.name, _role.internal_id);
+		return Err(
+			Error::new(ErrorKind::InvalidData.into(), "Tree ID not found")
+		)
+	}
+	if _role.tree_uuid.is_none() {
+		log::error!("Tree UUID not found, on role {:?} = {:?}", _role.name, _role.internal_id);
+		return Err(
+			Error::new(ErrorKind::InvalidData.into(), "Tree UUID not found")
+		)
+	}
 
 	let _tree_result: Result<MenuTree, Error> = menu_tree_from_id(_role.tree_uuid, _dictionary_code).await;
 	let _tree: MenuTree = match _tree_result {
