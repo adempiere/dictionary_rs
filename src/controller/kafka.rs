@@ -22,9 +22,9 @@ impl ConsumerContext for CustomContext {
 		log::info!("Consumer {:?}, Pre rebalance {:?}", assignment, rebalance);
 	}
 
-    fn commit_callback(&self, result: KafkaResult<()>, _offsets: &TopicPartitionList) {
-        log::info!("Committing offsets: {:?}", result);
-    }
+	fn commit_callback(&self, result: KafkaResult<()>, _offsets: &TopicPartitionList) {
+		log::info!("Committing offsets: {:?}", result);
+	}
 }
 
 // A type alias with your custom consumer can be created for convenience.
@@ -38,7 +38,6 @@ pub fn create_consumer(brokers: &str, group_id: &str, topics: &[&str]) -> Result
 		config
 			.set("group.id", group_id)
 			.set("bootstrap.servers", brokers)
-			.set("enable.partition.eof", "false")
 			.set("enable.partition.eof", "false")
 			// TODO: Add support to dynamic SSL
 			// .set("security.protocol", "ssl")
@@ -67,7 +66,7 @@ pub fn create_consumer(brokers: &str, group_id: &str, topics: &[&str]) -> Result
 	}
 
 	let consumer: StreamConsumer<CustomContext> = consumer_value.unwrap();
-	log::info!("Subscribed to kafka brokers successfully: {:?}", &brokers);
+	log::info!("Successfully connected to Kafka brokers: {:?}", &brokers);
 
 	loop {
 		match consumer.subscribe(&topics) {
@@ -83,6 +82,6 @@ pub fn create_consumer(brokers: &str, group_id: &str, topics: &[&str]) -> Result
 		let waiting_time: Duration = Duration::from_secs(5);
 		thread::sleep(waiting_time);
 	}
+
 	Ok(consumer)
-	// consumer
 }
