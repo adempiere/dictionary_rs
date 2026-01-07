@@ -57,7 +57,11 @@ pub struct MenuItem {
 	pub process: Option<MenuAction>,
 	pub form: Option<MenuAction>,
 	pub browser: Option<MenuAction>,
-	pub workflow: Option<MenuAction>
+	pub workflow: Option<MenuAction>,
+	// New UI
+	pub web_path: Option<String>,
+	pub module_id: Option<i32>,
+	pub sub_module_id: Option<i32>
 }
 
 impl Default for MenuItem {
@@ -87,7 +91,11 @@ impl Default for MenuItem {
 			process: None,
 			form: None,
 			browser: None,
-			workflow: None
+			workflow: None,
+			// New UI
+			web_path: None,
+			module_id: None,
+			sub_module_id: None
         }
     }
 }
