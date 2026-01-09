@@ -62,7 +62,12 @@ pub struct Menu {
 	pub browser: Option<MenuAction>,
 	pub workflow: Option<MenuAction>,
     // Tree menu childs
-    pub children: Option<Vec<Menu>>
+	pub children: Option<Vec<Menu>>,
+	// New UI
+	pub target_path: Option<String>,
+	pub web_path: Option<String>,
+	pub module_id: Option<i32>,
+	pub sub_module_id: Option<i32>
 }
 
 impl Default for Menu {
@@ -88,7 +93,12 @@ impl Default for Menu {
 			browser: None,
 			workflow: None,
 			// Tree menu childs
-			children: Some(Vec::new())
+			children: Some(Vec::new()),
+			// New UI
+			target_path: None,
+			web_path: None,
+			module_id: None,
+			sub_module_id: None
 		}
 	}
 }
@@ -122,6 +132,12 @@ impl Menu {
 		menu.form = _menu_item.form;
 		menu.browser = _menu_item.browser;
 		menu.workflow = _menu_item.workflow;
+
+		// New UI
+		menu.target_path = _menu_item.target_path;
+		menu.web_path = _menu_item.web_path;
+		menu.module_id = _menu_item.module_id;
+		menu.sub_module_id = _menu_item.sub_module_id;
 
 		menu
 	}
