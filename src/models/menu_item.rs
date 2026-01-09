@@ -59,6 +59,7 @@ pub struct MenuItem {
 	pub browser: Option<MenuAction>,
 	pub workflow: Option<MenuAction>,
 	// New UI
+	pub target_path: Option<String>,
 	pub web_path: Option<String>,
 	pub module_id: Option<i32>,
 	pub sub_module_id: Option<i32>
@@ -93,6 +94,7 @@ impl Default for MenuItem {
 			browser: None,
 			workflow: None,
 			// New UI
+			target_path: None,
 			web_path: None,
 			module_id: None,
 			sub_module_id: None
