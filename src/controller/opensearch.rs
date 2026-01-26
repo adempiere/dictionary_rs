@@ -25,7 +25,7 @@ pub fn create_opensearch_client() -> Result<OpenSearch, String> {
 	let opensearch_url: String =  match env::var("OPENSEARCH_URL") {
         Ok(value) => value.clone(),
         Err(_) => {
-            log::info!("Variable `OPENSEARCH_URL` Not found from enviroment, loaded with `default` value");
+            log::warn!("Variable `OPENSEARCH_URL` Not found from enviroment, loaded with `default` value");
             "http://localhost:9200".to_owned()
         }.to_owned(),
     };
@@ -79,7 +79,7 @@ pub async fn exists_index(_index_name: String) -> Result<bool, String> {
 pub async fn create_index_definition(_index: &dyn IndexDocument) -> Result<bool, String> {
 	let index_name: String = _index.index_name();
 	if exists_index(index_name.clone()).await? {
-		log::info!("Index {:?} already exist, skipping creation.", index_name);
+		log::debug!("Index {:?} already exist, skipping creation.", index_name);
 		return Ok(true);
 	}
 
@@ -130,7 +130,7 @@ pub async fn create_index_definition(_index: &dyn IndexDocument) -> Result<bool,
 pub async fn delete_index_definition(_index: &dyn IndexDocument) -> Result<bool, String> {
 	let index_name: String = _index.index_name();
 	if !exists_index(index_name.clone()).await? {
-		log::info!("Index {:?} does not exist, skipping deletion.", index_name);
+		log::warn!("Index {:?} does not exist, skipping deletion.", index_name);
 		return Ok(true);
 	}
 
