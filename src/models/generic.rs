@@ -80,3 +80,15 @@ impl IndexDocument for Generic {
 		})
 	}
 }
+
+
+#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
+pub struct DependendField {
+	pub uuid: Option<String>,
+	pub internal_id: Option<i32>,
+	pub id: Option<String>,
+	pub column_name: Option<String>,
+	pub parent_id: Option<i32>,
+	pub parent_uuid: Option<String>,
+	pub parent_name: Option<String>
+}

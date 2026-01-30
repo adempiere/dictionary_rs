@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::{io::ErrorKind, io::Error};
 
-use crate::{controller::opensearch::{find, get_by_id, IndexDocument}, models::get_index_name};
+use crate::{controller::opensearch::{IndexDocument, find, get_by_id}, models::{generic::DependendField, get_index_name}};
 
 #[derive(Deserialize, Extractible, Debug, Clone)]
 #[salvo(extract(default_source(from = "body")))]
@@ -285,17 +285,6 @@ pub struct Table {
 	pub is_change_log: Option<bool>,
 	pub identifier_columns: Option<Vec<String>>,
 	pub selection_colums: Option<Vec<String>>,
-}
-
-#[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
-pub struct DependendField {
-    pub uuid: Option<String>,
-    pub internal_id: Option<i32>,
-    pub id: Option<String>,
-    pub column_name: Option<String>,
-    pub parent_id: Option<i32>,
-    pub parent_uuid: Option<String>,
-    pub parent_name: Option<String>
 }
 
 
