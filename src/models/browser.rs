@@ -1,5 +1,5 @@
+use salvo::macros::Extractible;
 use serde::{Deserialize, Serialize};
-use salvo::prelude::*;
 use serde_json::{json, Value};
 use std::{io::ErrorKind, io::Error};
 
@@ -187,9 +187,9 @@ impl Default for Browser {
 impl Browser {
     pub fn from_id(_id: Option<String>) -> Self {
 		let mut browser: Browser = Browser::default();
-        browser.id = _id;
-        browser
-    }
+		browser.id = _id;
+		browser
+	}
 
 	pub fn to_string(&self) -> String {
 		format!("Browser: UUID {:?}, ID {:?}, Name {:?}, Index: {:?}", self.uuid, self.internal_id, self.name, self.index_value)
@@ -199,23 +199,28 @@ impl Browser {
 impl IndexDocument for Browser {
 	fn mapping(self: &Self) -> serde_json::Value {
 		json!({
-			"mappings" : {
-				"properties" : {
-					"uuid" : { "type" : "keyword" },
-					"id" : { "type" : "keyword" },
-					"internal_id" : { "type" : "integer" },
-					"code" : { "type" : "keyword" },
-                    "name" : { "type" : "text" },
-                    "description" : { "type" : "text" },
-                    "help" : { "type" : "text" }
-                }
-            }
-        })
-    }
+			"mappings": {
+				"properties": {
+					"uuid": { "type": "keyword" },
+					"id": { "type": "keyword" },
+					"internal_id": { "type": "integer" },
+					"code": { "type": "keyword" },
+					"name": {
+						"type": "text",
+						"fields": {
+							"keyword": { "type": "keyword" }
+						}
+					},
+					"description": { "type": "text" },
+					"help": { "type": "text" }
+				}
+			}
+		})
+	}
 
-    fn data(self: &Self) -> serde_json::Value {
-        json!(self)
-    }
+	fn data(self: &Self) -> serde_json::Value {
+		json!(self)
+	}
 
 	fn id(self: &Self) -> String {
 		self.id.to_owned().unwrap_or_else(|| {
@@ -224,26 +229,26 @@ impl IndexDocument for Browser {
 		})
 	}
 
-    fn index_name(self: &Self) -> String {
-        match &self.index_value {
-            Some(value) => value.to_string(),
-            None => "browser".to_string(),
-        }
-    }
+	fn index_name(self: &Self) -> String {
+		match &self.index_value {
+			Some(value) => value.to_string(),
+			None => "browser".to_string(),
+		}
+	}
 
-    fn find(self: &Self, _search_value: String) -> serde_json::Value {
+	fn find(self: &Self, _search_value: String) -> serde_json::Value {
 		let mut query: String = "*".to_owned();
-        query.push_str(&_search_value.to_owned());
-        query.push_str(&"*".to_owned());
+		query.push_str(&_search_value.to_owned());
+		query.push_str(&"*".to_owned());
 
-        json!({
-            "query": {
-                "query_string": {
-                  "query": query
-                }
-            }
-        })
-    }
+		json!({
+			"query": {
+				"query_string": {
+					"query": query
+				}
+			}
+		})
+	}
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]

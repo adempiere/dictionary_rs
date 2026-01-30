@@ -1,5 +1,5 @@
+use salvo::macros::Extractible;
 use serde::{Deserialize, Serialize};
-use salvo::prelude::*;
 use serde_json::{json, Value};
 use std::{io::ErrorKind, io::Error};
 
@@ -85,15 +85,22 @@ impl Form {
 impl IndexDocument for Form {
 	fn mapping(self: &Self) -> serde_json::Value {
 		json!({
-			"mappings" : {
-				"properties" : {
-					"uuid" : { "type" : "keyword" },
-					"id" : { "type" : "keyword" },
-					"internal_id" : { "type" : "integer" },
-					"file_name" : { "type" : "keyword" },
-					"name" : { "type" : "text" },
-					"description" : { "type" : "text" },
-					"help" : { "type" : "text" }
+			"mappings": {
+				"properties": {
+					"uuid": { "type": "keyword" },
+					"id": { "type": "keyword" },
+					"internal_id": { "type": "integer" },
+					"file_name": { "type": "keyword" },
+					"name": {
+						"type": "text",
+						"fields": {
+							"keyword": { "type": "keyword" }
+						}
+					},
+					"description": { "type": "text" },
+					"help": { "type": "text" },
+					"is_active": { "type": "boolean" },
+					"is_beta_functionality": { "type": "boolean" }
 				}
 			}
 		})
@@ -125,7 +132,7 @@ impl IndexDocument for Form {
 		json!({
 			"query": {
 				"query_string": {
-				"query": query
+					"query": query
 				}
 			}
 		})

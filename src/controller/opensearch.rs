@@ -312,11 +312,15 @@ pub async fn find_from_dsl_body(_index_name: String, _body: serde_json::Value, _
             return Err(error.to_string());
         },
     };
+
+	let hits: &Vec<Value> = response_body["hits"]["hits"].as_array().unwrap();
 	let mut list: Vec::<Value> = Vec::new();
-    for hit in response_body["hits"]["hits"].as_array().unwrap() {
-		let value: Value = hit["_source"].to_owned();
-        list.push(value)
-    }
+	for hit in hits {
+		let source: &Value = &hit["_source"];
+		let value: Value = source.to_owned();
+		list.push(value)
+	}
+
     Ok(list)
 }
 

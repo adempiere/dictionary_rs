@@ -149,12 +149,7 @@ pub async fn allowed_menu(_language: Option<&String>, _client_id: Option<&String
         Ok(role) => role,
         Err(error) => return Err(Error::new(ErrorKind::InvalidData.into(), error))
     };
-
-	let _menu_items: Result<Vec<MenuItem>, Error> = menu_items_from_role(_role.to_owned(), _language, _dictionary_code, None, None).await;
-	let _menu_items: Vec<MenuItem> = match _menu_items {
-        Ok(menu) => menu,
-        Err(error) => return Err(Error::new(ErrorKind::InvalidData.into(), error))
-    };
+	log::debug!("Loading allowed menu for role {:?} = {:?} , Tree UUID {:?}", _role.name, _role.internal_id, _role.tree_uuid);
 
 	if _role.tree_id.is_none() {
 		log::error!("Tree ID not found, on role {:?} = {:?}", _role.name, _role.internal_id);
@@ -169,27 +164,46 @@ pub async fn allowed_menu(_language: Option<&String>, _client_id: Option<&String
 		)
 	}
 
+	let _menu_items: Result<Vec<MenuItem>, Error> = menu_items_from_role(_role.to_owned(), _language, _dictionary_code, None, None).await;
+	let _menu_items: Vec<MenuItem> = match _menu_items {
+		Ok(menu) => menu,
+		Err(error) => return Err(Error::new(ErrorKind::InvalidData.into(), error))
+	};
+	log::debug!("Loading allowed menu_items, total: {:?}", _menu_items.len());
+
 	let _tree_result: Result<MenuTree, Error> = menu_tree_from_id(_role.tree_uuid, _dictionary_code).await;
 	let _tree: MenuTree = match _tree_result {
         Ok(tree) => tree,
         Err(error) => return Err(Error::new(ErrorKind::InvalidData.into(), error))
     };
-    //  Merge tree with menu
-    //  Main Menu
+	log::debug!("Loading menu tree {:?}", _tree);
+
+	// Merge tree with menu
 	let _tree_children: Option<Vec<MenuTree>> = _tree.children;
 	let menus: Vec<Menu> = load_valid_children(_tree_children, _menu_items);
-    Ok(MenuListResponse {
-        menus: Some(menus)
-    })
+
+	Ok(MenuListResponse {
+		// Main Menu
+		menus: Some(menus)
+	})
 }
 
 fn load_valid_children(_tree: Option<Vec<MenuTree>>, _allowed_menu_items: Vec<MenuItem>) -> Vec<Menu> {
 	if _tree.is_none() {
 		return Vec::new()
 	}
+	// let _tree_menu: Vec<MenuTree> = _tree.unwrap();
+	let _tree_menu: Vec<MenuTree> = match _tree {
+		Some(tree) => {
+			tree
+		},
+		None => {
+			Vec::new()
+		}
+	};
+
 	let mut menus: Vec<Menu> = Vec::new();
-	let _tree: Vec<MenuTree> = _tree.unwrap();
-	for _tree_value in _tree {
+	for _tree_value in _tree_menu {
 		let _allowed_item: Option<MenuItem> = _allowed_menu_items.to_owned().into_iter().find(|_item: &MenuItem| _item.internal_id.is_some() && _item.internal_id == _tree_value.node_id);
 		if _allowed_item.is_some() {
 			let mut allowed_item: MenuItem = _allowed_item.unwrap();

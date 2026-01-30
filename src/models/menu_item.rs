@@ -1,5 +1,5 @@
+use salvo::macros::Extractible;
 use serde::{Deserialize, Serialize};
-use salvo::prelude::*;
 use serde_json::{json, Value};
 use std::{io::ErrorKind, io::Error};
 
@@ -164,7 +164,7 @@ impl MenuItem {
 							"bool": {
 								"must": [
 									{
-										"match": {
+										"term": {
 											"is_summary": true
 										}
 									}
@@ -175,13 +175,13 @@ impl MenuItem {
 							"bool": {
 								"must": [
 									{
-										"match": {
-											"action": "W"
+										"term": {
+											"action.keyword": "W"
 										}
 									},
 									{
 										"terms": {
-											"action_uuid": _window_access
+											"action_uuid.keyword": _window_access
 										}
 									}
 								]
@@ -191,13 +191,13 @@ impl MenuItem {
 							"bool": {
 								"must": [
 									{
-										"match": {
-											"action": "X"
+										"term": {
+											"action.keyword": "X"
 										}
 									},
 									{
 										"terms": {
-											"action_uuid": _form_access
+											"action_uuid.keyword": _form_access
 										}
 									}
 								]
@@ -207,13 +207,13 @@ impl MenuItem {
 							"bool": {
 								"must": [
 									{
-										"match": {
-											"action": "S"
+										"term": {
+											"action.keyword": "S"
 										}
 									},
 									{
 										"terms": {
-											"action_uuid": _browser_access
+											"action_uuid.keyword": _browser_access
 										}
 									}
 								]
@@ -223,13 +223,13 @@ impl MenuItem {
 							"bool": {
 								"must": [
 									{
-										"match": {
-											"action": "P"
+										"term": {
+											"action.keyword": "P"
 										}
 									},
 									{
 										"terms": {
-											"action_uuid": _process_access
+											"action_uuid.keyword": _process_access
 										}
 									}
 								]
@@ -239,13 +239,13 @@ impl MenuItem {
 							"bool": {
 								"must": [
 									{
-										"match": {
-											"action": "R"
+										"term": {
+											"action.keyword": "R"
 										}
 									},
 									{
 										"terms": {
-											"action_uuid": _process_access
+											"action_uuid.keyword": _process_access
 										}
 									}
 								]
@@ -255,18 +255,29 @@ impl MenuItem {
 							"bool": {
 								"must": [
 									{
-										"match": {
-											"action": "F"
+										"term": {
+											"action.keyword": "F"
 										}
 									},
 									{
 										"terms": {
-											"action_uuid": _workflow_access
+											"action_uuid.keyword": _workflow_access
 										}
 									}
 								]
 							}
-						}
+						},
+						// {
+						// 	"bool": {
+						// 		"must": [
+						// 			{
+						// 				"match": {
+						// 					"name": seach_value
+						// 				}
+						// 			}
+						// 		]
+						// 	}
+						// },
 					]
 				}
 			}
@@ -281,25 +292,38 @@ impl MenuItem {
 impl IndexDocument for MenuItem {
 	fn mapping(self: &Self) -> serde_json::Value {
 		json!({
-			"mappings" : {
-				"properties" : {
-					"uuid" : { "type" : "keyword" },
-					"id" : { "type" : "keyword" },
-					"internal_id" : { "type" : "integer" },
-                    "parent_id" : { "type" : "integer" },
-                    "sequence" : { "type" : "integer" },
-                    "name" : { "type" : "text" },
-					"description" : { "type" : "text" },
-					"action_id" : { "type" : "integer" },
-					"action_uuid" : { "type" : "keyword" }
-                }
-            }
-        })
-    }
+			"mappings": {
+				"properties": {
+					"uuid": { "type": "keyword" },
+					"id": { "type": "keyword" },
+					"internal_id": { "type": "integer" },
+					"parent_id": { "type": "integer" },
+					"sequence": { "type": "integer" },
+					"name": {
+						"type": "text",
+						"fields": {
+							"keyword": { "type": "keyword" }
+						}
+					},
+					"description": { "type": "text" },
+					"action": { "type": "keyword" },
+					"action_id": { "type": "integer" },
+					"action_uuid": { "type": "keyword" },
+					"is_summary": { "type": "boolean" },
+					"is_sales_transaction": { "type": "boolean" },
+					"is_read_only": { "type": "boolean" },
+					"target_path": { "type": "keyword" },
+					"web_path": { "type": "keyword" },
+					"module_id": { "type": "integer" },
+					"sub_module_id": { "type": "integer" }
+				}
+			}
+		})
+	}
 
-    fn data(self: &Self) -> serde_json::Value {
-        json!(self)
-    }
+	fn data(self: &Self) -> serde_json::Value {
+		json!(self)
+	}
 
 	fn id(self: &Self) -> String {
 		self.id.to_owned().unwrap_or_else(|| {
@@ -308,26 +332,26 @@ impl IndexDocument for MenuItem {
 		})
 	}
 
-    fn index_name(self: &Self) -> String {
-        match &self.index_value {
-            Some(value) => value.to_string(),
-            None => "menu".to_string(),
-        }
-    }
+	fn index_name(self: &Self) -> String {
+		match &self.index_value {
+			Some(value) => value.to_string(),
+			None => "menu".to_string(),
+		}
+	}
 
-    fn find(self: &Self, _search_value: String) -> serde_json::Value {
+	fn find(self: &Self, _search_value: String) -> serde_json::Value {
 		let mut query: String = "*".to_owned();
-        query.push_str(&_search_value.to_owned());
-        query.push_str(&"*".to_owned());
+		query.push_str(&_search_value.to_owned());
+		query.push_str(&"*".to_owned());
 
-        json!({
-            "query": {
-                "query_string": {
-                  "query": query
-                }
-            }
-        })
-    }
+		json!({
+			"query": {
+				"query_string": {
+					"query": query
+				}
+			}
+		})
+	}
 }
 
 pub async fn menu_items_from_role(_role: Role, _language: Option<&String>, _dictionary_code: Option<&String>, _page_number: Option<i64>, _page_size: Option<i64>) -> Result<Vec<MenuItem>, std::io::Error> {
@@ -349,12 +373,13 @@ pub async fn menu_items_from_role(_role: Role, _language: Option<&String>, _dict
     None => 10000
   };
 
-  match find_from_dsl_body(_index_name, _search_body, page_number, page_size).await {
-	Ok(values) => {
-		Ok(values.iter().map(|_value| serde_json::from_value(_value.clone()).unwrap()).collect::<Vec<MenuItem>>())
-	},
-    Err(error) => {
-      Err(Error::new(ErrorKind::InvalidData.into(), error))
-    }
-  }
+	match find_from_dsl_body(_index_name, _search_body, page_number, page_size).await {
+		Ok(values) => {
+			log::debug!("find_from_dsl_body Menu Items found: {:?}", values.len());
+			Ok(values.iter().map(|_value| serde_json::from_value(_value.clone()).unwrap()).collect::<Vec<MenuItem>>())
+		},
+		Err(error) => {
+			Err(Error::new(ErrorKind::InvalidData.into(), error))
+		}
+	}
 }
