@@ -22,12 +22,17 @@ pub struct Metadata {
     pub user_id: Option<i32>,
 }
 
+
 fn default_index(_index_name: String) -> String {
 	let mut _index_to_find: String = _index_name.to_owned();
 	_index_to_find.to_lowercase()
 }
 
-fn language_index(_index_name: String, _language: Option<&String>) -> String {
+
+fn language_index(
+	_index_name: String,
+	_language: Option<&String>
+) -> String {
 	let mut _index_to_find: String = default_index(_index_name);
 	if let Some(language) = _language {
 		if !language.trim().is_empty() {
@@ -38,7 +43,11 @@ fn language_index(_index_name: String, _language: Option<&String>) -> String {
 	_index_to_find.to_lowercase()
 }
 
-fn client_index_only(_index_name: String, _client_id: Option<&String>) -> String {
+
+fn client_index_only(
+	_index_name: String,
+	_client_id: Option<&String>
+) -> String {
 	let mut _index_to_find: String = default_index(_index_name);
 	if let Some(client) = _client_id {
 		if !client.trim().is_empty() {
@@ -49,7 +58,12 @@ fn client_index_only(_index_name: String, _client_id: Option<&String>) -> String
 	_index_to_find.to_lowercase()
 }
 
-async fn get_index_name(_index_name: String, _language: Option<&String>, _dictionary_code: Option<&String>) -> Result<String, std::io::Error> {
+
+async fn get_index_name(
+	_index_name: String,
+	_language: Option<&String>,
+	_dictionary_code: Option<&String>
+) -> Result<String, std::io::Error> {
 	//  Validate
 	if _language.is_none() || _language.as_deref().map_or(false, |s| s.trim().is_empty()) {
 		return Err(
@@ -57,7 +71,7 @@ async fn get_index_name(_index_name: String, _language: Option<&String>, _dictio
 		);
 	}
 
-	let mut _language_index = language_index(_index_name, _language);
+	let mut _language_index: String = language_index(_index_name, _language);
 	if let Some(code) = _dictionary_code {
 		if !code.trim().is_empty() {
 			_language_index.push_str("_");
@@ -68,7 +82,7 @@ async fn get_index_name(_index_name: String, _language: Option<&String>, _dictio
 	//  Find index
 	match exists_index(_language_index.to_owned()).await {
 		Ok(_) => {
-			log::info!("Find with language index `{:}`", _language_index);
+			log::debug!("Find with language index `{:}`", _language_index);
 			Ok(_language_index)
 		},
 		Err(error) => {

@@ -145,35 +145,35 @@ pub fn parse_form(value: Value) -> Form {
 	form.to_owned()
 }
 
-pub async fn form_from_id(_id: Option<String>, _language: Option<&String>, _dictionary_code: Option<&String>) -> Result<Form, String> {
+
+pub async fn form_from_id(
+	_id: Option<String>,
+	_language: Option<&String>,
+	_dictionary_code: Option<&String>
+) -> Result<Form, String> {
 	if _id.is_none() || _id.as_deref().map_or(false, |s| s.trim().is_empty()) {
 		return Err(
 			Error::new(ErrorKind::InvalidData.into(), "Form Identifier is Mandatory").to_string()
 		);
 	}
-	let mut _document: Form = Form::from_id(_id);
 
 	let _index_name: String = match get_index_name("form".to_string(), _language, _dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
-			log::error!("Index name error: {:?}", error.to_string());
+			log::error!("Form index name error: {:?}", error.to_string());
 			return Err(error.to_string())
 		}
 	};
-	log::info!("Index to search {:}", _index_name);
+	log::debug!("Form index to search {:}", _index_name);
 
+	let mut _document: Form = Form::from_id(_id);
 	_document.index_value = Some(_index_name);
 	let _form_document: &dyn IndexDocument = &_document;
 	match get_by_id(_form_document).await {
 		Ok(value) => {
 			let form: Form = parse_form(value);
-			log::info!("Finded Form {:?} Value: {:?}", form.name, form.id);
-			// Ok(FormResponse {
-			// 	form: Some(form)
-			// })
-			Ok(
-				form
-			)
+			log::debug!("Finded Form {:?} Value: {:?}", form.name, form.id);
+			Ok(form)
 		},
 		Err(error) => {
 			log::error!("{}", error);
@@ -182,7 +182,12 @@ pub async fn form_from_id(_id: Option<String>, _language: Option<&String>, _dict
 	}
 }
 
-pub async fn forms(_language: Option<&String>, _search_value: Option<&String>, _dictionary_code: Option<&String>) -> Result<FormsListResponse, std::io::Error> {
+
+pub async fn forms(
+	_language: Option<&String>,
+	_search_value: Option<&String>,
+	_dictionary_code: Option<&String>
+) -> Result<FormsListResponse, std::io::Error> {
 	let _search_value: String = match _search_value {
 		Some(value) => value.clone(),
 		None => "".to_owned()
@@ -192,11 +197,11 @@ pub async fn forms(_language: Option<&String>, _search_value: Option<&String>, _
 	let _index_name: String = match get_index_name("form".to_string(),_language, _dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
-			log::error!("Index name error: {:?}", error.to_string());
+			log::error!("Form index name error: {:?}", error.to_string());
 			return Err(Error::new(ErrorKind::InvalidData.into(), error))
 		}
 	};
-	log::info!("Index to search {:}", _index_name);
+	log::debug!("Form index to search {:}", _index_name);
 
 	let mut _document: Form = Form::default();
 	_document.index_value = Some(_index_name);

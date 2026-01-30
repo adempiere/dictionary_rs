@@ -143,7 +143,13 @@ impl Menu {
 	}
 }
 
-pub async fn allowed_menu(_language: Option<&String>, _client_id: Option<&String>, _role_id: Option<&String>, _dictionary_code: Option<&String>) -> Result<MenuListResponse, std::io::Error> {
+
+pub async fn allowed_menu(
+	_language: Option<&String>,
+	_client_id: Option<&String>,
+	_role_id: Option<&String>,
+	_dictionary_code: Option<&String>
+) -> Result<MenuListResponse, std::io::Error> {
 	let _expected_role: Result<Role, String> = role_from_id(_role_id, _client_id, _dictionary_code).await;
 	let _role: Role = match _expected_role {
         Ok(role) => role,
@@ -157,7 +163,7 @@ pub async fn allowed_menu(_language: Option<&String>, _client_id: Option<&String
 			Error::new(ErrorKind::InvalidData.into(), "Tree ID not found")
 		)
 	}
-	if _role.tree_uuid.is_none() {
+	if _role.tree_uuid.is_none() || _role.tree_uuid.as_deref().map_or(false, |s| s.trim().is_empty()) {
 		log::error!("Tree UUID not found, on role {:?} = {:?}", _role.name, _role.internal_id);
 		return Err(
 			Error::new(ErrorKind::InvalidData.into(), "Tree UUID not found")
@@ -188,7 +194,11 @@ pub async fn allowed_menu(_language: Option<&String>, _client_id: Option<&String
 	})
 }
 
-fn load_valid_children(_tree: Option<Vec<MenuTree>>, _allowed_menu_items: Vec<MenuItem>) -> Vec<Menu> {
+
+fn load_valid_children(
+	_tree: Option<Vec<MenuTree>>,
+	_allowed_menu_items: Vec<MenuItem>
+) -> Vec<Menu> {
 	if _tree.is_none() {
 		return Vec::new()
 	}
@@ -248,6 +258,7 @@ fn load_valid_children(_tree: Option<Vec<MenuTree>>, _allowed_menu_items: Vec<Me
 	menus.sort_by(|a: &Menu, b: &Menu| a.sequence.cmp(&b.sequence));
 	menus
 }
+
 
 fn has_action_in_childrens(menu: &Menu) -> bool {
 	if let Some(children) = &menu.children {

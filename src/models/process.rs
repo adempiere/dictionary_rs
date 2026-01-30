@@ -287,33 +287,34 @@ pub fn parse_process(value: Value) -> Process {
 }
 
 
-pub async fn process_from_id(_id: Option<String>, _language: Option<&String>, _dictionary_code: Option<&String>) -> Result<Process, String> {
+pub async fn process_from_id(
+	_id: Option<String>,
+	_language: Option<&String>,
+	_dictionary_code: Option<&String>
+) -> Result<Process, String> {
 	if _id.is_none() || _id.as_deref().map_or(false, |s| s.trim().is_empty()) {
 		return Err(
 			Error::new(ErrorKind::InvalidData.into(), "Process/Report Identifier is Mandatory").to_string()
 		);
 	}
-	let mut _document: Process = Process::from_id(_id);
 
 	let _index_name: String = match get_index_name("process".to_string(), _language, _dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
-			log::error!("Index name error: {:?}", error.to_string());
+			log::error!("Process/Report index name error: {:?}", error.to_string());
 			return Err(error.to_string())
 		}
 	};
-	log::info!("Index to search {:}", _index_name);
+	log::debug!("Process/Report index to search {:}", _index_name);
 
+	let mut _document: Process = Process::from_id(_id);
     _document.index_value = Some(_index_name);
     let _process_document: &dyn IndexDocument = &_document;
     match get_by_id(_process_document).await {
         Ok(value) => {
 			let process: Process = parse_process(value);
-			log::info!("Finded Process {:?} Value: {:?}", process.name, process.id);
-
-            Ok(
-                process
-            )
+			log::debug!("Finded Process/Report {:?} Value: {:?}", process.name, process.id);
+			Ok(process)
         },
         Err(error) => {
 			log::error!("{}", error);
@@ -322,7 +323,11 @@ pub async fn process_from_id(_id: Option<String>, _language: Option<&String>, _d
     }
 }
 
-pub async fn processes(_language: Option<&String>, _search_value: Option<&String>, _dictionary_code: Option<&String>) -> Result<ProcessListResponse, std::io::Error> {
+pub async fn processes(
+	_language: Option<&String>,
+	_search_value: Option<&String>,
+	_dictionary_code: Option<&String>
+) -> Result<ProcessListResponse, std::io::Error> {
 	let _search_value: String = match _search_value {
         Some(value) => value.clone(),
         None => "".to_owned()
@@ -332,11 +337,11 @@ pub async fn processes(_language: Option<&String>, _search_value: Option<&String
 	let _index_name: String = match get_index_name("process".to_string(), _language, _dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
-			log::error!("Index name error: {:?}", error.to_string());
+			log::error!("Process/Report index name error: {:?}", error.to_string());
 			return Err(Error::new(ErrorKind::InvalidData.into(), error))
 		}
 	};
-	log::info!("Index to search {:}", _index_name);
+	log::debug!("Process/Report index to search {:}", _index_name);
 
 	let mut _document: Process = Process::default();
     _document.index_value = Some(_index_name);

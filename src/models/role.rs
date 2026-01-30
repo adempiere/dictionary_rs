@@ -148,30 +148,34 @@ impl IndexDocument for Role {
 	}
 }
 
-pub async fn role_from_id(_uuid: Option<&String>, _client_uuid: Option<&String>, _dictionary_code: Option<&String>) -> Result<Role, String> {
+pub async fn role_from_id(
+	_uuid: Option<&String>,
+	_client_uuid: Option<&String>,
+	_dictionary_code: Option<&String>
+) -> Result<Role, String> {
 	if _uuid.is_none() || _uuid.as_deref().map_or(false, |s| s.trim().is_empty()) {
 		return Err(
 			Error::new(ErrorKind::InvalidData.into(), "Role Identifier is Mandatory").to_string()
 		);
 	}
-	let mut _document: Role = Role::from_id(_uuid);
 
 	let _index_name: String = match get_index_name(_client_uuid).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
-			log::error!("Index name error: {:?}", error.to_string());
+			log::error!("Role index name error: {:?}", error.to_string());
 			return Err(error.to_string())
 		}
 	};
-	log::info!("Index to search {:}", _index_name);
+	log::debug!("Role index to search {:}", _index_name);
 
+	let mut _document: Role = Role::from_id(_uuid);
 	_document.index_value = Some(_index_name);
     let _role_document: &dyn IndexDocument = &_document;
     match get_by_id(_role_document).await {
         Ok(value) => {
 			match serde_json::from_value::<Role>(value) {
 				Ok(role) => {
-					log::info!("Finded Role {:?} Value: {:?}", role.name, role.id);
+					log::debug!("Finded Role {:?} Value: {:?}, Tree: {:?}", role.name, role.id, role.tree_id);
 					Ok(role)
 				},
 				Err(error) => {
@@ -187,7 +191,9 @@ pub async fn role_from_id(_uuid: Option<&String>, _client_uuid: Option<&String>,
     }
 }
 
-async fn get_index_name(_client_uuid: Option<&String>) -> Result<String, std::io::Error> {
+async fn get_index_name(
+	_client_uuid: Option<&String>
+) -> Result<String, std::io::Error> {
 	if _client_uuid.is_none() || _client_uuid.as_deref().map_or(false, |s| s.trim().is_empty()) {
 		return Err(
 			Error::new(ErrorKind::InvalidData.into(), "Client is Mandatory")
@@ -200,11 +206,11 @@ async fn get_index_name(_client_uuid: Option<&String>) -> Result<String, std::io
 	//  Find index
 	match exists_index(_index.to_owned()).await {
 		Ok(_) => {
-			log::info!("Find with role index `{:}`", _index);
+			log::debug!("Find with role index index `{:}`", _index);
 			Ok(_index)
 		},
 		Err(_) => {
-			log::error!("No index found `{:}`", _index);
+			log::error!("No role index found `{:}`", _index);
             return Err(Error::new(ErrorKind::InvalidData.into(), "No Index Found"))
 		}
 	}

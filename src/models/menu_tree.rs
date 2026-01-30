@@ -130,13 +130,16 @@ impl IndexDocument for MenuTree {
 	}
 }
 
-pub async fn menu_tree_from_id(_id: Option<String>, _dictionary_code: Option<&String>) -> Result<MenuTree, std::io::Error> {
+
+pub async fn menu_tree_from_id(
+	_id: Option<String>,
+	_dictionary_code: Option<&String>
+) -> Result<MenuTree, std::io::Error> {
 	if _id.is_none() || _id.as_deref().map_or(false, |s| s.trim().is_empty()) {
 		return Err(
-			Error::new(ErrorKind::InvalidData.into(), "MenuTree Identifier is Mandatory")
+			Error::new(ErrorKind::InvalidData.into(), "Menu Tree Identifier is Mandatory")
 		);
 	}
-	let mut _document: MenuTree = MenuTree::from_id(_id);
 
 	let mut _index_name: String = "menu_tree".to_string();
 	if let Some(code) = _dictionary_code {
@@ -145,14 +148,15 @@ pub async fn menu_tree_from_id(_id: Option<String>, _dictionary_code: Option<&St
 			_index_name.push_str(code);
 		}
 	}
-	log::info!("Index to search {:}", _index_name);
+	log::debug!("Menu Tree index to search {:}", _index_name);
 
+	let mut _document: MenuTree = MenuTree::from_id(_id);
 	_document.index_value = Some(_index_name);
     let _menu_document: &dyn IndexDocument = &_document;
     match get_by_id(_menu_document).await {
         Ok(value) => {
 			let mut menu: MenuTree = serde_json::from_value(value).unwrap();
-			log::info!("Finded Menu `{:?}` Tree Value: {:?}", menu.name, menu.id);
+			log::debug!("Finded Menu `{:?}` Tree Value: {:?}", menu.name, menu.id);
 			// sort menu children nodes by sequence
 			if let Some(ref mut children) = menu.children {
 				children.sort_by_key(|child: &MenuTree| child.sequence.clone().unwrap_or(0));

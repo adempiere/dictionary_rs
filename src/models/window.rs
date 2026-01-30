@@ -332,30 +332,33 @@ pub fn parse_window(value: Value) -> Window {
 }
 
 
-pub async fn window_from_id(_id: Option<String>, _language: Option<&String>, _dictionary_code: Option<&String>) -> Result<Window, String> {
+pub async fn window_from_id(
+	_id: Option<String>,
+	_language: Option<&String>,
+	_dictionary_code: Option<&String>
+) -> Result<Window, String> {
 	if _id.is_none() || _id.as_deref().map_or(false, |s| s.trim().is_empty()) {
 		return Err(
 			Error::new(ErrorKind::InvalidData.into(), "Window Identifier is Mandatory").to_string()
 		);
 	}
-	let mut _document: Window = Window::from_id(_id.to_owned());
 
 	let _index_name: String = match get_index_name("window".to_string(), _language,_dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
-			log::error!("Index name error to {:?}: {:?}", _id.to_owned(), error.to_string());
+			log::error!("Window index name error to {:?}: {:?}", _id.to_owned(), error.to_string());
 			return Err(error.to_string())
 		}
 	};
-	log::info!("Index to search {:}", _index_name);
+	log::debug!("Window index to search {:}", _index_name);
 
+	let mut _document: Window = Window::from_id(_id.to_owned());
     _document.index_value = Some(_index_name);
     let _window_document: &dyn IndexDocument = &_document;
     match get_by_id(_window_document).await {
         Ok(value) => {
 			let window: Window = parse_window(value);
-			log::info!("Finded Window {:?} Value: {:?}", window.name, window.id);
-
+			log::debug!("Finded Window {:?} Value: {:?}", window.name, window.id);
             Ok(window)
         },
         Err(error) => {
@@ -365,7 +368,11 @@ pub async fn window_from_id(_id: Option<String>, _language: Option<&String>, _di
     }
 }
 
-pub async fn windows(_language: Option<&String>, _search_value: Option<&String>, _dictionary_code: Option<&String>) -> Result<WindowListResponse, std::io::Error> {
+pub async fn windows(
+	_language: Option<&String>,
+	_search_value: Option<&String>,
+	_dictionary_code: Option<&String>
+) -> Result<WindowListResponse, std::io::Error> {
 	let _search_value: String = match _search_value {
         Some(value) => value.clone(),
         None => "".to_owned()
@@ -375,11 +382,11 @@ pub async fn windows(_language: Option<&String>, _search_value: Option<&String>,
 	let _index_name: String = match get_index_name("window".to_string(), _language, _dictionary_code).await {
 		Ok(index_name) => index_name,
 		Err(error) => {
-			log::error!("Index name error: {:?}", error.to_string());
+			log::error!("Window index name error: {:?}", error.to_string());
 			return Err(Error::new(ErrorKind::InvalidData.into(), error))
 		}
 	};
-	log::info!("Index to search {:}", _index_name);
+	log::debug!("Window index to search {:}", _index_name);
 
 	let mut _document: Window = Window::default();
     _document.index_value = Some(_index_name);

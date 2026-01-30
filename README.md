@@ -75,14 +75,14 @@ docker build -t dictionary-rs -f docker/Dockerfile .
 After build just run it
 
 ```bash
-docker run -d -p 7878:7878 --name dictionary-rs -e KAFKA_ENABLED="N" -e KAFKA_QUEUES="menu" -e KAFKA_HOST="0.0.0.0:29092" -e KAFKA_GROUP="default" -e OPENSEARCH_URL="http://localhost:9200" dictionary-rs
+docker run -d -p 7878:7878 --name dictionary-rs -e KAFKA_ENABLED="N" -e KAFKA_QUEUES="menu_item" -e KAFKA_HOST="0.0.0.0:29092" -e KAFKA_GROUP="default" -e OPENSEARCH_URL="http://localhost:9200" dictionary-rs
 ```
 
 #### Environment variables
 
 - `PORT`: Internal port for container. Default: `7878`
 - `KAFKA_ENABLED`: Define if the kafka consumer is enabled. Default: `Y`.
-- `KAFKA_QUEUES`: Apply for `KAFKA_ENABLED` flag, this can subscribe to many topics using space between topic. Default: `menu browser form process window`.
+- `KAFKA_QUEUES`: Apply for `KAFKA_ENABLED` flag, this can subscribe to many topics using space between topic. Default: `browser form process window menu_item menu_tree role`.
 - `KAFKA_HOST`: Kafka cluster and port for connect. Default: `0.0.0.0:29092`.
 - `KAFKA_GROUP`: Kafka group for subscription. Default: `default`.
 - `OPENSEARCH_URL`: Open Search service host and port. Default `http://localhost:9200`.

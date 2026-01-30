@@ -16,7 +16,7 @@ async fn main() {
 	let port: String = match env::var("PORT") {
 		Ok(value) => value,
 		Err(_) => {
-			log::info!("Variable `PORT` Not found from enviroment, as default 7878");
+			log::warn!("Variable `PORT` Not found from enviroment, as default 7878");
 			"7878".to_owned()
 		}.to_owned()
 	};
@@ -36,7 +36,7 @@ async fn main() {
 	let kafka_enabled: String = match env::var("KAFKA_ENABLED") {
 		Ok(value) => value,
 		Err(_) => {
-			log::info!("Variable `KAFKA_ENABLED` Not found from enviroment, as default Y");
+			log::warn!("Variable `KAFKA_ENABLED` Not found from enviroment, as default Y");
 			"Y".to_owned()
 		}.to_owned()
 	};
@@ -59,7 +59,7 @@ fn routes() -> Router {
 	let allowed_origin: String = match env::var("ALLOWED_ORIGIN") {
 		Ok(value) => value,
 		Err(_) => {
-			log::info!("Variable `ALLOWED_ORIGIN` Not found from enviroment");
+			log::warn!("Variable `ALLOWED_ORIGIN` Not found from enviroment");
 			"*".to_owned()
 		}.to_owned()
 	};
@@ -159,7 +159,6 @@ fn routes() -> Router {
 	;
 
 	log::info!("{:#?}", router);
-
 	router
 }
 
@@ -180,7 +179,7 @@ async fn get_system_info<'a>(_req: &mut Request, _res: &mut Response) {
 	let version: String = match env::var("VERSION") {
 		Ok(value) => value,
 		Err(_) => {
-			log::info!("Variable `VERSION` Not found from enviroment, as default `1.0.0-dev`");
+			log::warn!("Variable `VERSION` Not found from enviroment, as default `1.0.0-dev`");
 			"1.0.0-dev".to_owned()
 		}.to_owned()
 	};
@@ -189,15 +188,15 @@ async fn get_system_info<'a>(_req: &mut Request, _res: &mut Response) {
 	let kafka_enabled: String = match env::var("KAFKA_ENABLED") {
 		Ok(value) => value,
 		Err(_) => {
-			log::info!("Variable `KAFKA_ENABLED` Not found from enviroment, as default Y");
+			log::warn!("Variable `KAFKA_ENABLED` Not found from enviroment, as default Y");
 			"Y".to_owned()
 		}.to_owned()
 	};
 	let kafka_queues: String = match env::var("KAFKA_QUEUES") {
 		Ok(value) => value.clone(),
 		Err(_) => {
-			log::info!("Variable `KAFKA_QUEUES` Not found from enviroment, loaded with `default` value");
-			"menu process browser window".to_owned()
+			log::warn!("Variable `KAFKA_QUEUES` Not found from enviroment, loaded with `default` value");
+			"browser form process window menu_item menu_tree role".to_owned()
 		}.to_owned()
 	};
 
@@ -228,7 +227,7 @@ async fn get_forms<'a>(_req: &mut Request, _res: &mut Response) {
 		// fill with query url
 		_id = _req.queries().get("id").map(|s| s.to_owned());
 	}
-	log::info!("Get by ID: {:?}", _id);
+	log::debug!("Get by ID: {:?}", _id);
 
 	let _language: Option<&String> = _req.queries().get("language");
 	let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
@@ -295,7 +294,7 @@ async fn get_processes<'a>(_req: &mut Request, _res: &mut Response) {
 		// fill with query url
 		_id = _req.queries().get("id").map(|s| s.to_owned());
 	}
-	log::info!("Get by ID: {:?}", _id);
+	log::debug!("Get by ID: {:?}", _id);
 
 	let _language: Option<&String> = _req.queries().get("language");
 	let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
@@ -340,7 +339,7 @@ async fn get_browsers<'a>(_req: &mut Request, _res: &mut Response) {
 		// fill with query url
 		_id = _req.queries().get("id").map(|s| s.to_owned());
 	}
-	log::info!("Get by ID: {:?}", _id);
+	log::debug!("Get by ID: {:?}", _id);
 
 	let _language: Option<&String> = _req.queries().get("language");
 	let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
@@ -384,7 +383,7 @@ async fn get_windows<'a>(_req: &mut Request, _res: &mut Response) {
 	if _id.is_none() {
 		_id = _req.queries().get("id").map(|s| s.to_owned());
 	}
-	log::info!("Get by ID: {:?}", _id);
+	log::debug!("Get by ID: {:?}", _id);
 
 	let _language: Option<&String> = _req.queries().get("language");
 	let _dictionary_code: Option<&String> = _req.queries().get("dictionary_code");
@@ -426,7 +425,7 @@ async fn consume_queue() {
 	let kafka_host: String = match env::var("KAFKA_HOST") {
 		Ok(value) => value,
 		Err(_) => {
-			log::info!("Variable `KAFKA_HOST` Not found from enviroment, loaded from local IP");
+			log::warn!("Variable `KAFKA_HOST` Not found from enviroment, loaded from local IP");
 			"127.0.0.1:9092".to_owned()
 		}.to_owned(),
 	};
@@ -435,46 +434,51 @@ async fn consume_queue() {
 	let kafka_group: String = match env::var("KAFKA_GROUP") {
 		Ok(value) => value,
 		Err(_) => {
-			log::info!("Variable `KAFKA_GROUP` Not found from enviroment, loaded with `default` value");
+			log::warn!("Variable `KAFKA_GROUP` Not found from enviroment, loaded with `default` value");
 			"default".to_owned()
 		}.to_owned(),
 	};
 	let kafka_queues: String = match env::var("KAFKA_QUEUES") {
 		Ok(value) => value.clone(),
 		Err(_) => {
-			log::info!("Variable `KAFKA_QUEUES` Not found from enviroment, loaded with `default` value");
-			"menu process browser window".to_owned()
+			log::warn!("Variable `KAFKA_QUEUES` Not found from enviroment, loaded with `default` value");
+			"browser form process window menu_item menu_tree role".to_owned()
 		}.to_owned()
 	};
 
-    let topics: Vec<&str> = kafka_queues.split_whitespace().collect();
-	log::info!("Kafka Topics to Subscribe: {:?}", topics.to_owned());
+	let topics_list: Vec<&str> = kafka_queues.split_whitespace().collect();
+	log::info!("Kafka Topics to Subscribe: {:?}", topics_list.to_owned());
 
-    let consumer_result = create_consumer(&kafka_host, &kafka_group, &topics);
+	let consumer_result= create_consumer(&kafka_host, &kafka_group, &topics_list);
     match consumer_result {
         Ok(consumer) => {
             loop {
                 match consumer.recv().await {
                     Err(e) => log::error!("Kafka error: {}", e),
                     Ok(message) => {
-						let payload: &str = match message.payload_view::<str>() {
-                            None => "",
-                            Some(Ok(s)) => s,
-                            Some(Err(e)) => {
-                                log::info!("Error while deserializing message payload: {:?}", e);
-                                ""
-                            }
-                        };
 						let key: &str = match message.key_view::<str>() {
                             None => "",
                             Some(Ok(s)) => s,
                             Some(Err(e)) => {
-                                log::info!("Error while deserializing message key: {:?}", e);
+								log::error!("Error while deserializing message key: {:?}", e);
                                 ""
                             }
                         };
 						let event_type: String = key.replace("\"", "");
 						let topic: &str = message.topic();
+						if (topics_list.contains(&topic)) == false {
+							log::warn!("Topic {:?} not allowed to be processed", topic);
+							continue;
+						}
+
+						let payload: &str = match message.payload_view::<str>() {
+							None => "",
+							Some(Ok(s)) => s,
+							Some(Err(e)) => {
+								log::error!("Error while deserializing message payload: {:?}", e);
+								""
+							}
+						};
                         if topic == "menu_item" {
 							let _document: MenuItemDocument = match serde_json::from_str(payload) {
                                 Ok(value) => value,
@@ -612,7 +616,7 @@ async fn consume_queue() {
 async fn process_index(_event_type: String, _document: &dyn IndexDocument) -> Result<bool, std::string::String> {
 	let index_name: String = _document.index_name();
 	let id: String = _document.id();
-	log::info!("Event `{:}` into index {:} with id {:} ", _event_type, index_name, id);
+	log::debug!("Event `{:}` into index {:} with id {:} ", _event_type, index_name, id);
 
     if _event_type.eq("new") {
         match create(_document).await {

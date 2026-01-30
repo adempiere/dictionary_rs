@@ -13,24 +13,47 @@ impl ClientContext for CustomContext {}
 
 impl ConsumerContext for CustomContext {
 	fn pre_rebalance(&self, consumer: &BaseConsumer<Self>, rebalance: &Rebalance) {
-		let assignment = consumer.assignment().unwrap_or_default();
-		log::info!("Consumer {:?}, Pre rebalance {:?}", assignment, rebalance);
+		match consumer.assignment() {
+			Ok(assignment) => {
+				log::info!("Consumer {:?}, Pre rebalance {:?} successful", rebalance, assignment);
+			},
+			Err(e) => {
+				log::error!("Error during pre rebalance assignment: {}", e);
+			},
+		}
 	}
 
 	fn post_rebalance(&self, consumer: &BaseConsumer<Self>, rebalance: &Rebalance) {
-		let assignment = consumer.assignment().unwrap_or_default();
-		log::info!("Consumer {:?}, Pre rebalance {:?}", assignment, rebalance);
+		match consumer.assignment() {
+			Ok(assignment) => {
+				log::info!("Consumer {:?}, Post rebalance {:?} successful", rebalance, assignment);
+			},
+			Err(e) => {
+				log::error!("Error during post rebalance assignment: {}", e);
+			},
+		}
 	}
 
 	fn commit_callback(&self, result: KafkaResult<()>, _offsets: &TopicPartitionList) {
-		log::info!("Committing offsets: {:?}", result);
+		match result {
+			Ok(_) => {
+				log::info!("Offsets committed successfully: {:?}", _offsets)
+			},
+			Err(e) => {
+				log::error!("Error committing offsets: {}", e)
+			},
+		}
 	}
 }
 
 // A type alias with your custom consumer can be created for convenience.
 type LoggingConsumer = StreamConsumer<CustomContext>;
 
-pub fn create_consumer(brokers: &str, group_id: &str, topics: &[&str]) -> Result<LoggingConsumer, Error> {
+pub fn create_consumer(
+	brokers: &str,
+	group_id: &str,
+	topics_list: &[&str]
+) -> Result<LoggingConsumer, Error> {
 	let context: CustomContext = CustomContext;
 
 	let client_config: ClientConfig = {
@@ -60,22 +83,25 @@ pub fn create_consumer(brokers: &str, group_id: &str, topics: &[&str]) -> Result
 		config
 	};
 
-	let consumer_value : KafkaResult<LoggingConsumer> = client_config.create_with_context(context);
-	if consumer_value.is_err() {
-		return Err(Error::new(ErrorKind::InvalidData.into(), consumer_value.err().unwrap()))
-	}
-
-	let consumer: StreamConsumer<CustomContext> = consumer_value.unwrap();
-	log::info!("Successfully connected to Kafka brokers: {:?}", &brokers);
+	let consumer: LoggingConsumer = match client_config.create_with_context(context) {
+		Ok(consumer) => {
+			log::info!("Successfully connected to Kafka brokers: {}", brokers);
+			consumer
+		}
+		Err(e) => {
+			log::error!("Failed to create Kafka consumer: {}", e);
+			return Err(Error::new(ErrorKind::Other, format!("Kafka error: {}", e)));
+		}
+	};
 
 	loop {
-		match consumer.subscribe(&topics) {
+		match consumer.subscribe(&topics_list) {
 			Ok(()) => {
-				log::info!("Subscribed to kafka topics successfully: {:?}", topics.join(" "));
+				log::info!("Subscribed to kafka topics successfully: {:?}", topics_list.join(" "));
 				break
 			},
 			Err(e) => {
-				log::warn!("Can't subscribe to kafka specified topics '{:?}': {}", topics, e);
+				log::warn!("Can't subscribe to kafka specified topics '{:?}': {}", topics_list, e);
 			},
 		}
 
@@ -85,3 +111,21 @@ pub fn create_consumer(brokers: &str, group_id: &str, topics: &[&str]) -> Result
 
 	Ok(consumer)
 }
+
+
+// pub fn create_consumer_with_config(
+// 	brokers: &str,
+// 	group_id: &str,
+// 	topics: &[&str],
+// 	config_overrides: &[(&str, &str)],
+// ) -> Result<LoggingConsumer, Error> {
+//     let mut consumer = create_consumer(brokers, group_id, topics)?;
+// 	for (key, value) in config_overrides {
+// 		match consumer.set_config_option(key, value) {
+// 			Ok(_) => log::info!("Set Kafka consumer config option: {} = {}", key, value),
+// 			Err(e) => log::warn!("Failed to set Kafka consumer config option {}: {}", key, e),
+// 		}
+// 	}
+
+// 	Ok(consumer)
+// }
