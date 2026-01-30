@@ -3,7 +3,7 @@ use salvo::prelude::*;
 use serde_json::{json, Value};
 use std::{io::ErrorKind, io::Error};
 
-use crate::{controller::opensearch::{find, get_by_id, IndexDocument}, models::get_index_name};
+use crate::{controller::opensearch::{IndexDocument, find, get_by_id}, models::get_index_name};
 
 #[derive(Deserialize, Extractible, Debug, Clone)]
 #[salvo(extract(default_source(from = "body")))]
@@ -178,11 +178,11 @@ impl Default for Process {
 }
 
 impl Process {
-    pub fn from_id(_id: Option<String>) -> Self {
+	pub fn from_id(_id: Option<String>) -> Self {
 		let mut process: Process = Process::default();
-        process.id = _id;
-        process
-    }
+		process.id = _id;
+		process
+	}
 
 	pub fn to_string(&self) -> String {
 		format!("Process/Report: UUID {:?}, ID {:?}, Name {:?}, Index: {:?}", self.uuid, self.internal_id, self.name, self.index_value)
@@ -198,18 +198,23 @@ impl IndexDocument for Process {
 					"id" : { "type" : "keyword" },
 					"internal_id" : { "type" : "integer" },
 					"code" : { "type" : "keyword" },
-                    "name" : { "type" : "text" },
-                    "description" : { "type" : "text" },
+					"name": {
+						"type": "text",
+						"fields": {
+							"keyword": { "type": "keyword" }
+						}
+					},
+					"description" : { "type" : "text" },
 					"help" : { "type" : "text" },
 					"is_report" : { "type" : "boolean" }
-                }
-            }
-        })
-    }
+				}
+			}
+		})
+	}
 
-    fn data(self: &Self) -> serde_json::Value {
-        json!(self)
-    }
+	fn data(self: &Self) -> serde_json::Value {
+		json!(self)
+	}
 
 	fn id(self: &Self) -> String {
 		self.id.to_owned().unwrap_or_else(|| {
@@ -218,26 +223,26 @@ impl IndexDocument for Process {
 		})
 	}
 
-    fn index_name(self: &Self) -> String {
-        match &self.index_value {
-            Some(value) => value.to_string(),
-            None => "process".to_string(),
-        }
-    }
+	fn index_name(self: &Self) -> String {
+		match &self.index_value {
+			Some(value) => value.to_string(),
+			None => "process".to_string(),
+		}
+	}
 
-    fn find(self: &Self, _search_value: String) -> serde_json::Value {
+	fn find(self: &Self, _search_value: String) -> serde_json::Value {
 		let mut query: String = "*".to_owned();
-        query.push_str(&_search_value.to_owned());
-        query.push_str(&"*".to_owned());
+		query.push_str(&_search_value.to_owned());
+		query.push_str(&"*".to_owned());
 
-        json!({
-            "query": {
-                "query_string": {
-                  "query": query
-                }
-            }
-        })
-    }
+		json!({
+			"query": {
+				"query_string": {
+					"query": query
+				}
+			}
+		})
+	}
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
