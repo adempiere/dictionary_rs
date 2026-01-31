@@ -40,6 +40,12 @@ jobs:
     # Skip step based on secret
     if: needs.check-docker-secrets.outputs.is_have_secrets == 'true'
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/amd64/v2
+          - linux/arm64/v8
     steps:
       - name: Check out the repo
         uses: actions/checkout@v5
@@ -62,7 +68,7 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile
-          platforms: linux/amd64,linux/amd64/v2,linux/arm64/v8
+          platforms: ${{ matrix.platform }}
           push: true
           build-args: |
             BUILD_VERSION=${{ github.event.release.tag_name }}
