@@ -1,0 +1,26 @@
+# .dockerignore
+target/
+**/*.rs.bk
+**/.git/
+**/.gitignore
+**/Dockerfile
+**/docker-compose.yml
+**/.env.local
+**/.env.*.local
+# **/.env
+**/node_modules/
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/.idea/
+**/.vscode/
+**/*.iml
+**/.project
+**/.classpath
+**/.settings/
+**/*.swp
+**/*.swo
+**/*~
+**/.DS_Store
+
+# !**/env_template.env
