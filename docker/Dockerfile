@@ -15,7 +15,7 @@ RUN apt-get update && \
 		libssl-dev && \
 	rm -rf /var/lib/apt/lists/* && \
 	cargo install --config net.git-fetch-with-cli=true --path . && \
-	mv docker/.env /usr/local/cargo/bin/
+	mv docker/env_template.env /usr/local/cargo/bin/
 
 
 
@@ -63,11 +63,12 @@ WORKDIR /opt/apps/server
 
 COPY --from=builder /usr/local/cargo/bin/server /usr/local/bin/server
 
-COPY --from=builder /usr/local/cargo/bin/.env /opt/apps/server/.env
+COPY --from=builder /usr/local/cargo/bin/env_template.env /opt/apps/server/env_template.env
 
 
 # Create env file
-RUN sed -i "s|info|$RUST_LOG|g" /opt/apps/server/.env && \
+RUN cp /opt/apps/server/env_template.env /opt/apps/server/.env && \
+	sed -i "s|info|$RUST_LOG|g" /opt/apps/server/.env && \
 	sed -i "s|7878|$PORT|g" /opt/apps/server/.env && \
 	sed -i "s|allowed_origin|$ALLOWED_ORIGIN|g" /opt/apps/server/.env && \
 	sed -i "s|kafka_enabled|$KAFKA_ENABLED|g" /opt/apps/server/.env && \

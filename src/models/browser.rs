@@ -89,7 +89,8 @@ pub struct Reference {
 	pub table_name: Option<String>,
 	pub reference_id: Option<i32>,
 	pub reference_value_id: Option<i32>,
-	pub context_column_names: Option<Vec<String>>
+	pub context_column_names: Option<Vec<String>>,
+	pub access_level: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
