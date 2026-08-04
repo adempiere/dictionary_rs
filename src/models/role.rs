@@ -3,7 +3,7 @@ use salvo::prelude::*;
 use serde_json::json;
 use std::{io::ErrorKind, io::Error};
 
-use crate::controller::{opensearch_document::{DocumentProvider, IndexDocument, get_by_id}, opensearch_index::exists_index};
+use crate::controller::{opensearch_document::{DocumentProvider, IndexDocument, get_by_id}, opensearch_index::exists_index_cached};
 
 use super::client_index_only;
 
@@ -211,7 +211,7 @@ async fn get_index_name(
 	let _index: String = client_index_only(_base_index.to_owned(), _client_uuid);
 
 	//  Find index
-	match exists_index(_index.to_owned()).await {
+	match exists_index_cached(_index.to_owned()).await {
 		Ok(_) => {
 			log::debug!("Find with role index index `{:}`", _index);
 			Ok(_index)
