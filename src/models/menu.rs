@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use salvo::prelude::*;
-use std::{io::ErrorKind, io::Error};
+use std::{collections::HashMap, io::ErrorKind, io::Error};
 
 use crate::models::{menu_item::menu_items_from_role, menu_tree::menu_tree_from_id, role::role_from_id};
 
@@ -192,9 +192,15 @@ pub async fn allowed_menu(
     };
 	log::debug!("Loading menu tree {:?}", _tree);
 
-	// Merge tree with menu
+	// Merge tree with menu. Index items by internal_id once so the recursive
+	// merge below does O(1) lookups instead of a linear scan (and a full clone
+	// of the vector) per tree node.
 	let _tree_children: Option<Vec<MenuTree>> = _tree.children;
-	let menus: Vec<Menu> = load_valid_children(_tree_children, _menu_items);
+	let _menu_items_by_id: HashMap<i32, MenuItem> = _menu_items
+		.into_iter()
+		.filter_map(|item| item.internal_id.map(|id| (id, item)))
+		.collect();
+	let menus: Vec<Menu> = load_valid_children(_tree_children, &_menu_items_by_id);
 
 	Ok(MenuListResponse {
 		// Main Menu
@@ -205,12 +211,11 @@ pub async fn allowed_menu(
 
 fn load_valid_children(
 	_tree: Option<Vec<MenuTree>>,
-	_allowed_menu_items: Vec<MenuItem>
+	_allowed_menu_items: &HashMap<i32, MenuItem>
 ) -> Vec<Menu> {
 	if _tree.is_none() {
 		return Vec::new()
 	}
-	// let _tree_menu: Vec<MenuTree> = _tree.unwrap();
 	let _tree_menu: Vec<MenuTree> = match _tree {
 		Some(tree) => {
 			tree
@@ -222,43 +227,39 @@ fn load_valid_children(
 
 	let mut menus: Vec<Menu> = Vec::new();
 	for _tree_value in _tree_menu {
-		let _allowed_item: Option<MenuItem> = _allowed_menu_items.to_owned().into_iter().find(|_item: &MenuItem| _item.internal_id.is_some() && _item.internal_id == _tree_value.node_id);
-		if _allowed_item.is_some() {
-			let mut allowed_item: MenuItem = _allowed_item.unwrap();
+		let _allowed_item: Option<&MenuItem> = _tree_value.node_id.and_then(|node_id| _allowed_menu_items.get(&node_id));
+		if let Some(item_ref) = _allowed_item {
+			let mut allowed_item: MenuItem = item_ref.clone();
 			// overwrite sequence null by that of the node
 			allowed_item.sequence = _tree_value.sequence;
 
-			let mut _loaded_menu: Option<Menu> = Some(Menu::from_menu_item(allowed_item));
-			if _loaded_menu.is_some() {
-				let mut _current_menu: Menu = _loaded_menu.unwrap();
+			let mut _current_menu: Menu = Menu::from_menu_item(allowed_item);
 
-				let _parent_id: i32 = match _tree_value.parent_id {
-					Some(value) => value,
-					None => 0
-				};
-				_current_menu.parent_id = Some(_parent_id);
+			let _parent_id: i32 = match _tree_value.parent_id {
+				Some(value) => value,
+				None => 0
+			};
+			_current_menu.parent_id = Some(_parent_id);
 
-				if _tree_value.children.is_some() {
-					let mut children_loaded_menu: Vec<Menu> = load_valid_children(_tree_value.children, _allowed_menu_items.to_owned());
+			if _tree_value.children.is_some() {
+				let mut children_loaded_menu: Vec<Menu> = load_valid_children(_tree_value.children, _allowed_menu_items);
 
-					// sort child nodes by sequence
-					children_loaded_menu.sort_by(|a: &Menu, b: &Menu| a.sequence.cmp(&b.sequence));
+				// sort child nodes by sequence
+				children_loaded_menu.sort_by(|a: &Menu, b: &Menu| a.sequence.cmp(&b.sequence));
 
-					_current_menu.children = Some(children_loaded_menu);
-				}
-
-				// Verify if the node is summary and has children with action and not just more summaries
-				if _current_menu.is_summary.unwrap_or(false) {
-					let has_action_id: bool = has_action_in_childrens(&_current_menu);
-					if !has_action_id {
-						// If no action was found in the children, do not add the menu to the list
-						continue;
-					}
-				}
-
-				_loaded_menu = Some(_current_menu);
-				menus.push(_loaded_menu.unwrap());
+				_current_menu.children = Some(children_loaded_menu);
 			}
+
+			// Verify if the node is summary and has children with action and not just more summaries
+			if _current_menu.is_summary.unwrap_or(false) {
+				let has_action_id: bool = has_action_in_childrens(&_current_menu);
+				if !has_action_id {
+					// If no action was found in the children, do not add the menu to the list
+					continue;
+				}
+			}
+
+			menus.push(_current_menu);
 		}
 	}
 
