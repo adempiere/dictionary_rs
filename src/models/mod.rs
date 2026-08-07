@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use salvo::prelude::*;
 use std::{io::ErrorKind, io::Error};
 
-use crate::controller::opensearch_index::exists_index;
+use crate::controller::opensearch_index::exists_index_cached;
 
 
 #[derive(Deserialize, Serialize, Extractible, Debug, Clone)]
@@ -82,7 +82,7 @@ async fn get_index_name(
 	}
 
 	//  Find index
-	match exists_index(_language_index.to_owned()).await {
+	match exists_index_cached(_language_index.to_owned()).await {
 		Ok(_) => {
 			log::debug!("Find with language index `{:}`", _language_index);
 			Ok(_language_index)

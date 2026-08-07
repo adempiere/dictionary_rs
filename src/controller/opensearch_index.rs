@@ -1,8 +1,28 @@
+use std::collections::HashMap;
+use std::sync::{OnceLock, RwLock};
+
 use opensearch::{OpenSearch, http::response::Response, indices::{IndicesCreateParts, IndicesDeleteParts, IndicesGetParts}};
 use salvo::http::StatusCode;
 
 use crate::controller::{opensearch_client::create_opensearch_client, opensearch_document::{IndexDocument, create, delete}};
 
+static INDEX_EXISTS_CACHE: OnceLock<RwLock<HashMap<String, bool>>> = OnceLock::new();
+
+/// Cached wrapper around `exists_index` for hot-path lookups (e.g. resolving the
+/// role/menu_item index name on every `security/menus` request). Index names are
+/// stable at runtime, so the HEAD round-trip to OpenSearch only needs to happen
+/// once per index name per process. NOT used by index management operations
+/// (`create_index_definition`/`delete_index_definition`), which must see fresh state.
+pub async fn exists_index_cached(_index_name: String) -> Result<bool, String> {
+	let cache: &RwLock<HashMap<String, bool>> = INDEX_EXISTS_CACHE.get_or_init(|| RwLock::new(HashMap::new()));
+	if let Some(&exists) = cache.read().unwrap().get(&_index_name) {
+		return Ok(exists);
+	}
+
+	let exists: bool = exists_index(_index_name.clone()).await?;
+	cache.write().unwrap().insert(_index_name, exists);
+	Ok(exists)
+}
 
 pub async fn exists_index(_index_name: String) -> Result<bool, String> {
 	let client: OpenSearch = create_opensearch_client()?;
