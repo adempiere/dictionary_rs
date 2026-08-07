@@ -171,14 +171,21 @@ pub async fn allowed_menu(
 		)
 	}
 
-	let _menu_items: Result<Vec<MenuItem>, Error> = menu_items_from_role(_role.to_owned(), _language, _dictionary_code, None, None).await;
+	// menu_items (depends on the resolved role) and the menu tree (depends only on
+	// role.tree_uuid, already available) are independent of each other, so fetch
+	// them concurrently instead of round-tripping to OpenSearch one after the other.
+	let _tree_uuid = _role.tree_uuid.clone();
+	let (_menu_items, _tree_result) = tokio::join!(
+		menu_items_from_role(_role.to_owned(), _language, _dictionary_code, None, None),
+		menu_tree_from_id(_tree_uuid, _dictionary_code)
+	);
+
 	let _menu_items: Vec<MenuItem> = match _menu_items {
 		Ok(menu) => menu,
 		Err(error) => return Err(Error::new(ErrorKind::InvalidData.into(), error))
 	};
 	log::debug!("Loading allowed menu_items, total: {:?}", _menu_items.len());
 
-	let _tree_result: Result<MenuTree, Error> = menu_tree_from_id(_role.tree_uuid, _dictionary_code).await;
 	let _tree: MenuTree = match _tree_result {
         Ok(tree) => tree,
         Err(error) => return Err(Error::new(ErrorKind::InvalidData.into(), error))
